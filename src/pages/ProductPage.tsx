@@ -912,7 +912,21 @@ const ProductPage = () => {
           </div>
 
 
-          {/* Sprint 3 — Cross-sell "Complete o kit" (logo após CTA principal) */}
+          {/* Description Section — exibida antes do cross-sell */}
+          <div className="mb-12">
+            <h2 className="font-display text-2xl text-foreground mb-6">Descrição do produto</h2>
+            <div className="bg-card rounded-xl border border-border p-6">
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                {product.longDescription || product.description || `${product.name} artesanal da LeleCute.
+
+Cada peça é feita à mão com ingredientes hipoalergênicos de alta qualidade. Perfeito para lembrancinhas de maternidade, chá de bebê, batizado, casamento, aniversário e eventos corporativos.
+
+Personalizamos conforme o tema do seu evento com cores, aromas e papelaria exclusivos.`}
+              </p>
+            </div>
+          </div>
+
+          {/* Sprint 3 — Cross-sell "Complete o kit" */}
           {dbProduct?.id && (
             <CrossSellComplete
               currentProductId={dbProduct.id}
@@ -935,20 +949,6 @@ const ProductPage = () => {
               limit={6}
             />
           )}
-
-          {/* Description Section */}
-          <div className="mb-12">
-            <h2 className="font-display text-2xl text-foreground mb-6">Descrição do produto</h2>
-            <div className="bg-card rounded-xl border border-border p-6">
-              <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-                {product.longDescription || product.description || `${product.name} artesanal da LeleCute.
-
-Cada peça é feita à mão com ingredientes hipoalergênicos de alta qualidade. Perfeito para lembrancinhas de maternidade, chá de bebê, batizado, casamento, aniversário e eventos corporativos.
-
-Personalizamos conforme o tema do seu evento com cores, aromas e papelaria exclusivos.`}
-              </p>
-            </div>
-          </div>
 
           {/* Fase 7 — Conteúdo editorial opcional (rich text humano) */}
           {dbProduct?.editorial_content && (
