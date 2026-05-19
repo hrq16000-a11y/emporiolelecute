@@ -69,6 +69,7 @@ const RelatedByTaxonomy = ({
       return rows.map((p) => ({
         id: p.id, slug: p.slug, name: p.name, description: p.description || "",
         price: `R$ ${Number(p.price).toFixed(2).replace(".", ",")}`,
+        priceValue: Number(p.price),
         originalPrice: p.original_price ? `R$ ${Number(p.original_price).toFixed(2).replace(".", ",")}` : undefined,
         image: p.images?.[0] || "/placeholder.svg",
         images: p.images ?? [], link: "", badge: p.badge || undefined,

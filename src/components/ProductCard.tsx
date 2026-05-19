@@ -157,9 +157,12 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
 
         {/* Price */}
         <div className="flex flex-wrap items-baseline gap-2 mb-1" itemProp="offers" itemScope itemType="https://schema.org/Offer">
-          <span className="text-lg md:text-2xl font-display font-semibold text-primary" itemProp="price">{product.price}</span>
+          <span className="text-lg md:text-2xl font-display font-semibold text-primary">{product.price}</span>
           {product.originalPrice && (
             <span className="text-xs md:text-sm text-muted-foreground line-through">{product.originalPrice}</span>
+          )}
+          {typeof product.priceValue === "number" && (
+            <meta itemProp="price" content={product.priceValue.toFixed(2)} />
           )}
           <meta itemProp="priceCurrency" content="BRL" />
           <meta itemProp="availability" content="https://schema.org/InStock" />
