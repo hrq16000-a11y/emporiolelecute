@@ -50,6 +50,7 @@ export interface ToastConfig {
 }
 
 export type PdpBadgeTone = "blue" | "coral" | "green" | "amber" | "neutral";
+export type PdpBadgePosition = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
 export interface PdpBadgeConfig {
   enabled: boolean;
@@ -57,6 +58,11 @@ export interface PdpBadgeConfig {
   /** Mostra o ícone de caminhão à esquerda do texto. */
   showIcon: boolean;
   tone: PdpBadgeTone;
+  position: PdpBadgePosition;
+  /** Distância horizontal da borda (px). */
+  offsetX: number;
+  /** Distância vertical da borda (px). */
+  offsetY: number;
 }
 
 export interface ConversionCtaConfig {
