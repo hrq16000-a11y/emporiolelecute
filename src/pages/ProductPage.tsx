@@ -534,21 +534,24 @@ const ProductPage = () => {
                   <>
                     {/* Favorite Button — always opposite the badge, never covered */}
                     <button
-                      onClick={() => setIsFavorite(!isFavorite)}
+                      type="button"
+                      data-testid="pdp-favorite-button"
+                      onClick={() => handleFavoriteToggle("image_overlay")}
                       aria-label={isFavorite ? "Remover dos favoritos" : "Favoritar produto"}
                       aria-pressed={isFavorite}
-                      className={`absolute top-3 sm:top-4 ${favSideClass} z-30 p-3 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center bg-card/95 backdrop-blur-sm rounded-full shadow-md ring-1 ring-border hover:bg-card hover:scale-105 active:scale-95 transition-all touch-manipulation`}
+                      className={`absolute top-3 sm:top-4 ${favSideClass} z-40 min-w-12 min-h-12 sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center rounded-full border border-border bg-background/95 text-foreground shadow-medium ring-2 ring-background/80 backdrop-blur-md transition-all touch-manipulation hover:bg-card hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${isFavorite ? "border-primary bg-primary/10 text-primary" : ""}`}
                     >
                       <Heart
                         key={String(isFavorite)}
                         className={`h-6 w-6 transition-colors ${
                           isFavorite
-                            ? "fill-red-500 text-red-500 animate-heart-pop"
-                            : "text-foreground/70"
+                            ? "fill-primary text-primary animate-heart-pop"
+                            : "text-foreground"
                         }`}
                         strokeWidth={isFavorite ? 0 : 2.2}
                       />
                     </button>
+                    <span className="sr-only" aria-live="polite">{favoriteFeedback}</span>
 
                     {eff && (
                       <PdpBadge
