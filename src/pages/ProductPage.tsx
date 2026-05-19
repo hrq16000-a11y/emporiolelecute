@@ -287,7 +287,7 @@ const ProductPage = () => {
   };
 
   const openWhatsApp = (
-    source: "product_page" | "sticky_cta" | "quick_summary" | "exit_popup" = "product_page"
+    source: "product_page" | "sticky_cta" | "quick_summary" | "exit_popup" | "pdp_badge" = "product_page"
   ) => {
     if (!product) return;
     const { url, utmCampaign } = buildWhatsAppMessage();
