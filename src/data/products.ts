@@ -5,6 +5,8 @@ export interface Product {
   description: string;
   longDescription?: string;
   price: string;
+  /** Numeric price (BRL) used for Schema.org microdata. Optional for back-compat. */
+  priceValue?: number;
   originalPrice?: string;
   image: string;
   images?: string[];
