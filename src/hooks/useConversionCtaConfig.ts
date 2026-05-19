@@ -114,6 +114,9 @@ export const DEFAULT_CONVERSION_CTA: ConversionCtaConfig = {
     label: "Frete reduzido",
     showIcon: true,
     tone: "blue",
+    position: "top-left",
+    offsetX: 12,
+    offsetY: 12,
   },
 };
 
