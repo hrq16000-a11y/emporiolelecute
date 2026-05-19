@@ -102,6 +102,7 @@ const AdminProductForm = () => {
   const [selectedSegments, setSelectedSegments] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [keywordsInput, setKeywordsInput] = useState('');
+  const [badgeOverride, setBadgeOverride] = useState<PdpBadgeConfig | null>(null);
 
   const slugCheck = useSlugAvailability('products', formData.slug, id ?? null);
   const usage = useFormUsageTracking(isEditing ? 'product_form_edit' : 'product_form_create');
