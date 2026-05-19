@@ -69,7 +69,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
 
   return (
     <div className={cn(
-      "relative transition-all duration-500",
+      "relative w-full max-w-full min-w-0 overflow-hidden transition-all duration-500",
       isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
       layout === 'vertical' && "flex gap-4"
     )}>
@@ -111,9 +111,10 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
       )}
 
       {/* Main Image Container */}
-      <div className="flex-1">
+      <div className="flex-1 min-w-0 max-w-full">
         <div 
-          className="relative aspect-square rounded-2xl overflow-hidden bg-muted shadow-lg group cursor-pointer"
+          className="relative aspect-square w-full max-w-full rounded-xl sm:rounded-2xl overflow-hidden bg-muted shadow-card sm:shadow-lg group cursor-pointer"
+          data-testid="pdp-gallery-main"
           onClick={() => setIsZoomed(true)}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
@@ -148,7 +149,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
               e.stopPropagation();
               setIsZoomed(true);
             }}
-            className="absolute bottom-4 right-4 p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md"
+            className="absolute bottom-4 right-4 hidden sm:flex p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md"
             aria-label="Ampliar imagem"
           >
             <ZoomIn className="h-5 w-5 text-foreground" />
@@ -212,13 +213,13 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
 
         {/* Horizontal Thumbnails - Below (for horizontal layout) */}
         {layout === 'horizontal' && images.length > 1 && (
-          <div className="flex gap-3 mt-4 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="flex w-full max-w-full gap-3 mt-3 sm:mt-4 overflow-x-auto overscroll-x-contain pb-2 px-0.5 scrollbar-hide snap-x snap-mandatory">
             {images.map((image, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
                 className={cn(
-                  "flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden transition-all duration-300 relative border-2",
+                  "flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg sm:rounded-xl overflow-hidden transition-all duration-300 relative border-2 snap-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                   index === currentIndex
                     ? "border-primary shadow-md"
                     : "border-transparent opacity-70 hover:opacity-100"
@@ -298,7 +299,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
 
             {/* Thumbnail Strip */}
             {images.length > 1 && (
-              <div className="flex justify-center gap-2 p-4 bg-background/50">
+              <div className="flex max-w-full justify-start sm:justify-center gap-2 p-4 bg-background/50 overflow-x-auto overscroll-x-contain">
                 {images.map((image, index) => (
                   <button
                     key={index}

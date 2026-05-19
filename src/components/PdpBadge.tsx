@@ -131,13 +131,14 @@ export function PdpBadge({
   return (
     <div ref={ref} style={positionStyle}>
       <Badge
+        data-testid="pdp-badge"
         onClick={interactive ? handleClick : undefined}
-        className={`text-white px-3 py-1.5 flex items-center gap-1.5 ${tone} ${
+        className={`max-w-[calc(100vw-7rem)] text-white px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 text-[11px] sm:text-xs leading-tight shadow-md ${tone} ${
           interactive ? "cursor-pointer" : ""
         }`}
       >
-        {config.showIcon && <Truck className="h-4 w-4" />}
-        {config.label}
+        {config.showIcon && <Truck className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />}
+        <span className="truncate">{config.label}</span>
       </Badge>
     </div>
   );

@@ -88,6 +88,7 @@ const ProductPage = () => {
   const [personalization, setPersonalization] = useState("");
   const [addedToCart, setAddedToCart] = useState(false);
   const [showStickyCta, setShowStickyCta] = useState(false);
+  const [favoriteFeedback, setFavoriteFeedback] = useState("");
   const ctaAnchorRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
 
@@ -247,6 +248,22 @@ const ProductPage = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const handleFavoriteToggle = (source: "image_overlay" | "actions") => {
+    if (!product) return;
+    setIsFavorite((current) => {
+      const next = !current;
+      setFavoriteFeedback(next ? "Produto adicionado aos favoritos." : "Produto removido dos favoritos.");
+      trackFunnelEvent("pdp_favorite_toggle", {
+        source,
+        product_id: product.id,
+        product_slug: product.slug,
+        favorite_state: next ? "added" : "removed",
+        viewport: window.innerWidth < 768 ? "mobile" : "desktop",
+      });
+      return next;
+    });
   };
 
   // ---- WhatsApp builder reutilizado pelo CTA inline, sticky, summary e exit popup ----
@@ -450,7 +467,7 @@ const ProductPage = () => {
       />
       <Header />
       
-      <main className="pt-24 pb-16 overflow-x-clip">
+      <main className="pt-24 pb-16 max-w-full overflow-x-hidden">
         {/* Breadcrumb */}
         <div className="container mx-auto px-4 py-4">
           <nav className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
@@ -492,10 +509,10 @@ const ProductPage = () => {
         </div>
 
         {/* Product Detail */}
-        <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 mb-16">
+        <div className="container mx-auto max-w-full px-4 overflow-x-hidden">
+          <div className="grid min-w-0 lg:grid-cols-2 gap-6 lg:gap-12 mb-12 lg:mb-16">
             {/* Image Gallery - Horizontal layout with thumbnails below */}
-            <div className="relative">
+            <div className="relative min-w-0 max-w-full overflow-hidden" data-testid="pdp-media-block">
               <ProductGallery
                 images={product.images.length > 0 ? product.images : ['/placeholder.svg']}
                 productName={product.name}
@@ -517,21 +534,24 @@ const ProductPage = () => {
                   <>
                     {/* Favorite Button — always opposite the badge, never covered */}
                     <button
-                      onClick={() => setIsFavorite(!isFavorite)}
+                      type="button"
+                      data-testid="pdp-favorite-button"
+                      onClick={() => handleFavoriteToggle("image_overlay")}
                       aria-label={isFavorite ? "Remover dos favoritos" : "Favoritar produto"}
                       aria-pressed={isFavorite}
-                      className={`absolute top-3 sm:top-4 ${favSideClass} z-30 p-3 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center bg-card/95 backdrop-blur-sm rounded-full shadow-md ring-1 ring-border hover:bg-card hover:scale-105 active:scale-95 transition-all touch-manipulation`}
+                      className={`absolute top-3 sm:top-4 ${favSideClass} z-40 min-w-12 min-h-12 sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center rounded-full border border-border bg-background/95 text-foreground shadow-medium ring-2 ring-background/80 backdrop-blur-md transition-all touch-manipulation hover:bg-card hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${isFavorite ? "border-primary bg-primary/10 text-primary" : ""}`}
                     >
                       <Heart
                         key={String(isFavorite)}
                         className={`h-6 w-6 transition-colors ${
                           isFavorite
-                            ? "fill-red-500 text-red-500 animate-heart-pop"
-                            : "text-foreground/70"
+                            ? "fill-primary text-primary animate-heart-pop"
+                            : "text-foreground"
                         }`}
                         strokeWidth={isFavorite ? 0 : 2.2}
                       />
                     </button>
+                    <span className="sr-only" aria-live="polite">{favoriteFeedback}</span>
 
                     {eff && (
                       <PdpBadge
@@ -555,10 +575,10 @@ const ProductPage = () => {
             </div>
 
             {/* Info Section - Reference Style */}
-            <div className="flex flex-col">
+            <div className="flex min-w-0 max-w-full flex-col overflow-hidden">
               {/* Product Name & Rating + Social Proof (Q2) */}
-              <div className="flex items-start justify-between gap-4 mb-2">
-                <h1 className="font-display text-2xl md:text-3xl text-foreground leading-tight">
+              <div className="flex items-start justify-between gap-3 sm:gap-4 mb-2">
+                <h1 className="font-display text-2xl md:text-3xl text-foreground leading-tight min-w-0 break-words">
                   {product.name}
                 </h1>
                 <div className="flex flex-col items-end gap-1 flex-shrink-0">
@@ -822,10 +842,12 @@ const ProductPage = () => {
                       <Button
                         variant="outline"
                         size="lg"
-                        className="px-4"
-                        onClick={() => setIsFavorite(!isFavorite)}
+                        className={`min-h-11 min-w-11 px-4 focus-visible:ring-4 focus-visible:ring-primary focus-visible:ring-offset-2 ${isFavorite ? "border-primary bg-primary/10 text-primary" : ""}`}
+                        onClick={() => handleFavoriteToggle("actions")}
+                        aria-label={isFavorite ? "Remover dos favoritos" : "Favoritar produto"}
+                        aria-pressed={isFavorite}
                       >
-                        <Heart className={`h-5 w-5 ${isFavorite ? "fill-red-500 text-red-500" : ""}`} />
+                        <Heart className={`h-5 w-5 ${isFavorite ? "fill-primary text-primary animate-heart-pop" : ""}`} />
                       </Button>
                       {/* Share */}
                       <Button variant="outline" size="lg" className="px-4" onClick={handleShare}>

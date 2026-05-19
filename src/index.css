@@ -135,14 +135,20 @@
 
   html {
     scroll-behavior: smooth;
-    overflow-x: clip;
+    overflow-x: hidden;
+    max-width: 100%;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'DM Sans', 'Roboto', sans-serif;
-    overflow-x: clip;
-    max-width: 100vw;
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+
+  #root {
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   img, video, canvas, svg {
