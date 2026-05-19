@@ -503,34 +503,46 @@ const ProductPage = () => {
                 layout="horizontal"
               />
               
-              {/* Favorite Button */}
-              <button
-                onClick={() => setIsFavorite(!isFavorite)}
-                aria-label="Favoritar produto"
-                className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 p-2.5 sm:p-3 bg-card/95 backdrop-blur-sm rounded-full shadow-md hover:bg-card transition-colors"
-              >
-                <Heart
-                  className={`h-5 w-5 sm:h-6 sm:w-6 transition-colors ${
-                    isFavorite ? 'fill-red-500 text-red-500' : 'text-muted-foreground'
-                  }`}
-                />
-              </button>
-
-              {/* Badge configurável (admin → Conversão → Badge da PDP) — pode ser sobrescrito por produto */}
+              {/* Resolve badge first so we can place favorite opposite to it */}
               {(() => {
                 const eff = resolveEffectiveBadge(
                   ctaConfig?.pdpBadge,
                   (dbProduct as any)?.pdp_badge_override
                 );
-                if (!eff) return null;
+                const badgeIsLeft = eff?.config.position?.endsWith("left") ?? true;
+                const favSideClass = badgeIsLeft
+                  ? "right-3 sm:right-4"
+                  : "left-3 sm:left-4";
                 return (
-                  <PdpBadge
-                    config={eff.config}
-                    productId={dbProduct?.id}
-                    productSlug={dbProduct?.slug}
-                    source={eff.source}
-                    onClick={() => openWhatsApp("pdp_badge")}
-                  />
+                  <>
+                    {/* Favorite Button — always opposite the badge, never covered */}
+                    <button
+                      onClick={() => setIsFavorite(!isFavorite)}
+                      aria-label={isFavorite ? "Remover dos favoritos" : "Favoritar produto"}
+                      aria-pressed={isFavorite}
+                      className={`absolute top-3 sm:top-4 ${favSideClass} z-30 p-3 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center bg-card/95 backdrop-blur-sm rounded-full shadow-md ring-1 ring-border hover:bg-card hover:scale-105 active:scale-95 transition-all touch-manipulation`}
+                    >
+                      <Heart
+                        key={String(isFavorite)}
+                        className={`h-6 w-6 transition-colors ${
+                          isFavorite
+                            ? "fill-red-500 text-red-500 animate-heart-pop"
+                            : "text-foreground/70"
+                        }`}
+                        strokeWidth={isFavorite ? 0 : 2.2}
+                      />
+                    </button>
+
+                    {eff && (
+                      <PdpBadge
+                        config={eff.config}
+                        productId={dbProduct?.id}
+                        productSlug={dbProduct?.slug}
+                        source={eff.source}
+                        onClick={() => openWhatsApp("pdp_badge")}
+                      />
+                    )}
+                  </>
                 );
               })()}
 
