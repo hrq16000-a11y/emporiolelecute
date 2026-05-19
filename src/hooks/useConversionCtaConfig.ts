@@ -210,6 +210,9 @@ const pdpBadgeSchema = z.object({
   label: z.string().trim().min(1, "Texto do badge obrigatório").max(40),
   showIcon: z.boolean(),
   tone: z.enum(["blue", "coral", "green", "amber", "neutral"]),
+  position: z.enum(["top-left", "top-right", "bottom-left", "bottom-right"]),
+  offsetX: z.coerce.number().int().min(0).max(80),
+  offsetY: z.coerce.number().int().min(0).max(80),
 });
 
 export const conversionCtaConfigSchema = z.object({
