@@ -94,6 +94,10 @@ const getStatusInfo = (status: string) => {
 const AdminOrders = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>(() => {
+    try { return localStorage.getItem('admin.orders.sort') || 'recent'; } catch { return 'recent'; }
+  });
+  useEffect(() => { try { localStorage.setItem('admin.orders.sort', sortBy); } catch {} }, [sortBy]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [trackingDialog, setTrackingDialog] = useState<{ order: Order; code: string; carrier: string; url: string } | null>(null);
@@ -300,12 +304,21 @@ const AdminOrders = () => {
   };
 
   const filteredOrders = orders?.filter(order => {
-    const matchesSearch = 
+    const matchesSearch =
       order.order_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customer_email.toLowerCase().includes(searchTerm.toLowerCase());
-    
     return matchesSearch;
+  }).slice().sort((a, b) => {
+    switch (sortBy) {
+      case 'oldest': return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      case 'value_desc': return Number(b.total) - Number(a.total);
+      case 'value_asc': return Number(a.total) - Number(b.total);
+      case 'customer_az': return a.customer_name.localeCompare(b.customer_name, 'pt-BR');
+      case 'status': return (a.status || '').localeCompare(b.status || '');
+      case 'recent':
+      default: return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
   });
 
   const formatDate = (dateString: string) => {
@@ -387,6 +400,19 @@ const AdminOrders = () => {
                 {status.label}
               </SelectItem>
             ))}
+          </SelectContent>
+        </Select>
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="w-full md:w-52">
+            <SelectValue placeholder="Ordenar por" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="recent">Mais recente</SelectItem>
+            <SelectItem value="oldest">Mais antigo</SelectItem>
+            <SelectItem value="value_desc">Maior valor</SelectItem>
+            <SelectItem value="value_asc">Menor valor</SelectItem>
+            <SelectItem value="customer_az">Cliente (A-Z)</SelectItem>
+            <SelectItem value="status">Status</SelectItem>
           </SelectContent>
         </Select>
       </div>

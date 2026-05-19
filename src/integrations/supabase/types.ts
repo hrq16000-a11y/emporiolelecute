@@ -1502,6 +1502,75 @@ export type Database = {
         }
         Relationships: []
       }
+      pdp_section_audit: {
+        Row: {
+          action: string
+          changed_by: string | null
+          changed_by_email: string | null
+          created_at: string
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          section_key: string
+        }
+        Insert: {
+          action: string
+          changed_by?: string | null
+          changed_by_email?: string | null
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          section_key: string
+        }
+        Update: {
+          action?: string
+          changed_by?: string | null
+          changed_by_email?: string | null
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          section_key?: string
+        }
+        Relationships: []
+      }
+      pdp_sections: {
+        Row: {
+          created_at: string
+          description: string | null
+          editable_props: Json
+          id: string
+          is_visible: boolean
+          label: string
+          position: number
+          section_key: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          editable_props?: Json
+          id?: string
+          is_visible?: boolean
+          label: string
+          position?: number
+          section_key: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          editable_props?: Json
+          id?: string
+          is_visible?: boolean
+          label?: string
+          position?: number
+          section_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       product_occasions: {
         Row: {
           occasion_id: string
