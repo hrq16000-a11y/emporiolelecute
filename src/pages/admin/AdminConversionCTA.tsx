@@ -806,3 +806,127 @@ function Field({ label, value, onChange }: { label: string; value: string; onCha
     </div>
   );
 }
+
+// ============================================================================
+// BADGE STATS — métricas de impressões e cliques do Badge da PDP
+// ============================================================================
+function BadgeStatsTab() {
+  const [days, setDays] = useState(30);
+  const { data, isLoading, refetch, isFetching } = useQuery({
+    queryKey: ["pdp_badge_stats", days],
+    queryFn: async () => {
+      const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+      const to = new Date().toISOString();
+      const { data, error } = await supabase.rpc("pdp_badge_stats", { _from: from, _to: to });
+      if (error) throw error;
+      return data as {
+        impressions: number;
+        clicks: number;
+        ctr: number;
+        top_products: Array<{ product_slug: string; impressions: number; clicks: number }>;
+        by_tone: Record<string, number>;
+        by_position: Record<string, number>;
+        by_source: Record<string, number>;
+      };
+    },
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-2 justify-between">
+        <div className="flex items-center gap-2">
+          <Label className="text-sm">Período:</Label>
+          <select
+            value={days}
+            onChange={(e) => setDays(Number(e.target.value))}
+            className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+          >
+            <option value={7}>7 dias</option>
+            <option value={30}>30 dias</option>
+            <option value={90}>90 dias</option>
+          </select>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw className={`h-4 w-4 mr-1 ${isFetching ? "animate-spin" : ""}`} /> Atualizar
+        </Button>
+      </div>
+
+      {isLoading ? (
+        <div className="flex items-center gap-2 text-muted-foreground p-6">
+          <Loader2 className="h-4 w-4 animate-spin" /> Carregando métricas…
+        </div>
+      ) : (
+        <>
+          <div className="grid sm:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-2"><CardDescription>Impressões</CardDescription></CardHeader>
+              <CardContent><div className="text-3xl font-bold">{data?.impressions ?? 0}</div></CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2"><CardDescription>Cliques</CardDescription></CardHeader>
+              <CardContent><div className="text-3xl font-bold">{data?.clicks ?? 0}</div></CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2"><CardDescription>CTR</CardDescription></CardHeader>
+              <CardContent><div className="text-3xl font-bold">{data?.ctr ?? 0}%</div></CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader><CardTitle className="text-base">Top produtos por cliques</CardTitle></CardHeader>
+            <CardContent>
+              {data?.top_products && data.top_products.length > 0 ? (
+                <table className="w-full text-sm">
+                  <thead className="text-left text-xs text-muted-foreground">
+                    <tr><th className="py-1">Produto</th><th className="py-1 text-right">Impressões</th><th className="py-1 text-right">Cliques</th></tr>
+                  </thead>
+                  <tbody>
+                    {data.top_products.map((p) => (
+                      <tr key={p.product_slug} className="border-t">
+                        <td className="py-2">{p.product_slug}</td>
+                        <td className="py-2 text-right">{p.impressions}</td>
+                        <td className="py-2 text-right font-medium">{p.clicks}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className="text-sm text-muted-foreground">Sem dados ainda.</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="grid sm:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-sm">Cliques por cor</CardTitle></CardHeader>
+              <CardContent className="text-xs space-y-1">
+                {Object.entries(data?.by_tone ?? {}).map(([k, v]) => (
+                  <div key={k} className="flex justify-between"><span>{k}</span><span className="font-medium">{v}</span></div>
+                ))}
+                {Object.keys(data?.by_tone ?? {}).length === 0 && <p className="text-muted-foreground">—</p>}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-sm">Cliques por posição</CardTitle></CardHeader>
+              <CardContent className="text-xs space-y-1">
+                {Object.entries(data?.by_position ?? {}).map(([k, v]) => (
+                  <div key={k} className="flex justify-between"><span>{k}</span><span className="font-medium">{v}</span></div>
+                ))}
+                {Object.keys(data?.by_position ?? {}).length === 0 && <p className="text-muted-foreground">—</p>}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-sm">Cliques por origem</CardTitle></CardHeader>
+              <CardContent className="text-xs space-y-1">
+                {Object.entries(data?.by_source ?? {}).map(([k, v]) => (
+                  <div key={k} className="flex justify-between"><span>{k === "product_override" ? "Override por produto" : "Global"}</span><span className="font-medium">{v}</span></div>
+                ))}
+                {Object.keys(data?.by_source ?? {}).length === 0 && <p className="text-muted-foreground">—</p>}
+              </CardContent>
+            </Card>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
