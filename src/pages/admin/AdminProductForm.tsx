@@ -41,6 +41,18 @@ import { Link } from 'react-router-dom';
 import { FileText, ExternalLink } from 'lucide-react';
 import { useFormUsageTracking } from '@/hooks/useFormUsageTracking';
 import { trackAdminEvent } from '@/lib/adminUsage';
+import { PdpBadge } from '@/components/PdpBadge';
+import type { PdpBadgeConfig } from '@/hooks/useConversionCtaConfig';
+
+const DEFAULT_BADGE_OVERRIDE: PdpBadgeConfig = {
+  enabled: true,
+  label: 'Promoção',
+  showIcon: false,
+  tone: 'coral',
+  position: 'top-left',
+  offsetX: 12,
+  offsetY: 12,
+};
 
 const AdminProductForm = () => {
   const { id } = useParams();
