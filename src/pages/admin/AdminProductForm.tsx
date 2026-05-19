@@ -1014,6 +1014,99 @@ const AdminProductForm = () => {
           );
         })()}
 
+        {/* Badge personalizado da PDP (override por produto) */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <CardTitle className="text-base">Badge personalizado da PDP</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Quando ativado, sobrescreve o badge global apenas neste produto. Quando desligado, usa a configuração global de <strong>/admin/conversao</strong>.
+                </p>
+              </div>
+              <Switch
+                checked={!!badgeOverride}
+                onCheckedChange={(v) => setBadgeOverride(v ? { ...DEFAULT_BADGE_OVERRIDE } : null)}
+              />
+            </div>
+          </CardHeader>
+          {badgeOverride && (
+            <CardContent className="grid lg:grid-cols-[1fr_280px] gap-6">
+              <div className="grid sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2 space-y-1">
+                  <Label>Texto</Label>
+                  <Input
+                    value={badgeOverride.label}
+                    maxLength={40}
+                    onChange={(e) => setBadgeOverride({ ...badgeOverride, label: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>Cor</Label>
+                  <select
+                    className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                    value={badgeOverride.tone}
+                    onChange={(e) => setBadgeOverride({ ...badgeOverride, tone: e.target.value as any })}
+                  >
+                    <option value="blue">Azul</option>
+                    <option value="coral">Coral</option>
+                    <option value="green">Verde</option>
+                    <option value="amber">Âmbar</option>
+                    <option value="neutral">Neutro</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <Label>Posição</Label>
+                  <select
+                    className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                    value={badgeOverride.position}
+                    onChange={(e) => setBadgeOverride({ ...badgeOverride, position: e.target.value as any })}
+                  >
+                    <option value="top-left">Sup. esquerda</option>
+                    <option value="top-right">Sup. direita</option>
+                    <option value="bottom-left">Inf. esquerda</option>
+                    <option value="bottom-right">Inf. direita</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <Label>Offset X (px)</Label>
+                  <Input
+                    type="number" min={0} max={80}
+                    value={badgeOverride.offsetX}
+                    onChange={(e) => setBadgeOverride({ ...badgeOverride, offsetX: Number(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>Offset Y (px)</Label>
+                  <Input
+                    type="number" min={0} max={80}
+                    value={badgeOverride.offsetY}
+                    onChange={(e) => setBadgeOverride({ ...badgeOverride, offsetY: Number(e.target.value) })}
+                  />
+                </div>
+                <label className="flex items-center gap-2 sm:col-span-3">
+                  <Switch
+                    checked={badgeOverride.showIcon}
+                    onCheckedChange={(v) => setBadgeOverride({ ...badgeOverride, showIcon: v })}
+                  />
+                  <span className="text-sm">Mostrar ícone de caminhão</span>
+                </label>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Pré-visualização</Label>
+                <div className="relative w-[280px] h-[280px] rounded-lg overflow-hidden border bg-muted">
+                  <img
+                    src={formData.images.filter(Boolean)[0] || '/placeholder.svg'}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <PdpBadge config={badgeOverride} previewOnly />
+                </div>
+              </div>
+            </CardContent>
+          )}
+        </Card>
+
         {/* Save Button at bottom */}
         <div className="flex justify-end gap-4 sticky bottom-4 bg-background/95 backdrop-blur-sm p-4 rounded-lg border shadow-lg">
           <Button type="button" variant="outline" onClick={() => navigate('/admin/produtos')}>
