@@ -469,14 +469,14 @@ const ProductPage = () => {
       
       <main className="pt-24 pb-16 max-w-full overflow-x-hidden">
         {/* Breadcrumb */}
-        <div className="container mx-auto px-4 py-4">
-          <nav className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
-            <Link to="/" className="hover:text-primary transition-colors">Início</Link>
+        <div className="container mx-auto max-w-full px-4 py-3 overflow-hidden">
+          <nav className="flex max-w-full items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 text-xs sm:text-sm text-muted-foreground scrollbar-hide" aria-label="Breadcrumb">
+            <Link to="/" className="shrink-0 hover:text-primary transition-colors">Início</Link>
 
             {dbProduct?.segments?.[0] && (
               <>
                 <ChevronRight className="h-4 w-4" />
-                <Link to={`/segmento/${dbProduct.segments[0].slug}`} className="hover:text-primary transition-colors">
+                <Link to={`/segmento/${dbProduct.segments[0].slug}`} className="shrink-0 hover:text-primary transition-colors">
                   {dbProduct.segments[0].name}
                 </Link>
               </>
@@ -485,7 +485,7 @@ const ProductPage = () => {
             {dbProduct?.occasions?.[0] && (
               <>
                 <ChevronRight className="h-4 w-4" />
-                <Link to={`/ocasiao/${dbProduct.occasions[0].slug}`} className="hover:text-primary transition-colors">
+                <Link to={`/ocasiao/${dbProduct.occasions[0].slug}`} className="shrink-0 hover:text-primary transition-colors">
                   {dbProduct.occasions[0].name}
                 </Link>
               </>
@@ -496,7 +496,7 @@ const ProductPage = () => {
                 <ChevronRight className="h-4 w-4" />
                 <Link
                   to={`/categoria/${dbProduct.category.slug}`}
-                  className="hover:text-primary transition-colors"
+                  className="shrink-0 hover:text-primary transition-colors"
                 >
                   {dbProduct.category.name}
                 </Link>
@@ -504,7 +504,7 @@ const ProductPage = () => {
             )}
 
             <ChevronRight className="h-4 w-4" />
-            <span className="text-foreground font-medium">{product.name}</span>
+            <span className="min-w-0 truncate text-foreground font-medium">{product.name}</span>
           </nav>
         </div>
 
@@ -577,8 +577,8 @@ const ProductPage = () => {
             {/* Info Section - Reference Style */}
             <div className="flex min-w-0 max-w-full flex-col overflow-hidden">
               {/* Product Name & Rating + Social Proof (Q2) */}
-              <div className="flex items-start justify-between gap-3 sm:gap-4 mb-2">
-                <h1 className="font-display text-2xl md:text-3xl text-foreground leading-tight min-w-0 break-words">
+              <div className="flex items-start justify-between gap-3 sm:gap-4 mb-3">
+                <h1 className="font-display text-xl sm:text-2xl md:text-3xl text-foreground leading-tight min-w-0 break-words">
                   {product.name}
                 </h1>
                 <div className="flex flex-col items-end gap-1 flex-shrink-0">
@@ -656,7 +656,7 @@ const ProductPage = () => {
               </div>
 
               {/* Price Info Grid */}
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Valor unitário</p>
                   <p className="text-lg font-semibold text-primary">
@@ -672,12 +672,12 @@ const ProductPage = () => {
               </div>
 
               {/* Total Price Section */}
-              <div className="mb-4">
+              <div className="mb-4 min-w-0">
                 <p className="text-sm text-muted-foreground mb-1">Valor total</p>
-                <p className="text-3xl font-bold text-foreground">
+                <p className="text-2xl sm:text-3xl font-bold text-foreground break-words">
                   R$ {totalPrice.toFixed(2).replace('.', ',')}
                 </p>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-sm text-muted-foreground mt-1 break-words">
                   ou {installments}x sem juros de R$ {installmentValue.toFixed(2).replace('.', ',')} no cartão
                 </p>
               </div>
@@ -725,12 +725,12 @@ const ProductPage = () => {
 
               {/* Quantity Selector */}
               <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                   <span className="font-medium text-foreground">Quantidade</span>
                   <span className="text-sm text-muted-foreground">(Mínimo: {product.minQuantity})</span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center border border-border rounded-lg overflow-hidden">
+                    <div className="flex items-center border border-border rounded-lg overflow-hidden max-w-full">
                     <button 
                       type="button"
                       onClick={() => {
@@ -811,7 +811,7 @@ const ProductPage = () => {
                 const cartBtn = (primary: boolean) => (
                   <Button
                     size="lg"
-                    className={`flex-1 rounded-lg py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all ${
+                    className={`min-w-0 flex-1 rounded-lg px-3 py-6 text-sm sm:text-lg font-semibold shadow-lg hover:shadow-xl transition-all ${
                       addedToCart
                         ? "bg-green-500 hover:bg-green-600 text-white"
                         : primary
@@ -823,26 +823,26 @@ const ProductPage = () => {
                   >
                     {addedToCart ? (
                       <>
-                        <CheckCircle2 className="h-5 w-5 mr-2" />
-                        Adicionado!
+                        <CheckCircle2 className="h-5 w-5 mr-2 shrink-0" />
+                        <span className="truncate">Adicionado!</span>
                       </>
                     ) : (
                       <>
-                        <ShoppingCart className="h-5 w-5 mr-2" />
-                        {primary ? "Adicionar ao Carrinho" : "Adicionar ao carrinho"}
+                        <ShoppingCart className="h-5 w-5 mr-2 shrink-0" />
+                        <span className="truncate">{primary ? "Adicionar ao Carrinho" : "Adicionar ao carrinho"}</span>
                       </>
                     )}
                   </Button>
                 );
                 return (
                   <>
-                    <div className="flex gap-3 mb-4">
+                    <div className="flex min-w-0 gap-2 sm:gap-3 mb-4">
                       {isWaPrimary ? null : cartBtn(true)}
                       {/* Favorite */}
                       <Button
                         variant="outline"
                         size="lg"
-                        className={`min-h-11 min-w-11 px-4 focus-visible:ring-4 focus-visible:ring-primary focus-visible:ring-offset-2 ${isFavorite ? "border-primary bg-primary/10 text-primary" : ""}`}
+                        className={`min-h-11 min-w-11 shrink-0 px-3 sm:px-4 focus-visible:ring-4 focus-visible:ring-primary focus-visible:ring-offset-2 ${isFavorite ? "border-primary bg-primary/10 text-primary" : ""}`}
                         onClick={() => handleFavoriteToggle("actions")}
                         aria-label={isFavorite ? "Remover dos favoritos" : "Favoritar produto"}
                         aria-pressed={isFavorite}
@@ -850,7 +850,7 @@ const ProductPage = () => {
                         <Heart className={`h-5 w-5 ${isFavorite ? "fill-primary text-primary animate-heart-pop" : ""}`} />
                       </Button>
                       {/* Share */}
-                      <Button variant="outline" size="lg" className="px-4" onClick={handleShare}>
+                      <Button variant="outline" size="lg" className="min-h-11 min-w-11 shrink-0 px-3 sm:px-4" onClick={handleShare} aria-label="Compartilhar produto">
                         <Share2 className="h-5 w-5" />
                       </Button>
                     </div>
@@ -899,7 +899,7 @@ const ProductPage = () => {
               </div>
 
               {/* Trust Badges - Horizontal */}
-              <div className="grid grid-cols-3 gap-3 mb-6">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-6">
                 <div className="flex flex-col items-center text-center p-3 bg-card rounded-lg border border-border/50">
                   <Send className="h-5 w-5 text-primary mb-2" />
                   <span className="text-xs font-medium text-foreground">Envio todo Brasil</span>
@@ -949,10 +949,10 @@ const ProductPage = () => {
                         e.preventDefault();
                         openWhatsApp("product_page");
                       }}
-                      className="flex items-center justify-center gap-3 p-4 mt-4 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl font-bold shadow-lg hover:shadow-green-200 transition-all duration-300 transform hover:-translate-y-1"
+                      className="flex max-w-full items-center justify-center gap-3 p-4 mt-4 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl font-bold shadow-lg hover:shadow-green-200 transition-all duration-300 sm:transform sm:hover:-translate-y-1"
                     >
-                      <MessageCircle className="h-6 w-6" />
-                      Fazer Orçamento no WhatsApp
+                      <MessageCircle className="h-6 w-6 shrink-0" />
+                      <span className="min-w-0 truncate">Fazer Orçamento no WhatsApp</span>
                     </a>
                   </div>
                 );
@@ -990,7 +990,7 @@ const ProductPage = () => {
 
             if (links.length < 3) return null;
             return (
-              <div className="container mx-auto">
+              <div className="container mx-auto max-w-full overflow-hidden">
                 <SemanticLinkingBlock title="Explore mais ideias relacionadas" links={links} />
               </div>
             );

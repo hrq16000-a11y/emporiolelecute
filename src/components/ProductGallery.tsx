@@ -136,8 +136,9 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
                   resize="contain"
                   responsiveWidths={[400, 600, 800, 1200]}
                   priority={index === 0}
-                  sizes="(max-width: 1024px) 100vw, 600px"
-                  className="object-contain transition-transform duration-700 ease-out group-hover:scale-105"
+                  sizes="(max-width: 767px) calc(100vw - 2rem), (max-width: 1024px) 100vw, 600px"
+                  wrapperClassName="w-full h-full"
+                  className="object-contain transition-transform duration-700 ease-out sm:group-hover:scale-105"
                 />
               </div>
             ))}
@@ -163,7 +164,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
                   e.stopPropagation();
                   goToPrevious();
                 }}
-                className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md"
+                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 hidden sm:flex p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md"
                 aria-label="Imagem anterior"
               >
                 <ChevronLeft className="h-5 w-5 text-foreground" />
@@ -173,7 +174,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
                   e.stopPropagation();
                   goToNext();
                 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md"
+                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 hidden sm:flex p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md"
                 aria-label="Próxima imagem"
               >
                 <ChevronRight className="h-5 w-5 text-foreground" />
@@ -243,7 +244,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
 
       {/* Zoom Dialog - Fullscreen Gallery */}
       <Dialog open={isZoomed} onOpenChange={setIsZoomed}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-background/95 backdrop-blur-xl border-none">
+        <DialogContent className="w-[calc(100vw-1rem)] max-w-[95vw] max-h-[95vh] p-0 bg-background/95 backdrop-blur-xl border-none overflow-hidden">
           <div className="relative h-full flex flex-col">
             {/* Close Button */}
             <button
@@ -261,7 +262,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
 
             {/* Main Zoomed Image */}
             <div 
-              className="flex-1 flex items-center justify-center p-8"
+              className="flex-1 flex items-center justify-center p-3 sm:p-8 overflow-hidden"
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
             >
@@ -282,14 +283,14 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
               <>
                 <button
                   onClick={goToPrevious}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 p-4 bg-background/90 rounded-full hover:bg-background hover:scale-110 active:scale-95 transition-all duration-300 shadow-lg"
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-3 sm:p-4 bg-background/90 rounded-full hover:bg-background hover:scale-110 active:scale-95 transition-all duration-300 shadow-lg"
                   aria-label="Imagem anterior"
                 >
                   <ChevronLeft className="h-6 w-6" />
                 </button>
                 <button
                   onClick={goToNext}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-4 bg-background/90 rounded-full hover:bg-background hover:scale-110 active:scale-95 transition-all duration-300 shadow-lg"
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-3 sm:p-4 bg-background/90 rounded-full hover:bg-background hover:scale-110 active:scale-95 transition-all duration-300 shadow-lg"
                   aria-label="Próxima imagem"
                 >
                   <ChevronRight className="h-6 w-6" />

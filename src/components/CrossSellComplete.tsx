@@ -190,7 +190,7 @@ export default function CrossSellComplete({
   };
 
   return (
-    <section className="mb-10" aria-labelledby="cross-sell-title">
+    <section className="mb-10 max-w-full overflow-hidden" aria-labelledby="cross-sell-title">
       <div className="flex items-end justify-between gap-4 mb-4 flex-wrap">
         <div>
           <h2 id="cross-sell-title" className="font-display text-xl text-foreground flex items-center gap-2">
@@ -202,19 +202,19 @@ export default function CrossSellComplete({
           </p>
         </div>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid min-w-0 grid-cols-2 md:grid-cols-4 gap-3">
         {items.map((p) => (
-          <div key={p.id} className="group rounded-xl border bg-card overflow-hidden flex flex-col">
-            <Link to={urls.product(p.slug)} className="block relative">
+          <div key={p.id} className="group min-w-0 rounded-xl border bg-card overflow-hidden flex flex-col">
+            <Link to={urls.product(p.slug)} className="block relative max-w-full overflow-hidden">
               <img
                 src={optimizeImage(p.images?.[0] || "/placeholder.svg", { width: 320 })}
                 alt={p.name}
-                className="w-full aspect-square object-cover bg-muted group-hover:scale-105 transition-transform duration-500"
+                className="w-full max-w-full aspect-square object-cover bg-muted sm:group-hover:scale-105 transition-transform duration-500"
                 loading="lazy"
               />
               <Badge
                 variant="secondary"
-                className="absolute top-2 left-2 text-[10px] bg-background/90 backdrop-blur border"
+                className="absolute top-2 left-2 max-w-[calc(100%-1rem)] truncate text-[10px] bg-background/90 backdrop-blur border"
               >
                 {REASON_LABEL[p._reason]}
               </Badge>
@@ -226,12 +226,12 @@ export default function CrossSellComplete({
               <p className="text-sm font-semibold text-foreground">
                 R$ {Number(p.price).toFixed(2).replace(".", ",")}
               </p>
-              <div className="mt-auto flex gap-1.5">
+              <div className="mt-auto flex min-w-0 gap-1.5">
                 <Button
                   type="button"
                   size="sm"
                   variant="outline"
-                  className="flex-1 h-8 text-xs"
+                  className="min-w-0 flex-1 h-8 px-2 text-xs"
                   onClick={() => handleAdd(p)}
                 >
                   <Plus className="h-3 w-3 mr-1" />

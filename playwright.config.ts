@@ -53,6 +53,26 @@ export default defineConfig({
         defaultBrowserType: "webkit",
       },
     },
+    {
+      name: "android-mobile",
+      use: {
+        ...devices["Pixel 5"],
+        viewport: { width: 393, height: 851 },
+        hasTouch: true,
+        isMobile: true,
+        defaultBrowserType: "chromium",
+      },
+    },
+    {
+      name: "small-mobile",
+      use: {
+        ...devices["iPhone SE"],
+        viewport: { width: 320, height: 568 },
+        hasTouch: true,
+        isMobile: true,
+        defaultBrowserType: "webkit",
+      },
+    },
   ],
   webServer: process.env.PW_NO_SERVER
     ? undefined

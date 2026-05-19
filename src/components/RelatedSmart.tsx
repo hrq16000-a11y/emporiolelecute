@@ -162,7 +162,7 @@ const RelatedSmart = ({ currentProductId, occasions, tags, category, limit = 8 }
     : null;
 
   return (
-    <section className="mb-12">
+    <section className="mb-12 max-w-full overflow-hidden">
       <div className="flex items-end justify-between gap-4 mb-5 flex-wrap">
         <div className="space-y-1">
           <h2 className="font-display text-2xl text-foreground">
@@ -186,10 +186,10 @@ const RelatedSmart = ({ currentProductId, occasions, tags, category, limit = 8 }
           </Link>
         )}
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+      <div className="grid min-w-0 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         {items.map((p) => (
-          <div key={p.id} className="relative">
-            <span className="absolute z-10 top-2 left-2 text-[10px] uppercase tracking-wider bg-background/90 backdrop-blur text-foreground/80 px-2 py-0.5 rounded-full border shadow-sm">
+          <div key={p.id} className="relative min-w-0">
+            <span className="absolute z-10 top-2 left-2 max-w-[calc(100%-1rem)] truncate text-[10px] uppercase bg-background/90 backdrop-blur text-foreground/80 px-2 py-0.5 rounded-full border shadow-sm">
               {data!.reasonLabel[p._reason]}
             </span>
             <ProductCard product={toCardProduct(p)} />
