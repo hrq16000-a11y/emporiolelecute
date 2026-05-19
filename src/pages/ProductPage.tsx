@@ -949,10 +949,10 @@ const ProductPage = () => {
                         e.preventDefault();
                         openWhatsApp("product_page");
                       }}
-                      className="flex items-center justify-center gap-3 p-4 mt-4 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl font-bold shadow-lg hover:shadow-green-200 transition-all duration-300 transform hover:-translate-y-1"
+                      className="flex max-w-full items-center justify-center gap-3 p-4 mt-4 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl font-bold shadow-lg hover:shadow-green-200 transition-all duration-300 sm:transform sm:hover:-translate-y-1"
                     >
-                      <MessageCircle className="h-6 w-6" />
-                      Fazer Orçamento no WhatsApp
+                      <MessageCircle className="h-6 w-6 shrink-0" />
+                      <span className="min-w-0 truncate">Fazer Orçamento no WhatsApp</span>
                     </a>
                   </div>
                 );
@@ -990,7 +990,7 @@ const ProductPage = () => {
 
             if (links.length < 3) return null;
             return (
-              <div className="container mx-auto">
+              <div className="container mx-auto max-w-full overflow-hidden">
                 <SemanticLinkingBlock title="Explore mais ideias relacionadas" links={links} />
               </div>
             );
