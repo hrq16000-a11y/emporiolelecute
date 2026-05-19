@@ -506,12 +506,13 @@ const ProductPage = () => {
               {/* Favorite Button */}
               <button
                 onClick={() => setIsFavorite(!isFavorite)}
-                className="absolute top-4 right-4 z-10 p-3 bg-card/90 backdrop-blur-sm rounded-full shadow-md hover:bg-card transition-colors"
+                aria-label="Favoritar produto"
+                className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 p-2.5 sm:p-3 bg-card/95 backdrop-blur-sm rounded-full shadow-md hover:bg-card transition-colors"
               >
-                <Heart 
-                  className={`h-6 w-6 transition-colors ${
+                <Heart
+                  className={`h-5 w-5 sm:h-6 sm:w-6 transition-colors ${
                     isFavorite ? 'fill-red-500 text-red-500' : 'text-muted-foreground'
-                  }`} 
+                  }`}
                 />
               </button>
 
