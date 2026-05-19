@@ -467,7 +467,7 @@ const ProductPage = () => {
       />
       <Header />
       
-      <main className="pt-24 pb-16 overflow-x-clip">
+      <main className="pt-24 pb-16 max-w-full overflow-x-hidden">
         {/* Breadcrumb */}
         <div className="container mx-auto px-4 py-4">
           <nav className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
@@ -509,10 +509,10 @@ const ProductPage = () => {
         </div>
 
         {/* Product Detail */}
-        <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 mb-16">
+        <div className="container mx-auto max-w-full px-4 overflow-x-hidden">
+          <div className="grid min-w-0 lg:grid-cols-2 gap-6 lg:gap-12 mb-12 lg:mb-16">
             {/* Image Gallery - Horizontal layout with thumbnails below */}
-            <div className="relative">
+            <div className="relative min-w-0 max-w-full overflow-hidden" data-testid="pdp-media-block">
               <ProductGallery
                 images={product.images.length > 0 ? product.images : ['/placeholder.svg']}
                 productName={product.name}
