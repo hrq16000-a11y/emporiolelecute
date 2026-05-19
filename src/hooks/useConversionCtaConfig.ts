@@ -49,12 +49,23 @@ export interface ToastConfig {
   durationMs: number;
 }
 
+export type PdpBadgeTone = "blue" | "coral" | "green" | "amber" | "neutral";
+
+export interface PdpBadgeConfig {
+  enabled: boolean;
+  label: string;
+  /** Mostra o ícone de caminhão à esquerda do texto. */
+  showIcon: boolean;
+  tone: PdpBadgeTone;
+}
+
 export interface ConversionCtaConfig {
   sticky: StickyCtaConfig;
   quickSummary: QuickSummaryConfig;
   exitPopup: ExitPopupConfig;
   whatsappTemplate: WhatsAppTemplateConfig;
   toast: ToastConfig;
+  pdpBadge: PdpBadgeConfig;
 }
 
 export const DEFAULT_CONVERSION_CTA: ConversionCtaConfig = {
@@ -92,6 +103,12 @@ export const DEFAULT_CONVERSION_CTA: ConversionCtaConfig = {
     message: "Abrindo o WhatsApp… se não abrir automaticamente, verifique o popup do navegador.",
     durationMs: 4000,
   },
+  pdpBadge: {
+    enabled: false,
+    label: "Frete reduzido",
+    showIcon: true,
+    tone: "blue",
+  },
 };
 
 function mergeConfig(raw: any): ConversionCtaConfig {
@@ -102,6 +119,7 @@ function mergeConfig(raw: any): ConversionCtaConfig {
     exitPopup: { ...DEFAULT_CONVERSION_CTA.exitPopup, ...(r.exitPopup || {}) },
     whatsappTemplate: { ...DEFAULT_CONVERSION_CTA.whatsappTemplate, ...(r.whatsappTemplate || {}) },
     toast: { ...DEFAULT_CONVERSION_CTA.toast, ...(r.toast || {}) },
+    pdpBadge: { ...DEFAULT_CONVERSION_CTA.pdpBadge, ...(r.pdpBadge || {}) },
   };
 }
 
@@ -178,12 +196,20 @@ const toastSchema = z.object({
   durationMs: z.coerce.number().int().min(1000).max(15_000),
 });
 
+const pdpBadgeSchema = z.object({
+  enabled: z.boolean(),
+  label: z.string().trim().min(1, "Texto do badge obrigatório").max(40),
+  showIcon: z.boolean(),
+  tone: z.enum(["blue", "coral", "green", "amber", "neutral"]),
+});
+
 export const conversionCtaConfigSchema = z.object({
   sticky: stickySchema,
   quickSummary: quickSummarySchema,
   exitPopup: exitPopupSchema,
   whatsappTemplate: whatsappTemplateSchema,
   toast: toastSchema,
+  pdpBadge: pdpBadgeSchema,
 });
 
 /** Valida (e normaliza) o config. Lança Error com mensagem amigável se inválido. */
