@@ -143,12 +143,19 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
 
       {/* Main Image Container */}
       <div className="flex-1 min-w-0 max-w-full">
-        <div 
+        <div
           className="relative aspect-square w-full max-w-full rounded-xl sm:rounded-2xl overflow-hidden bg-muted shadow-card sm:shadow-lg group cursor-pointer"
           data-testid="pdp-gallery-main"
           onClick={() => setIsZoomed(true)}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          onFocusCapture={() => setIsPaused(true)}
+          onBlurCapture={() => setIsPaused(false)}
+          role="region"
+          aria-roledescription="carrossel"
+          aria-label={`Galeria de imagens de ${productName}`}
         >
           {/* Image with fade transition */}
           <div className="relative w-full h-full">
