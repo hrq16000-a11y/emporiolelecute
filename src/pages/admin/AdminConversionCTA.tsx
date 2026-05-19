@@ -286,7 +286,7 @@ function ConfigTab({
           <div className="flex items-center justify-between gap-3">
             <div>
               <CardTitle>Badge da PDP (ex.: "Frete reduzido")</CardTitle>
-              <CardDescription>Selo flutuante sobre a imagem do produto. Desligado por padrão.</CardDescription>
+              <CardDescription>Selo flutuante sobre a imagem do produto. Pode ser sobrescrito por produto.</CardDescription>
             </div>
             <Switch
               checked={draft.pdpBadge.enabled}
@@ -294,36 +294,83 @@ function ConfigTab({
             />
           </div>
         </CardHeader>
-        <CardContent className="grid sm:grid-cols-3 gap-4">
-          <div className="sm:col-span-2 space-y-1">
-            <Label>Texto</Label>
-            <Input
-              value={draft.pdpBadge.label}
-              maxLength={40}
-              onChange={(e) => update("pdpBadge", { label: e.target.value })}
-            />
+        <CardContent className="grid lg:grid-cols-[1fr_320px] gap-6">
+          <div className="grid sm:grid-cols-3 gap-4">
+            <div className="sm:col-span-2 space-y-1">
+              <Label>Texto</Label>
+              <Input
+                value={draft.pdpBadge.label}
+                maxLength={40}
+                onChange={(e) => update("pdpBadge", { label: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Cor</Label>
+              <select
+                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                value={draft.pdpBadge.tone}
+                onChange={(e) => update("pdpBadge", { tone: e.target.value as any })}
+              >
+                <option value="blue">Azul</option>
+                <option value="coral">Coral (marca)</option>
+                <option value="green">Verde</option>
+                <option value="amber">Âmbar</option>
+                <option value="neutral">Neutro</option>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <Label>Posição</Label>
+              <select
+                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                value={draft.pdpBadge.position}
+                onChange={(e) => update("pdpBadge", { position: e.target.value as any })}
+              >
+                <option value="top-left">Superior esquerda</option>
+                <option value="top-right">Superior direita</option>
+                <option value="bottom-left">Inferior esquerda</option>
+                <option value="bottom-right">Inferior direita</option>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <Label>Offset horizontal (px)</Label>
+              <Input
+                type="number" min={0} max={80}
+                value={draft.pdpBadge.offsetX}
+                onChange={(e) => update("pdpBadge", { offsetX: Number(e.target.value) })}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Offset vertical (px)</Label>
+              <Input
+                type="number" min={0} max={80}
+                value={draft.pdpBadge.offsetY}
+                onChange={(e) => update("pdpBadge", { offsetY: Number(e.target.value) })}
+              />
+            </div>
+            <label className="flex items-center gap-2 sm:col-span-3">
+              <Switch
+                checked={draft.pdpBadge.showIcon}
+                onCheckedChange={(v) => update("pdpBadge", { showIcon: v })}
+              />
+              <span className="text-sm">Mostrar ícone de caminhão</span>
+            </label>
           </div>
-          <div className="space-y-1">
-            <Label>Cor</Label>
-            <select
-              className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-              value={draft.pdpBadge.tone}
-              onChange={(e) => update("pdpBadge", { tone: e.target.value as any })}
-            >
-              <option value="blue">Azul</option>
-              <option value="coral">Coral (marca)</option>
-              <option value="green">Verde</option>
-              <option value="amber">Âmbar</option>
-              <option value="neutral">Neutro</option>
-            </select>
+
+          {/* Live preview */}
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Pré-visualização ao vivo</Label>
+            <div className="relative w-[320px] h-[320px] rounded-lg overflow-hidden border bg-gradient-to-br from-muted/40 to-muted">
+              <img
+                src="/placeholder.svg"
+                alt="Mock produto"
+                className="absolute inset-0 w-full h-full object-cover opacity-70"
+              />
+              <PdpBadge config={draft.pdpBadge} previewOnly />
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Posição e offsets aplicados sobre a imagem real do produto na PDP.
+            </p>
           </div>
-          <label className="flex items-center gap-2 sm:col-span-3">
-            <Switch
-              checked={draft.pdpBadge.showIcon}
-              onCheckedChange={(v) => update("pdpBadge", { showIcon: v })}
-            />
-            <span className="text-sm">Mostrar ícone de caminhão</span>
-          </label>
         </CardContent>
       </Card>
     </div>
