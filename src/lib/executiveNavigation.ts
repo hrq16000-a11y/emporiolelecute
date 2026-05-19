@@ -135,6 +135,7 @@ export const EXECUTIVE_NAV: NavGroup[] = [
       { label: "Hero Slides", path: "/admin/hero-slides", icon: "Image" },
       { label: "Depoimentos", path: "/admin/depoimentos", icon: "MessageSquare" },
       { label: "Seções da Home", path: "/admin/secoes-home", icon: "Layers3" },
+      { label: "Seções da PDP", path: "/admin/pdp-sections", icon: "LayoutGrid" },
       { label: "Blocos Homepage", path: "/admin/blocos", icon: "Home" },
       { label: "Feed Instagram", path: "/admin/feed-instagram", icon: "Instagram" },
       { label: "Landings SEO", path: "/admin/landings", icon: "MapPin" },
