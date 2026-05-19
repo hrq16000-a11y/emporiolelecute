@@ -207,7 +207,7 @@ ${img ? `<img src="${esc(img)}" alt="${esc(p.name)}" loading="eager">` : ""}
           "@type": "Offer",
           url: canonical(productPath(p.slug)),
           priceCurrency: "BRL",
-          price: p.price,
+          price: Number(p.price),
           availability: "https://schema.org/InStock",
         },
         ...(p.rating
