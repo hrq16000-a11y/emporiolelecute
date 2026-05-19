@@ -539,7 +539,7 @@ const ProductPage = () => {
                       onClick={() => handleFavoriteToggle("image_overlay")}
                       aria-label={isFavorite ? "Remover dos favoritos" : "Favoritar produto"}
                       aria-pressed={isFavorite}
-                      className={`absolute top-3 sm:top-4 ${favSideClass} z-40 min-w-12 min-h-12 sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center rounded-full border border-border bg-background/95 text-foreground shadow-medium ring-2 ring-background/80 backdrop-blur-md transition-all touch-manipulation hover:bg-card hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${isFavorite ? "border-primary bg-primary/10 text-primary" : ""}`}
+                      className={`absolute top-3 sm:top-4 ${favSideClass} z-40 min-w-12 min-h-12 sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center rounded-full border border-border/40 bg-background/80 text-foreground backdrop-blur-sm transition-all touch-manipulation hover:bg-background hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${isFavorite ? "border-primary/60 bg-primary/10 text-primary" : ""}`}
                     >
                       <Heart
                         key={String(isFavorite)}
@@ -870,21 +870,9 @@ const ProductPage = () => {
               {/* Trust badges 3-up removidos — informação já consolidada na linha editorial do topo */}
 
 
-              {/* Trust Badges - Horizontal */}
-              <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-6">
-                <div className="flex flex-col items-center text-center p-3 bg-card rounded-lg border border-border/50">
-                  <Send className="h-5 w-5 text-primary mb-2" />
-                  <span className="text-xs font-medium text-foreground">Envio todo Brasil</span>
-                </div>
-                <div className="flex flex-col items-center text-center p-3 bg-card rounded-lg border border-border/50">
-                  <Shield className="h-5 w-5 text-primary mb-2" />
-                  <span className="text-xs font-medium text-foreground">Hipoalergênico</span>
-                </div>
-                <div className="flex flex-col items-center text-center p-3 bg-card rounded-lg border border-border/50">
-                  <Heart className="h-5 w-5 text-primary mb-2" />
-                  <span className="text-xs font-medium text-foreground">100% Artesanal</span>
-                </div>
-              </div>
+              {/* Trust Badges horizontais removidos — consolidados na linha editorial do topo. */}
+
+
 
               {/* Tags Section */}
               {product.keywords && product.keywords.length > 0 && (
@@ -921,7 +909,7 @@ const ProductPage = () => {
                         e.preventDefault();
                         openWhatsApp("product_page");
                       }}
-                      className="flex max-w-full items-center justify-center gap-3 p-4 mt-4 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl font-bold shadow-lg hover:shadow-green-200 transition-all duration-300 sm:transform sm:hover:-translate-y-1"
+                      className="flex max-w-full items-center justify-center gap-3 p-4 mt-4 bg-foreground/95 hover:bg-foreground text-background rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-300"
                     >
                       <MessageCircle className="h-6 w-6 shrink-0" />
                       <span className="min-w-0 truncate">Fazer Orçamento no WhatsApp</span>
