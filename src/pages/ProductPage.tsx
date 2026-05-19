@@ -475,7 +475,7 @@ const ProductPage = () => {
 
             {dbProduct?.segments?.[0] && (
               <>
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" aria-hidden="true" />
                 <Link to={`/segmento/${dbProduct.segments[0].slug}`} className="shrink-0 hover:text-primary transition-colors">
                   {dbProduct.segments[0].name}
                 </Link>
@@ -484,7 +484,7 @@ const ProductPage = () => {
 
             {dbProduct?.occasions?.[0] && (
               <>
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" aria-hidden="true" />
                 <Link to={`/ocasiao/${dbProduct.occasions[0].slug}`} className="shrink-0 hover:text-primary transition-colors">
                   {dbProduct.occasions[0].name}
                 </Link>
@@ -493,7 +493,7 @@ const ProductPage = () => {
 
             {dbProduct?.category && !dbProduct?.segments?.[0] && !dbProduct?.occasions?.[0] && (
               <>
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" aria-hidden="true" />
                 <Link
                   to={`/categoria/${dbProduct.category.slug}`}
                   className="shrink-0 hover:text-primary transition-colors"
@@ -503,7 +503,7 @@ const ProductPage = () => {
               </>
             )}
 
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" aria-hidden="true" />
             <span className="min-w-0 truncate text-foreground font-medium">{product.name}</span>
           </nav>
         </div>
@@ -779,7 +779,9 @@ const ProductPage = () => {
                 </div>
               </div>
 
-              {/* Resumo rápido + CTA WhatsApp com qty/personalização selecionadas */}
+              {/* Resumo rápido + CTA WhatsApp — exibido apenas quando WhatsApp é primário
+                  (personalizado / sem estoque). Para pronta entrega o CTA primário é o carrinho,
+                  evitando concorrência de 3 CTAs verdes acima da dobra. */}
               <QuickQuoteSummary
                 minQuantity={product.minQuantity}
                 productionDays={product.productionDays}
@@ -787,7 +789,10 @@ const ProductPage = () => {
                 personalization={personalization}
                 onWhatsApp={() => openWhatsApp("quick_summary")}
                 productSlug={product.slug}
-                enabled={ctaConfig?.quickSummary?.enabled !== false}
+                enabled={
+                  resolvePrimaryAction(dbProduct).primary !== "cart" &&
+                  ctaConfig?.quickSummary?.enabled !== false
+                }
                 title={ctaConfig?.quickSummary?.title}
                 minLabel={ctaConfig?.quickSummary?.minLabel}
                 prazoLabel={ctaConfig?.quickSummary?.prazoLabel}
