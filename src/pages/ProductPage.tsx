@@ -811,7 +811,7 @@ const ProductPage = () => {
                 const cartBtn = (primary: boolean) => (
                   <Button
                     size="lg"
-                    className={`flex-1 rounded-lg py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all ${
+                    className={`min-w-0 flex-1 rounded-lg px-3 py-6 text-sm sm:text-lg font-semibold shadow-lg hover:shadow-xl transition-all ${
                       addedToCart
                         ? "bg-green-500 hover:bg-green-600 text-white"
                         : primary
@@ -823,13 +823,13 @@ const ProductPage = () => {
                   >
                     {addedToCart ? (
                       <>
-                        <CheckCircle2 className="h-5 w-5 mr-2" />
-                        Adicionado!
+                        <CheckCircle2 className="h-5 w-5 mr-2 shrink-0" />
+                        <span className="truncate">Adicionado!</span>
                       </>
                     ) : (
                       <>
-                        <ShoppingCart className="h-5 w-5 mr-2" />
-                        {primary ? "Adicionar ao Carrinho" : "Adicionar ao carrinho"}
+                        <ShoppingCart className="h-5 w-5 mr-2 shrink-0" />
+                        <span className="truncate">{primary ? "Adicionar ao Carrinho" : "Adicionar ao carrinho"}</span>
                       </>
                     )}
                   </Button>
