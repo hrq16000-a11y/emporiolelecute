@@ -67,6 +67,7 @@ const Buscar = () => {
         description: p.description || "",
         longDescription: p.long_description || undefined,
         price: `R$ ${p.price.toFixed(2).replace(".", ",")}`,
+        priceValue: Number(p.price),
         originalPrice: p.original_price
           ? `R$ ${p.original_price.toFixed(2).replace(".", ",")}`
           : undefined,
