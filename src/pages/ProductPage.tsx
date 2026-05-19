@@ -577,8 +577,8 @@ const ProductPage = () => {
             {/* Info Section - Reference Style */}
             <div className="flex min-w-0 max-w-full flex-col overflow-hidden">
               {/* Product Name & Rating + Social Proof (Q2) */}
-              <div className="flex items-start justify-between gap-3 sm:gap-4 mb-2">
-                <h1 className="font-display text-2xl md:text-3xl text-foreground leading-tight min-w-0 break-words">
+              <div className="flex items-start justify-between gap-3 sm:gap-4 mb-3">
+                <h1 className="font-display text-xl sm:text-2xl md:text-3xl text-foreground leading-tight min-w-0 break-words">
                   {product.name}
                 </h1>
                 <div className="flex flex-col items-end gap-1 flex-shrink-0">
@@ -656,7 +656,7 @@ const ProductPage = () => {
               </div>
 
               {/* Price Info Grid */}
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Valor unitário</p>
                   <p className="text-lg font-semibold text-primary">
@@ -672,12 +672,12 @@ const ProductPage = () => {
               </div>
 
               {/* Total Price Section */}
-              <div className="mb-4">
+              <div className="mb-4 min-w-0">
                 <p className="text-sm text-muted-foreground mb-1">Valor total</p>
-                <p className="text-3xl font-bold text-foreground">
+                <p className="text-2xl sm:text-3xl font-bold text-foreground break-words">
                   R$ {totalPrice.toFixed(2).replace('.', ',')}
                 </p>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-sm text-muted-foreground mt-1 break-words">
                   ou {installments}x sem juros de R$ {installmentValue.toFixed(2).replace('.', ',')} no cartão
                 </p>
               </div>
@@ -725,12 +725,12 @@ const ProductPage = () => {
 
               {/* Quantity Selector */}
               <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                   <span className="font-medium text-foreground">Quantidade</span>
                   <span className="text-sm text-muted-foreground">(Mínimo: {product.minQuantity})</span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center border border-border rounded-lg overflow-hidden">
+                    <div className="flex items-center border border-border rounded-lg overflow-hidden max-w-full">
                     <button 
                       type="button"
                       onClick={() => {
