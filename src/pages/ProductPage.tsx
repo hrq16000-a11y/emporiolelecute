@@ -450,7 +450,7 @@ const ProductPage = () => {
       />
       <Header />
       
-      <main className="pt-24 pb-16">
+      <main className="pt-24 pb-16 overflow-x-clip">
         {/* Breadcrumb */}
         <div className="container mx-auto px-4 py-4">
           <nav className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
