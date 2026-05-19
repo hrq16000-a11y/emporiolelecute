@@ -145,19 +145,16 @@ const ProductReviews = ({ productId, initialLimit = 3, variant = 'default' }: Pr
               </div>
             )}
 
-            {r.source && r.source !== 'manual' && (
+            {r.source_url && (
               <div className="text-xs text-muted-foreground flex items-center gap-1.5">
-                <span className="px-2 py-0.5 bg-muted rounded-full capitalize">{r.source}</span>
-                {r.source_url && (
-                  <a
-                    href={r.source_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 hover:text-primary"
-                  >
-                    Ver origem <ExternalLink className="h-3 w-3" />
-                  </a>
-                )}
+                <a
+                  href={r.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 hover:text-primary"
+                >
+                  Ver origem <ExternalLink className="h-3 w-3" />
+                </a>
               </div>
             )}
           </article>
