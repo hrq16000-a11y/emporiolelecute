@@ -539,7 +539,7 @@ const ProductPage = () => {
                       onClick={() => handleFavoriteToggle("image_overlay")}
                       aria-label={isFavorite ? "Remover dos favoritos" : "Favoritar produto"}
                       aria-pressed={isFavorite}
-                      className={`absolute top-3 sm:top-4 ${favSideClass} z-40 min-w-12 min-h-12 sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center rounded-full border border-border bg-background/95 text-foreground shadow-medium ring-2 ring-background/80 backdrop-blur-md transition-all touch-manipulation hover:bg-card hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${isFavorite ? "border-primary bg-primary/10 text-primary" : ""}`}
+                      className={`absolute top-3 sm:top-4 ${favSideClass} z-40 min-w-12 min-h-12 sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center rounded-full border border-border/40 bg-background/80 text-foreground backdrop-blur-sm transition-all touch-manipulation hover:bg-background hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${isFavorite ? "border-primary/60 bg-primary/10 text-primary" : ""}`}
                     >
                       <Heart
                         key={String(isFavorite)}
@@ -578,39 +578,41 @@ const ProductPage = () => {
             <div className="flex min-w-0 max-w-full flex-col overflow-hidden">
               {/* Product Name & Rating + Social Proof (Q2) */}
               <div className="flex items-start justify-between gap-3 sm:gap-4 mb-3">
-                <h1 className="font-display text-xl sm:text-2xl md:text-3xl text-foreground leading-tight min-w-0 break-words">
+                <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-light text-foreground leading-tight tracking-tight min-w-0 break-words">
                   {product.name}
                 </h1>
-                <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                  <div className="flex items-center gap-1 bg-amber-400 text-white px-2 py-1 rounded-md">
-                    <Star className="h-4 w-4 fill-white" />
-                    <span className="font-bold text-sm">
-                      {reviewStats?.avg_rating ? Number(reviewStats.avg_rating).toFixed(1) : product.rating.toFixed(1)}
-                    </span>
-                  </div>
+                <div className="flex items-center gap-1.5 flex-shrink-0 pt-1.5 text-muted-foreground">
+                  <Star className="h-3.5 w-3.5 text-foreground" strokeWidth={1.5} />
+                  <span className="text-sm tabular-nums text-foreground">
+                    {reviewStats?.avg_rating ? Number(reviewStats.avg_rating).toFixed(1) : product.rating.toFixed(1)}
+                  </span>
                   {reviewStats?.review_count ? (
-                    <span className="text-[11px] text-muted-foreground font-medium">
-                      {reviewStats.review_count} {reviewStats.review_count === 1 ? "avaliação" : "avaliações"}
+                    <span className="text-xs text-muted-foreground/80">
+                      ({reviewStats.review_count})
                     </span>
                   ) : null}
                 </div>
               </div>
 
-              {/* Quick trust row — mínimo + prazo (Q3) */}
-              <div className="flex flex-wrap items-center gap-2 mb-4">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
-                  <Package className="h-3.5 w-3.5" />
+
+              {/* Trust row consolidado — linha editorial sutil, sem pílulas cromáticas */}
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-5 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5">
+                  <Package className="h-3.5 w-3.5" strokeWidth={1.5} />
                   Mínimo {product.minQuantity} un.
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">
-                  <Clock className="h-3.5 w-3.5" />
+                <span className="text-muted-foreground/40" aria-hidden="true">·</span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5" strokeWidth={1.5} />
                   Pronto em {product.productionDays} dias úteis
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
-                  <Truck className="h-3.5 w-3.5" />
+                <span className="text-muted-foreground/40" aria-hidden="true">·</span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Truck className="h-3.5 w-3.5" strokeWidth={1.5} />
                   Envio Brasil
                 </span>
               </div>
+
 
 
               {/* Category, Occasions & Tags */}
@@ -655,53 +657,25 @@ const ProductPage = () => {
                 )}
               </div>
 
-              {/* Price Info Grid */}
-              <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Valor unitário</p>
-                  <p className="text-lg font-semibold text-primary">
-                    R$ {product.price.toFixed(2).replace('.', ',')}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Compra mínima</p>
-                  <p className="text-lg font-semibold text-foreground underline decoration-primary decoration-2 underline-offset-4">
-                    {product.minQuantity} unidades
-                  </p>
-                </div>
-              </div>
-
-              {/* Total Price Section */}
-              <div className="mb-4 min-w-0">
-                <p className="text-sm text-muted-foreground mb-1">Valor total</p>
-                <p className="text-2xl sm:text-3xl font-bold text-foreground break-words">
+              {/* Preço — hierarquia editorial (total primeiro, unitário e parcelas como apoio) */}
+              <div className="mb-6 min-w-0">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1.5">Valor total</p>
+                <p className="font-display text-3xl sm:text-4xl font-light text-foreground break-words leading-none">
                   R$ {totalPrice.toFixed(2).replace('.', ',')}
                 </p>
+                <p className="text-sm text-muted-foreground mt-2 break-words">
+                  R$ {product.price.toFixed(2).replace('.', ',')} / unidade
+                  <span className="text-muted-foreground/40 mx-2" aria-hidden="true">·</span>
+                  {product.minQuantity} un. mín.
+                </p>
                 <p className="text-sm text-muted-foreground mt-1 break-words">
-                  ou {installments}x sem juros de R$ {installmentValue.toFixed(2).replace('.', ',')} no cartão
+                  {installments}x sem juros de R$ {installmentValue.toFixed(2).replace('.', ',')}
+                  <span className="text-muted-foreground/40 mx-2" aria-hidden="true">·</span>
+                  <span className="text-foreground">R$ {pixPrice.toFixed(2).replace('.', ',')}</span>
+                  <span className="text-muted-foreground"> no PIX (-{pixDiscountPercent}%)</span>
                 </p>
               </div>
 
-              {/* PIX Discount */}
-              <div className="flex items-center gap-3 mb-6">
-                <span className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">
-                  -{pixDiscountPercent}% no Pix
-                </span>
-                <span className="text-lg font-semibold text-green-600">
-                  R$ {pixPrice.toFixed(2).replace('.', ',')}
-                </span>
-              </div>
-
-              {/* Production Time */}
-              <div className="border-t border-border pt-4 mb-6">
-                <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                  <Clock className="h-5 w-5" />
-                  <span className="text-sm">Feito sob encomenda</span>
-                </div>
-                <p className="text-foreground">
-                  Produto pronto em até <span className="font-semibold text-amber-600">{product.productionDays} dias úteis</span>
-                </p>
-              </div>
 
               {/* Description */}
               <p className="text-muted-foreground text-sm leading-relaxed mb-6">
@@ -710,18 +684,19 @@ const ProductPage = () => {
 
               {/* Personalization Field - only show if enabled */}
               {dbProduct?.personalization_enabled !== false && (
-                <div className="bg-card rounded-xl border border-border p-5 mb-6">
-                  <h3 className="font-semibold text-foreground mb-3">
+                <div className="rounded-lg border border-border/40 p-5 mb-6">
+                  <h3 className="text-sm font-medium text-foreground mb-3 tracking-wide">
                     {dbProduct?.personalization_label || 'Personalização'}
                   </h3>
                   <Textarea
                     placeholder={dbProduct?.personalization_placeholder || 'Digite o nome, data ou mensagem para personalização...'}
                     value={personalization}
                     onChange={(e) => setPersonalization(e.target.value)}
-                    className="min-h-[80px] resize-none"
+                    className="min-h-[80px] resize-none border-border/40 focus-visible:ring-1"
                   />
                 </div>
               )}
+
 
               {/* Quantity Selector */}
               <div className="mb-6">
@@ -801,12 +776,11 @@ const ProductPage = () => {
                 ctaLabel={ctaConfig?.quickSummary?.ctaLabel}
               />
 
-              {/* Note about shipping */}
-              <div className="bg-primary-light/50 rounded-xl border border-primary/20 p-4 mb-6">
-                <p className="text-sm text-foreground/80 text-center">
-                  <span className="font-semibold text-primary">📦 Frete:</span> O valor do frete é calculado via WhatsApp.
-                </p>
-              </div>
+              {/* Nota frete — microcopy editorial, sem caixa colorida */}
+              <p className="text-xs text-muted-foreground mb-6 text-center">
+                Frete calculado via WhatsApp após o pedido.
+              </p>
+
 
 
               {/* Sprint 4 — CTA primário decidido por resolvePrimaryAction(product) */}
@@ -814,15 +788,16 @@ const ProductPage = () => {
                 const action = resolvePrimaryAction(dbProduct);
                 const isWaPrimary = action.primary === "whatsapp";
                 const cartBtn = (primary: boolean) => (
-                  <Button
+                <Button
                     size="lg"
-                    className={`min-w-0 flex-1 rounded-lg px-3 py-6 text-sm sm:text-lg font-semibold shadow-lg hover:shadow-xl transition-all ${
+                    className={`min-w-0 flex-1 rounded-lg px-3 py-5 text-sm sm:text-base font-medium shadow-sm hover:shadow-md transition-all ${
                       addedToCart
                         ? "bg-green-500 hover:bg-green-600 text-white"
                         : primary
                           ? "bg-primary hover:bg-primary-dark text-primary-foreground"
-                          : "bg-card border-2 border-primary text-primary hover:bg-primary/10"
+                          : "bg-card border border-primary/60 text-primary hover:bg-primary/5"
                     }`}
+
                     variant={primary ? "default" : "outline"}
                     onClick={handleAddToCart}
                   >
@@ -881,43 +856,23 @@ const ProductPage = () => {
               })()}
 
 
-              {/* Payment Methods */}
+              {/* Payment Methods — microcopy discreto, sem pílulas coloridas */}
               <div className="mb-6">
-                <p className="text-sm text-muted-foreground mb-3">Formas de pagamento:</p>
-                <div className="flex flex-wrap gap-2">
-                  {paymentConfig?.accepted_methods?.pix && (
-                    <span className="px-3 py-1.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
-                      PIX
-                    </span>
-                  )}
-                  {paymentConfig?.accepted_methods?.credit_card && (
-                    <span className="px-3 py-1.5 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
-                      Cartão de Crédito
-                    </span>
-                  )}
-                  {paymentConfig?.accepted_methods?.boleto && (
-                    <span className="px-3 py-1.5 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
-                      Boleto Bancário
-                    </span>
-                  )}
-                </div>
+                <p className="text-xs text-muted-foreground">
+                  Aceitamos
+                  {paymentConfig?.accepted_methods?.pix ? <span className="text-foreground"> PIX</span> : null}
+                  {paymentConfig?.accepted_methods?.credit_card ? <><span className="text-muted-foreground/50">,</span><span className="text-foreground"> Cartão de Crédito</span></> : null}
+                  {paymentConfig?.accepted_methods?.boleto ? <><span className="text-muted-foreground/50">,</span><span className="text-foreground"> Boleto Bancário</span></> : null}
+                  .
+                </p>
               </div>
 
-              {/* Trust Badges - Horizontal */}
-              <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-6">
-                <div className="flex flex-col items-center text-center p-3 bg-card rounded-lg border border-border/50">
-                  <Send className="h-5 w-5 text-primary mb-2" />
-                  <span className="text-xs font-medium text-foreground">Envio todo Brasil</span>
-                </div>
-                <div className="flex flex-col items-center text-center p-3 bg-card rounded-lg border border-border/50">
-                  <Shield className="h-5 w-5 text-primary mb-2" />
-                  <span className="text-xs font-medium text-foreground">Hipoalergênico</span>
-                </div>
-                <div className="flex flex-col items-center text-center p-3 bg-card rounded-lg border border-border/50">
-                  <Heart className="h-5 w-5 text-primary mb-2" />
-                  <span className="text-xs font-medium text-foreground">100% Artesanal</span>
-                </div>
-              </div>
+              {/* Trust badges 3-up removidos — informação já consolidada na linha editorial do topo */}
+
+
+              {/* Trust Badges horizontais removidos — consolidados na linha editorial do topo. */}
+
+
 
               {/* Tags Section */}
               {product.keywords && product.keywords.length > 0 && (
@@ -954,7 +909,7 @@ const ProductPage = () => {
                         e.preventDefault();
                         openWhatsApp("product_page");
                       }}
-                      className="flex max-w-full items-center justify-center gap-3 p-4 mt-4 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl font-bold shadow-lg hover:shadow-green-200 transition-all duration-300 sm:transform sm:hover:-translate-y-1"
+                      className="flex max-w-full items-center justify-center gap-3 p-4 mt-4 bg-foreground/95 hover:bg-foreground text-background rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-300"
                     >
                       <MessageCircle className="h-6 w-6 shrink-0" />
                       <span className="min-w-0 truncate">Fazer Orçamento no WhatsApp</span>
