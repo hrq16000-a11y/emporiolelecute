@@ -842,10 +842,12 @@ const ProductPage = () => {
                       <Button
                         variant="outline"
                         size="lg"
-                        className="px-4"
-                        onClick={() => setIsFavorite(!isFavorite)}
+                        className={`min-h-11 min-w-11 px-4 focus-visible:ring-4 focus-visible:ring-primary focus-visible:ring-offset-2 ${isFavorite ? "border-primary bg-primary/10 text-primary" : ""}`}
+                        onClick={() => handleFavoriteToggle("actions")}
+                        aria-label={isFavorite ? "Remover dos favoritos" : "Favoritar produto"}
+                        aria-pressed={isFavorite}
                       >
-                        <Heart className={`h-5 w-5 ${isFavorite ? "fill-red-500 text-red-500" : ""}`} />
+                        <Heart className={`h-5 w-5 ${isFavorite ? "fill-primary text-primary animate-heart-pop" : ""}`} />
                       </Button>
                       {/* Share */}
                       <Button variant="outline" size="lg" className="px-4" onClick={handleShare}>
