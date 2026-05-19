@@ -88,6 +88,7 @@ const ProductPage = () => {
   const [personalization, setPersonalization] = useState("");
   const [addedToCart, setAddedToCart] = useState(false);
   const [showStickyCta, setShowStickyCta] = useState(false);
+  const [favoriteFeedback, setFavoriteFeedback] = useState("");
   const ctaAnchorRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
 
@@ -247,6 +248,22 @@ const ProductPage = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const handleFavoriteToggle = (source: "image_overlay" | "actions") => {
+    if (!product) return;
+    setIsFavorite((current) => {
+      const next = !current;
+      setFavoriteFeedback(next ? "Produto adicionado aos favoritos." : "Produto removido dos favoritos.");
+      trackFunnelEvent("pdp_favorite_toggle", {
+        source,
+        product_id: product.id,
+        product_slug: product.slug,
+        favorite_state: next ? "added" : "removed",
+        viewport: window.innerWidth < 768 ? "mobile" : "desktop",
+      });
+      return next;
+    });
   };
 
   // ---- WhatsApp builder reutilizado pelo CTA inline, sticky, summary e exit popup ----
