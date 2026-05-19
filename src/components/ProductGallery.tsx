@@ -194,7 +194,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
             <ZoomIn className="h-5 w-5 text-foreground" />
           </button>
 
-          {/* Navigation Arrows — visíveis em mobile, hover-reveal em desktop */}
+          {/* Navigation Arrows — visíveis em mobile, hover-reveal em desktop. Tap target ≥44px (min-h/min-w-11). */}
           {images.length > 1 && (
             <>
               <button
@@ -202,7 +202,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
                   e.stopPropagation();
                   goToPrevious();
                 }}
-                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 flex p-2 sm:p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md"
+                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 inline-flex items-center justify-center min-h-11 min-w-11 sm:p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:opacity-100"
                 aria-label="Imagem anterior"
               >
                 <ChevronLeft className="h-5 w-5 text-foreground" />
@@ -212,13 +212,14 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
                   e.stopPropagation();
                   goToNext();
                 }}
-                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 flex p-2 sm:p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md"
+                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 inline-flex items-center justify-center min-h-11 min-w-11 sm:p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:opacity-100"
                 aria-label="Próxima imagem"
               >
                 <ChevronRight className="h-5 w-5 text-foreground" />
               </button>
             </>
           )}
+
 
           {/* Image Counter (mobile) — canto inferior direito, fora da área do favorito */}
           {images.length > 1 && (
