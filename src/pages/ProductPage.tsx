@@ -779,7 +779,9 @@ const ProductPage = () => {
                 </div>
               </div>
 
-              {/* Resumo rápido + CTA WhatsApp com qty/personalização selecionadas */}
+              {/* Resumo rápido + CTA WhatsApp — exibido apenas quando WhatsApp é primário
+                  (personalizado / sem estoque). Para pronta entrega o CTA primário é o carrinho,
+                  evitando concorrência de 3 CTAs verdes acima da dobra. */}
               <QuickQuoteSummary
                 minQuantity={product.minQuantity}
                 productionDays={product.productionDays}
@@ -787,7 +789,10 @@ const ProductPage = () => {
                 personalization={personalization}
                 onWhatsApp={() => openWhatsApp("quick_summary")}
                 productSlug={product.slug}
-                enabled={ctaConfig?.quickSummary?.enabled !== false}
+                enabled={
+                  resolvePrimaryAction(dbProduct).primary !== "cart" &&
+                  ctaConfig?.quickSummary?.enabled !== false
+                }
                 title={ctaConfig?.quickSummary?.title}
                 minLabel={ctaConfig?.quickSummary?.minLabel}
                 prazoLabel={ctaConfig?.quickSummary?.prazoLabel}
