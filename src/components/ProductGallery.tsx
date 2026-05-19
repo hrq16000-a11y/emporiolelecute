@@ -17,6 +17,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
   const [isZoomed, setIsZoomed] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     setIsLoaded(true);
@@ -34,17 +35,21 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
     setCurrentIndex(index);
   };
 
-  // Touch handlers for swipe
+  // Touch handlers for swipe — também pausam o autoplay momentaneamente
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.touches[0].clientX);
+    setIsPaused(true);
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStart === null) return;
-    
+    if (touchStart === null) {
+      setIsPaused(false);
+      return;
+    }
+
     const touchEnd = e.changedTouches[0].clientX;
     const diff = touchStart - touchEnd;
-    
+
     if (Math.abs(diff) > 50) {
       if (diff > 0) {
         goToNext();
@@ -53,6 +58,8 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
       }
     }
     setTouchStart(null);
+    // Retoma autoplay após pequeno delay para não disparar logo após o swipe
+    window.setTimeout(() => setIsPaused(false), 1500);
   };
 
   // Keyboard navigation
@@ -62,10 +69,34 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
       if (e.key === 'ArrowRight') goToNext();
       if (e.key === 'Escape') setIsZoomed(false);
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  // Autoplay suave (fade já aplicado via transition-opacity).
+  // Pausa em: zoom aberto, hover/touch/focus, aba oculta, prefers-reduced-motion, <2 imagens.
+  useEffect(() => {
+    if (images.length < 2 || isZoomed || isPaused) return;
+    if (typeof window === 'undefined') return;
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) return;
+    if (typeof document !== 'undefined' && document.hidden) return;
+
+    const id = window.setInterval(() => {
+      setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    }, 5000);
+    return () => window.clearInterval(id);
+  }, [images.length, isZoomed, isPaused]);
+
+  // Pausa autoplay quando a aba fica oculta
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const onVis = () => setIsPaused(document.hidden);
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, []);
+
 
   return (
     <div className={cn(
