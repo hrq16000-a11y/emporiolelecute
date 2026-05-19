@@ -29,7 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import WhatsAppButton from "@/components/WhatsAppButton";
+// WhatsAppButton intencionalmente não importado na PDP — ver linha do bloco final.
 import ProductCard from "@/components/ProductCard";
 import RelatedProducts from "@/components/RelatedProducts";
 import RelatedSmart from "@/components/RelatedSmart";
@@ -363,7 +363,7 @@ const ProductPage = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="pt-24 pb-16 flex items-center justify-center">
+        <main className="pt-28 md:pt-32 pb-16 flex items-center justify-center">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </main>
         <Footer />
@@ -375,7 +375,7 @@ const ProductPage = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="pt-24 pb-16 container mx-auto px-4 text-center">
+        <main className="pt-28 md:pt-32 pb-16 container mx-auto px-4 text-center">
           <h1 className="font-display text-4xl text-foreground mb-4">Produto não encontrado</h1>
           <p className="text-muted-foreground mb-8">O produto que você procura não existe ou foi removido.</p>
           <Link to="/produtos">
@@ -467,7 +467,7 @@ const ProductPage = () => {
       />
       <Header />
       
-      <main className="pt-24 pb-16 max-w-full overflow-x-hidden">
+      <main className="pt-28 md:pt-32 pb-16 max-w-full overflow-x-hidden">
         {/* Breadcrumb */}
         <div className="container mx-auto max-w-full px-4 py-3 overflow-hidden">
           <nav className="flex max-w-full items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 text-xs sm:text-sm text-muted-foreground scrollbar-hide" aria-label="Breadcrumb">
@@ -1007,7 +1007,7 @@ const ProductPage = () => {
       <FAQSection />
 
       <Footer />
-      <WhatsAppButton />
+      {/* WhatsAppButton removido da PDP — sticky CTA + CTAs inline já cobrem a ação principal e evitam conflito de FABs */}
       <Chatbot />
 
       {/* Sticky CTA mobile — aparece quando o CTA principal sai do viewport */}

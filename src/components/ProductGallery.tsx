@@ -17,6 +17,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
   const [isZoomed, setIsZoomed] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     setIsLoaded(true);
@@ -34,17 +35,21 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
     setCurrentIndex(index);
   };
 
-  // Touch handlers for swipe
+  // Touch handlers for swipe — também pausam o autoplay momentaneamente
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.touches[0].clientX);
+    setIsPaused(true);
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStart === null) return;
-    
+    if (touchStart === null) {
+      setIsPaused(false);
+      return;
+    }
+
     const touchEnd = e.changedTouches[0].clientX;
     const diff = touchStart - touchEnd;
-    
+
     if (Math.abs(diff) > 50) {
       if (diff > 0) {
         goToNext();
@@ -53,6 +58,8 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
       }
     }
     setTouchStart(null);
+    // Retoma autoplay após pequeno delay para não disparar logo após o swipe
+    window.setTimeout(() => setIsPaused(false), 1500);
   };
 
   // Keyboard navigation
@@ -62,10 +69,34 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
       if (e.key === 'ArrowRight') goToNext();
       if (e.key === 'Escape') setIsZoomed(false);
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  // Autoplay suave (fade já aplicado via transition-opacity).
+  // Pausa em: zoom aberto, hover/touch/focus, aba oculta, prefers-reduced-motion, <2 imagens.
+  useEffect(() => {
+    if (images.length < 2 || isZoomed || isPaused) return;
+    if (typeof window === 'undefined') return;
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) return;
+    if (typeof document !== 'undefined' && document.hidden) return;
+
+    const id = window.setInterval(() => {
+      setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    }, 5000);
+    return () => window.clearInterval(id);
+  }, [images.length, isZoomed, isPaused]);
+
+  // Pausa autoplay quando a aba fica oculta
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const onVis = () => setIsPaused(document.hidden);
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, []);
+
 
   return (
     <div className={cn(
@@ -112,12 +143,19 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
 
       {/* Main Image Container */}
       <div className="flex-1 min-w-0 max-w-full">
-        <div 
+        <div
           className="relative aspect-square w-full max-w-full rounded-xl sm:rounded-2xl overflow-hidden bg-muted shadow-card sm:shadow-lg group cursor-pointer"
           data-testid="pdp-gallery-main"
           onClick={() => setIsZoomed(true)}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          onFocusCapture={() => setIsPaused(true)}
+          onBlurCapture={() => setIsPaused(false)}
+          role="region"
+          aria-roledescription="carrossel"
+          aria-label={`Galeria de imagens de ${productName}`}
         >
           {/* Image with fade transition */}
           <div className="relative w-full h-full">
@@ -156,7 +194,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
             <ZoomIn className="h-5 w-5 text-foreground" />
           </button>
 
-          {/* Navigation Arrows — visíveis em mobile, hover-reveal em desktop */}
+          {/* Navigation Arrows — visíveis em mobile, hover-reveal em desktop. Tap target ≥44px (min-h/min-w-11). */}
           {images.length > 1 && (
             <>
               <button
@@ -164,7 +202,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
                   e.stopPropagation();
                   goToPrevious();
                 }}
-                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 flex p-2 sm:p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md"
+                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 inline-flex items-center justify-center min-h-11 min-w-11 sm:p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:opacity-100"
                 aria-label="Imagem anterior"
               >
                 <ChevronLeft className="h-5 w-5 text-foreground" />
@@ -174,13 +212,14 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
                   e.stopPropagation();
                   goToNext();
                 }}
-                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 flex p-2 sm:p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md"
+                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 inline-flex items-center justify-center min-h-11 min-w-11 sm:p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:opacity-100"
                 aria-label="Próxima imagem"
               >
                 <ChevronRight className="h-5 w-5 text-foreground" />
               </button>
             </>
           )}
+
 
           {/* Image Counter (mobile) — canto inferior direito, fora da área do favorito */}
           {images.length > 1 && (
@@ -196,9 +235,9 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
             </span>
           )}
 
-          {/* Dots Navigation (mobile) */}
+          {/* Dots Navigation (mobile) — visual mantido, tap target ≥44px via wrapper invisível */}
           {images.length > 1 && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 px-3 py-2 bg-background/80 backdrop-blur-sm rounded-full md:hidden">
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1 px-2 py-1 bg-background/80 backdrop-blur-sm rounded-full md:hidden" role="tablist" aria-label="Selecionar imagem">
               {images.map((_, index) => (
                 <button
                   key={index}
@@ -206,17 +245,25 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
                     e.stopPropagation();
                     goToSlide(index);
                   }}
-                  className={cn(
-                    "w-2 h-2 rounded-full transition-all duration-300",
-                    index === currentIndex 
-                      ? "bg-primary w-6" 
-                      : "bg-muted-foreground/40 hover:bg-muted-foreground/60"
-                  )}
-                  aria-label={`Ver imagem ${index + 1}`}
-                />
+                  role="tab"
+                  aria-selected={index === currentIndex}
+                  aria-label={`Ver imagem ${index + 1} de ${images.length}`}
+                  className="inline-flex items-center justify-center min-h-11 min-w-11 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                >
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "block h-2 rounded-full transition-all duration-300",
+                      index === currentIndex
+                        ? "bg-primary w-6"
+                        : "bg-muted-foreground/40 w-2 hover:bg-muted-foreground/60"
+                    )}
+                  />
+                </button>
               ))}
             </div>
           )}
+
         </div>
 
         {/* Horizontal Thumbnails - Below (for horizontal layout) */}
