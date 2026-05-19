@@ -280,6 +280,52 @@ function ConfigTab({
           </div>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <CardTitle>Badge da PDP (ex.: "Frete reduzido")</CardTitle>
+              <CardDescription>Selo flutuante sobre a imagem do produto. Desligado por padrão.</CardDescription>
+            </div>
+            <Switch
+              checked={draft.pdpBadge.enabled}
+              onCheckedChange={(v) => update("pdpBadge", { enabled: v })}
+            />
+          </div>
+        </CardHeader>
+        <CardContent className="grid sm:grid-cols-3 gap-4">
+          <div className="sm:col-span-2 space-y-1">
+            <Label>Texto</Label>
+            <Input
+              value={draft.pdpBadge.label}
+              maxLength={40}
+              onChange={(e) => update("pdpBadge", { label: e.target.value })}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label>Cor</Label>
+            <select
+              className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+              value={draft.pdpBadge.tone}
+              onChange={(e) => update("pdpBadge", { tone: e.target.value as any })}
+            >
+              <option value="blue">Azul</option>
+              <option value="coral">Coral (marca)</option>
+              <option value="green">Verde</option>
+              <option value="amber">Âmbar</option>
+              <option value="neutral">Neutro</option>
+            </select>
+          </div>
+          <label className="flex items-center gap-2 sm:col-span-3">
+            <Switch
+              checked={draft.pdpBadge.showIcon}
+              onCheckedChange={(v) => update("pdpBadge", { showIcon: v })}
+            />
+            <span className="text-sm">Mostrar ícone de caminhão</span>
+          </label>
+        </CardContent>
+      </Card>
     </div>
   );
 }
