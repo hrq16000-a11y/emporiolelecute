@@ -156,7 +156,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
             <ZoomIn className="h-5 w-5 text-foreground" />
           </button>
 
-          {/* Navigation Arrows */}
+          {/* Navigation Arrows — visíveis em mobile, hover-reveal em desktop */}
           {images.length > 1 && (
             <>
               <button
@@ -164,7 +164,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
                   e.stopPropagation();
                   goToPrevious();
                 }}
-                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 hidden sm:flex p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md"
+                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 flex p-2 sm:p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md"
                 aria-label="Imagem anterior"
               >
                 <ChevronLeft className="h-5 w-5 text-foreground" />
@@ -174,12 +174,19 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
                   e.stopPropagation();
                   goToNext();
                 }}
-                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 hidden sm:flex p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md"
+                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 flex p-2 sm:p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md"
                 aria-label="Próxima imagem"
               >
                 <ChevronRight className="h-5 w-5 text-foreground" />
               </button>
             </>
+          )}
+
+          {/* Image Counter (mobile) — affordance discreta de progresso */}
+          {images.length > 1 && (
+            <div className="absolute top-3 right-3 md:hidden px-2 py-0.5 rounded-full bg-background/80 backdrop-blur-sm text-[11px] font-medium text-foreground/80 pointer-events-none">
+              {currentIndex + 1} / {images.length}
+            </div>
           )}
 
           {/* Badge */}
