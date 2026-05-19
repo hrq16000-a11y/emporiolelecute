@@ -128,7 +128,7 @@ const Chatbot = () => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "fixed bottom-24 right-6 z-40 p-4 rounded-full shadow-lg transition-all duration-300",
+          "hidden sm:flex fixed bottom-24 right-6 z-40 p-4 rounded-full shadow-lg transition-all duration-300",
           "bg-primary hover:bg-primary-dark text-primary-foreground",
           isOpen && "scale-0 opacity-0"
         )}
@@ -140,7 +140,7 @@ const Chatbot = () => {
       {/* Chat Window */}
       <div
         className={cn(
-          "fixed bottom-24 right-6 z-40 w-[360px] max-w-[calc(100vw-3rem)] bg-card rounded-2xl shadow-2xl border border-border overflow-hidden transition-all duration-300 origin-bottom-right",
+          "hidden sm:block fixed bottom-24 right-6 z-40 w-[360px] max-w-[calc(100vw-3rem)] bg-card rounded-2xl shadow-2xl border border-border overflow-hidden transition-all duration-300 origin-bottom-right",
           isOpen ? "scale-100 opacity-100" : "scale-0 opacity-0 pointer-events-none"
         )}
       >
