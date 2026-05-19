@@ -82,12 +82,12 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
 
   return (
     <article 
-      className="bg-card rounded-2xl overflow-hidden shadow-card border border-border/50 product-card group transition-all duration-300 hover:shadow-elegant hover:-translate-y-1 active:translate-y-0 active:scale-[0.99]"
+      className="min-w-0 max-w-full bg-card rounded-xl sm:rounded-2xl overflow-hidden shadow-card border border-border/50 product-card group transition-all duration-300 hover:shadow-elegant sm:hover:-translate-y-1 active:translate-y-0 active:scale-[0.99]"
       itemScope
       itemType="https://schema.org/Product"
     >
       {/* Product Image */}
-      <Link to={urls.product(product.slug)} className="block relative aspect-square overflow-hidden bg-muted">
+      <Link to={urls.product(product.slug)} className="block relative aspect-square max-w-full overflow-hidden bg-muted">
         <img 
           src={optimizeImage(product.image, { width: 600, resize: "contain" })}
           srcSet={buildSrcSet(product.image, [300, 450, 600, 800], 75, "contain")}
@@ -119,14 +119,14 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
         {/* Favorite Button */}
         <button 
           onClick={(e) => e.preventDefault()}
-          className="absolute top-4 right-4 w-10 h-10 bg-background/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-soft opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-primary hover:text-primary-foreground"
+          className="absolute top-2 right-2 sm:top-4 sm:right-4 w-10 h-10 bg-background/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-soft opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           aria-label="Adicionar aos favoritos"
         >
           <Heart className="h-5 w-5" />
         </button>
         
         {/* Quick View Overlay */}
-        <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+        <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden sm:flex items-center justify-center">
           <span className="bg-primary-foreground text-foreground px-6 py-3 rounded-full font-semibold flex items-center gap-2">
             Ver Detalhes
             <ArrowRight className="h-4 w-4" />
