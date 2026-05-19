@@ -144,6 +144,7 @@ const FUNNEL_EVENTS = new Set([
   "exit_popup_blocked",
   "exit_popup_close",
   "exit_popup_whatsapp_click",
+  "pdp_favorite_toggle",
 ]);
 
 const SESSION_KEY = "__pdp_funnel_sid__";
