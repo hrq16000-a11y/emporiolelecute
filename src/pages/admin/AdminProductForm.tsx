@@ -327,6 +327,13 @@ const AdminProductForm = () => {
       // Update product segments
       await updateProductSegments.mutateAsync({ productId, segmentIds: selectedSegments });
 
+      // Update PDP badge override (null clears it)
+      await supabase
+        .from('products')
+        .update({ pdp_badge_override: (badgeOverride as any) ?? null })
+        .eq('id', productId);
+
+
       toast({ title: isEditing ? 'Produto atualizado!' : 'Produto criado!' });
       // Stay on page after save when editing
       if (!isEditing) {
