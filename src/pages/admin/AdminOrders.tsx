@@ -402,6 +402,19 @@ const AdminOrders = () => {
             ))}
           </SelectContent>
         </Select>
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="w-full md:w-52">
+            <SelectValue placeholder="Ordenar por" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="recent">Mais recente</SelectItem>
+            <SelectItem value="oldest">Mais antigo</SelectItem>
+            <SelectItem value="value_desc">Maior valor</SelectItem>
+            <SelectItem value="value_asc">Menor valor</SelectItem>
+            <SelectItem value="customer_az">Cliente (A-Z)</SelectItem>
+            <SelectItem value="status">Status</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Orders Table */}
