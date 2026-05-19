@@ -18,7 +18,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { urls } from '@/lib/urls';
 
-const SOURCES = ['manual', 'elo7', 'whatsapp', 'instagram', 'google', 'site', 'outros'];
+const SOURCES = ['manual', 'whatsapp', 'instagram', 'google', 'site', 'outros'];
 
 const AdminProductReviews = () => {
   const { toast } = useToast();
@@ -217,7 +217,7 @@ const AdminProductReviews = () => {
 
 export default AdminProductReviews;
 
-// Fase 11 — Strategic gaps for review acquisition (Elo7/manual).
+// Fase 11 — Strategic gaps for review acquisition (manual).
 
 function ReviewStrategicGaps() {
   const { data } = useQuery({

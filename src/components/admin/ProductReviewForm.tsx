@@ -12,7 +12,7 @@ import {
 import type { AdminReview } from '@/hooks/useAdminProductReviews';
 import ImageUploader from '@/components/admin/ImageUploader';
 
-const SOURCES = ['manual', 'elo7', 'whatsapp', 'instagram', 'google', 'site', 'outros'];
+const SOURCES = ['manual', 'whatsapp', 'instagram', 'google', 'site', 'outros'];
 
 export interface ProductReviewFormProps {
   initial?: Partial<AdminReview>;
@@ -163,7 +163,7 @@ const ProductReviewForm = ({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <Label>ID externo (Elo7, etc — opcional)</Label>
+          <Label>ID externo (opcional)</Label>
           <Input value={form.external_review_id || ''} onChange={(e) => set('external_review_id', e.target.value)} />
         </div>
         <div>

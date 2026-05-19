@@ -36,7 +36,7 @@ export function useProductReviews(productId?: string) {
         .eq('product_id', productId!)
         .eq('is_visible', true)
         // Ordem de relevância para a cliente:
-        // 1) destacadas pelo admin, 2) verificadas (Elo7/compra real),
+        // 1) destacadas pelo admin, 2) verificadas (compra real),
         // 3) mais recentes por data, 4) fallback created_at, 5) posição manual.
         .order('is_featured', { ascending: false })
         .order('is_verified', { ascending: false })
