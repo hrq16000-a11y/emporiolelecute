@@ -14,9 +14,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-// @ts-expect-error - node types not in tsconfig; vitest runs under node.
 import { readFileSync } from "fs";
-// @ts-expect-error - same as above.
 import { resolve } from "path";
 import {
   CANONICAL_ORIGIN,
