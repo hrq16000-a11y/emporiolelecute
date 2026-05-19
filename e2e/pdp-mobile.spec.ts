@@ -19,9 +19,8 @@ function intersects(a: { x: number; y: number; width: number; height: number }, 
 }
 
 test.describe("PDP mobile — layout integrity", () => {
-  test.skip(({ project }) => !/mobile/i.test(project.name), "Somente breakpoints mobile");
-
-  test("não tem overflow horizontal e favorito não fica coberto pelo Badge", async ({ page }) => {
+  test("não tem overflow horizontal e favorito não fica coberto pelo Badge", async ({ page }, testInfo) => {
+    test.skip(!/mobile/i.test(testInfo.project.name), "Somente breakpoints mobile");
     await openPdp(page);
 
     const metrics = await page.evaluate(() => ({
@@ -60,9 +59,10 @@ test.describe("PDP mobile — layout integrity", () => {
     }
   });
 
-  test("visual regression do primeiro viewport da PDP", async ({ page, project }) => {
+  test("visual regression do primeiro viewport da PDP", async ({ page }, testInfo) => {
+    test.skip(!/mobile/i.test(testInfo.project.name), "Somente breakpoints mobile");
     await openPdp(page);
-    await expect(page).toHaveScreenshot(`pdp-mobile-${project.name}.png`, {
+    await expect(page).toHaveScreenshot(`pdp-mobile-${testInfo.project.name}.png`, {
       fullPage: false,
       animations: "disabled",
       maxDiffPixelRatio: 0.015,
