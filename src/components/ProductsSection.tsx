@@ -35,6 +35,7 @@ const ProductsSection = () => {
       description: p.description || '',
       longDescription: p.long_description || undefined,
       price: `R$ ${p.price.toFixed(2).replace('.', ',')}`,
+      priceValue: Number(p.price),
       originalPrice: p.original_price ? `R$ ${p.original_price.toFixed(2).replace('.', ',')}` : undefined,
       image: p.images?.[0] || '/placeholder.svg',
       images: p.images || [],
