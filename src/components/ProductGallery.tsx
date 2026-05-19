@@ -136,8 +136,9 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
                   resize="contain"
                   responsiveWidths={[400, 600, 800, 1200]}
                   priority={index === 0}
-                  sizes="(max-width: 1024px) 100vw, 600px"
-                  className="object-contain transition-transform duration-700 ease-out group-hover:scale-105"
+                  sizes="(max-width: 767px) calc(100vw - 2rem), (max-width: 1024px) 100vw, 600px"
+                  wrapperClassName="w-full h-full"
+                  className="object-contain transition-transform duration-700 ease-out sm:group-hover:scale-105"
                 />
               </div>
             ))}
@@ -163,7 +164,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
                   e.stopPropagation();
                   goToPrevious();
                 }}
-                className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md"
+                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 hidden sm:flex p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md"
                 aria-label="Imagem anterior"
               >
                 <ChevronLeft className="h-5 w-5 text-foreground" />
@@ -173,7 +174,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
                   e.stopPropagation();
                   goToNext();
                 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md"
+                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 hidden sm:flex p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md"
                 aria-label="Próxima imagem"
               >
                 <ChevronRight className="h-5 w-5 text-foreground" />
