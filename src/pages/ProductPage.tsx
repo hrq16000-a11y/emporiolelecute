@@ -1007,7 +1007,7 @@ const ProductPage = () => {
       <FAQSection />
 
       <Footer />
-      <WhatsAppButton />
+      {/* WhatsAppButton removido da PDP — sticky CTA + CTAs inline já cobrem a ação principal e evitam conflito de FABs */}
       <Chatbot />
 
       {/* Sticky CTA mobile — aparece quando o CTA principal sai do viewport */}
