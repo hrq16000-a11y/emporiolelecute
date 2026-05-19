@@ -469,14 +469,14 @@ const ProductPage = () => {
       
       <main className="pt-24 pb-16 max-w-full overflow-x-hidden">
         {/* Breadcrumb */}
-        <div className="container mx-auto px-4 py-4">
-          <nav className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
-            <Link to="/" className="hover:text-primary transition-colors">Início</Link>
+        <div className="container mx-auto max-w-full px-4 py-3 overflow-hidden">
+          <nav className="flex max-w-full items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 text-xs sm:text-sm text-muted-foreground scrollbar-hide" aria-label="Breadcrumb">
+            <Link to="/" className="shrink-0 hover:text-primary transition-colors">Início</Link>
 
             {dbProduct?.segments?.[0] && (
               <>
                 <ChevronRight className="h-4 w-4" />
-                <Link to={`/segmento/${dbProduct.segments[0].slug}`} className="hover:text-primary transition-colors">
+                <Link to={`/segmento/${dbProduct.segments[0].slug}`} className="shrink-0 hover:text-primary transition-colors">
                   {dbProduct.segments[0].name}
                 </Link>
               </>
@@ -485,7 +485,7 @@ const ProductPage = () => {
             {dbProduct?.occasions?.[0] && (
               <>
                 <ChevronRight className="h-4 w-4" />
-                <Link to={`/ocasiao/${dbProduct.occasions[0].slug}`} className="hover:text-primary transition-colors">
+                <Link to={`/ocasiao/${dbProduct.occasions[0].slug}`} className="shrink-0 hover:text-primary transition-colors">
                   {dbProduct.occasions[0].name}
                 </Link>
               </>
@@ -496,7 +496,7 @@ const ProductPage = () => {
                 <ChevronRight className="h-4 w-4" />
                 <Link
                   to={`/categoria/${dbProduct.category.slug}`}
-                  className="hover:text-primary transition-colors"
+                  className="shrink-0 hover:text-primary transition-colors"
                 >
                   {dbProduct.category.name}
                 </Link>
@@ -504,7 +504,7 @@ const ProductPage = () => {
             )}
 
             <ChevronRight className="h-4 w-4" />
-            <span className="text-foreground font-medium">{product.name}</span>
+            <span className="min-w-0 truncate text-foreground font-medium">{product.name}</span>
           </nav>
         </div>
 
