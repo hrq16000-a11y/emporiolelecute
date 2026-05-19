@@ -575,10 +575,10 @@ const ProductPage = () => {
             </div>
 
             {/* Info Section - Reference Style */}
-            <div className="flex flex-col">
+            <div className="flex min-w-0 max-w-full flex-col overflow-hidden">
               {/* Product Name & Rating + Social Proof (Q2) */}
-              <div className="flex items-start justify-between gap-4 mb-2">
-                <h1 className="font-display text-2xl md:text-3xl text-foreground leading-tight">
+              <div className="flex items-start justify-between gap-3 sm:gap-4 mb-2">
+                <h1 className="font-display text-2xl md:text-3xl text-foreground leading-tight min-w-0 break-words">
                   {product.name}
                 </h1>
                 <div className="flex flex-col items-end gap-1 flex-shrink-0">
