@@ -69,7 +69,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
 
   return (
     <div className={cn(
-      "relative transition-all duration-500",
+      "relative w-full max-w-full min-w-0 overflow-hidden transition-all duration-500",
       isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
       layout === 'vertical' && "flex gap-4"
     )}>
@@ -111,9 +111,10 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
       )}
 
       {/* Main Image Container */}
-      <div className="flex-1">
+      <div className="flex-1 min-w-0 max-w-full">
         <div 
-          className="relative aspect-square rounded-2xl overflow-hidden bg-muted shadow-lg group cursor-pointer"
+          className="relative aspect-square w-full max-w-full rounded-xl sm:rounded-2xl overflow-hidden bg-muted shadow-card sm:shadow-lg group cursor-pointer"
+          data-testid="pdp-gallery-main"
           onClick={() => setIsZoomed(true)}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
@@ -148,7 +149,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
               e.stopPropagation();
               setIsZoomed(true);
             }}
-            className="absolute bottom-4 right-4 p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md"
+            className="absolute bottom-4 right-4 hidden sm:flex p-2.5 bg-background/90 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background hover:scale-110 active:scale-95 shadow-md"
             aria-label="Ampliar imagem"
           >
             <ZoomIn className="h-5 w-5 text-foreground" />
