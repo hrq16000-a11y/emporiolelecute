@@ -170,6 +170,14 @@ const AdminProductForm = () => {
             setSelectedSegments(data.map((s) => s.segment_id));
           }
         });
+
+      // Load badge override
+      const ov = (existingProduct as any).pdp_badge_override;
+      if (ov && typeof ov === 'object') {
+        setBadgeOverride({ ...DEFAULT_BADGE_OVERRIDE, ...ov });
+      } else {
+        setBadgeOverride(null);
+      }
     }
   }, [existingProduct, isEditing]);
 
