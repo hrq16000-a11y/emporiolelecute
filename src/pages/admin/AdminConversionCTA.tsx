@@ -114,6 +114,7 @@ export default function AdminConversionCTA() {
           <TabsTrigger value="config"><MessageCircle className="h-4 w-4 mr-1" /> Configuração</TabsTrigger>
           <TabsTrigger value="preview"><Eye className="h-4 w-4 mr-1" /> Pré-visualização</TabsTrigger>
           <TabsTrigger value="funnel"><BarChart3 className="h-4 w-4 mr-1" /> Funil</TabsTrigger>
+          <TabsTrigger value="badge"><BarChart3 className="h-4 w-4 mr-1" /> Badge</TabsTrigger>
           <TabsTrigger value="qa"><ClipboardCheck className="h-4 w-4 mr-1" /> Checklist & QA</TabsTrigger>
         </TabsList>
 
@@ -127,6 +128,10 @@ export default function AdminConversionCTA() {
 
         <TabsContent value="funnel">
           <FunnelTab />
+        </TabsContent>
+
+        <TabsContent value="badge">
+          <BadgeStatsTab />
         </TabsContent>
 
         <TabsContent value="qa">
