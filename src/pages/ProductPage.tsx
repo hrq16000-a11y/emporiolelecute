@@ -63,6 +63,8 @@ import type { Product } from "@/data/products";
 import { resolvePrimaryAction } from "@/lib/primaryAction";
 import { logSlugEvent } from "@/lib/slugObservability";
 import { urls } from "@/lib/urls";
+import { usePdpSectionsPublic } from "@/hooks/usePdpSections";
+import { pdpSectionRegistry } from "@/lib/pdpSectionsRegistry";
 
 const ProductPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -71,6 +73,7 @@ const ProductPage = () => {
   const navigate = useNavigate();
   const { data: dbProduct, isLoading } = useDbProduct(slug || "");
   const { data: allProducts } = useDbProducts();
+  const { data: pdpSections } = usePdpSectionsPublic();
   const { data: paymentConfig } = usePaymentConfig();
   const { data: reviews = [] } = useProductReviews(dbProduct?.id);
   const { data: reviewStats } = useProductReviewStats(dbProduct?.id);
