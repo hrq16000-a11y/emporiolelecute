@@ -56,6 +56,7 @@ const dbToProduct = (p: DbProduct): Product => ({
   description: p.description || "",
   longDescription: p.long_description || undefined,
   price: `R$ ${Number(p.price).toFixed(2).replace(".", ",")}`,
+  priceValue: Number(p.price),
   originalPrice: p.original_price ? `R$ ${Number(p.original_price).toFixed(2).replace(".", ",")}` : undefined,
   image: p.images?.[0] || "",
   images: p.images || [],
