@@ -912,102 +912,12 @@ const ProductPage = () => {
           </div>
 
 
-          {/* Description Section — exibida antes do cross-sell */}
-          <div className="mb-12">
-            <h2 className="font-display text-2xl text-foreground mb-6">Descrição do produto</h2>
-            <div className="bg-card rounded-xl border border-border p-6">
-              <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-                {product.longDescription || product.description || `${product.name} artesanal da LeleCute.
-
-Cada peça é feita à mão com ingredientes hipoalergênicos de alta qualidade. Perfeito para lembrancinhas de maternidade, chá de bebê, batizado, casamento, aniversário e eventos corporativos.
-
-Personalizamos conforme o tema do seu evento com cores, aromas e papelaria exclusivos.`}
-              </p>
-            </div>
-          </div>
-
-          {/* Sprint 3 — Cross-sell "Complete o kit" */}
-          {dbProduct?.id && (
-            <CrossSellComplete
-              currentProductId={dbProduct.id}
-              currentProductSlug={product.slug}
-              occasions={dbProduct?.occasions ?? []}
-              tags={dbProduct?.tags ?? []}
-              categoryId={dbProduct?.category?.id ?? null}
-              limit={4}
-            />
-          )}
-
-          {/* Sprint 3 — Kits aos quais este produto pertence */}
-          {dbProduct?.id && <ProductBundleBelongsTo productId={dbProduct.id} />}
-
-          {/* Sprint 3 — Composição visual ("fica lindo combinado com") */}
-          {dbProduct?.id && (
-            <VisualComposition
-              currentProductId={dbProduct.id}
-              occasions={dbProduct?.occasions ?? []}
-              limit={6}
-            />
-          )}
-
-          {/* Fase 7 — Conteúdo editorial opcional (rich text humano) */}
-          {dbProduct?.editorial_content && (
-            <section className="mb-12" aria-labelledby="editorial-title">
-              <h2 id="editorial-title" className="font-display text-2xl text-foreground mb-6">
-                Sobre esta lembrancinha
-              </h2>
-              <div className="bg-primary/5 rounded-xl border border-primary/10 p-6 prose prose-sm md:prose-base max-w-none text-muted-foreground">
-                <div className="whitespace-pre-line leading-relaxed">
-                  {dbProduct.editorial_content}
-                </div>
-              </div>
-              <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "Article",
-                headline: `Sobre ${product.name}`,
-                articleBody: dbProduct.editorial_content.slice(0, 4000),
-                mainEntityOfPage: canonicalUrl,
-                author: { "@type": "Organization", name: "Empório LeleCute" },
-              }) }} />
-            </section>
-          )}
-
-          {/* Fase 7 — Avaliações (mobile/tablet: aqui; desktop: ao lado da galeria) */}
-          {dbProduct?.id && (
-            <div className="lg:hidden">
-              <ProductReviews productId={dbProduct.id} initialLimit={3} />
-            </div>
-          )}
-
-          {/* Fase 7 — Temas relacionados (descoberta visual; tags não-indexáveis) */}
-          {dbProduct?.tags && dbProduct.tags.length > 0 && (
-            <section className="mb-12" aria-labelledby="themes-title">
-              <h2 id="themes-title" className="font-display text-xl text-foreground mb-4">
-                Temas relacionados
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {dbProduct.tags.slice(0, 12).map((t) => (
-                  <Link
-                    key={t.id}
-                    to={`/produtos?tag=${t.slug}`}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted hover:bg-primary/10 hover:text-primary rounded-full text-sm text-muted-foreground transition-colors"
-                  >
-                    <Tag className="h-3 w-3" />
-                    {t.name}
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Smart related — prioridade: ocasião → tags → categoria, com fallback determinístico */}
-          <RelatedSmart
-            currentProductId={product.id}
-            occasions={dbProduct?.occasions ?? []}
-            tags={dbProduct?.tags ?? []}
-            category={dbProduct?.category ?? null}
-            limit={8}
-          />
+          {/* Seções gerenciadas via /admin/pdp-sections (ordem + visibilidade) */}
+          {(pdpSections ?? []).map((s) => {
+            const renderer = pdpSectionRegistry[s.section_key];
+            if (!renderer) return null;
+            return renderer({ product, dbProduct, canonicalUrl });
+          })}
 
           {/* Fase 11.1 — Linking semântico contextual (SAFE MODE) */}
           {(() => {
