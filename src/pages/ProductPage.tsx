@@ -528,6 +528,7 @@ const ProductPage = () => {
                     productId={dbProduct?.id}
                     productSlug={dbProduct?.slug}
                     source={eff.source}
+                    onClick={() => openWhatsApp("pdp_badge")}
                   />
                 );
               })()}
