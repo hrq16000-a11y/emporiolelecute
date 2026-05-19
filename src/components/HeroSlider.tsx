@@ -232,7 +232,7 @@ function SlideRenderer({ slide, isPriority }: { slide: HeroSlide; isPriority: bo
 
   if (!hasAnyBanner) {
     return (
-      <div className="pt-20 pb-10 md:pb-14">
+      <div className="pt-28 md:pt-32 pb-10 md:pb-14">
         <SlideTextImage slide={slide} isPriority={isPriority} imgSrc={fallbackSrc} />
       </div>
     );
@@ -243,14 +243,14 @@ function SlideRenderer({ slide, isPriority }: { slide: HeroSlide; isPriority: bo
       {mobileBannerSrc ? (
         <SlideBannerMobile slide={slide} isPriority={isPriority} imgSrc={mobileBannerSrc} />
       ) : (
-        <div className="block md:hidden pt-20 pb-10">
+        <div className="block md:hidden pt-28 pb-10">
           <SlideTextImage slide={slide} isPriority={isPriority} imgSrc={fallbackSrc} />
         </div>
       )}
       {desktopBannerSrc ? (
         <SlideBannerDesktop slide={slide} isPriority={isPriority} imgSrc={desktopBannerSrc} />
       ) : (
-        <div className="hidden md:block pt-20 pb-10 md:pb-14">
+        <div className="hidden md:block pt-32 pb-10 md:pb-14">
           <SlideTextImage slide={slide} isPriority={isPriority} imgSrc={fallbackSrc} />
         </div>
       )}
