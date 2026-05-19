@@ -514,27 +514,22 @@ const ProductPage = () => {
                 />
               </button>
 
-              {/* Badge configurável (admin → Conversão → Badge da PDP) */}
-              {ctaConfig?.pdpBadge?.enabled && ctaConfig.pdpBadge.label && (
-                <div className="absolute top-4 left-4 z-10">
-                  <Badge
-                    className={`text-white px-3 py-1.5 flex items-center gap-1.5 ${
-                      ctaConfig.pdpBadge.tone === "coral"
-                        ? "bg-primary hover:bg-primary/90"
-                        : ctaConfig.pdpBadge.tone === "green"
-                        ? "bg-emerald-600 hover:bg-emerald-700"
-                        : ctaConfig.pdpBadge.tone === "amber"
-                        ? "bg-amber-500 hover:bg-amber-600"
-                        : ctaConfig.pdpBadge.tone === "neutral"
-                        ? "bg-foreground/80 hover:bg-foreground"
-                        : "bg-blue-600 hover:bg-blue-700"
-                    }`}
-                  >
-                    {ctaConfig.pdpBadge.showIcon && <Truck className="h-4 w-4" />}
-                    {ctaConfig.pdpBadge.label}
-                  </Badge>
-                </div>
-              )}
+              {/* Badge configurável (admin → Conversão → Badge da PDP) — pode ser sobrescrito por produto */}
+              {(() => {
+                const eff = resolveEffectiveBadge(
+                  ctaConfig?.pdpBadge,
+                  (dbProduct as any)?.pdp_badge_override
+                );
+                if (!eff) return null;
+                return (
+                  <PdpBadge
+                    config={eff.config}
+                    productId={dbProduct?.id}
+                    productSlug={dbProduct?.slug}
+                    source={eff.source}
+                  />
+                );
+              })()}
 
               {/* Reviews under the gallery thumbnails — compact, 3 shown + "Ver mais" */}
               {dbProduct?.id && (
