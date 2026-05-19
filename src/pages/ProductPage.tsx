@@ -836,13 +836,13 @@ const ProductPage = () => {
                 );
                 return (
                   <>
-                    <div className="flex gap-3 mb-4">
+                    <div className="flex min-w-0 gap-2 sm:gap-3 mb-4">
                       {isWaPrimary ? null : cartBtn(true)}
                       {/* Favorite */}
                       <Button
                         variant="outline"
                         size="lg"
-                        className={`min-h-11 min-w-11 px-4 focus-visible:ring-4 focus-visible:ring-primary focus-visible:ring-offset-2 ${isFavorite ? "border-primary bg-primary/10 text-primary" : ""}`}
+                        className={`min-h-11 min-w-11 shrink-0 px-3 sm:px-4 focus-visible:ring-4 focus-visible:ring-primary focus-visible:ring-offset-2 ${isFavorite ? "border-primary bg-primary/10 text-primary" : ""}`}
                         onClick={() => handleFavoriteToggle("actions")}
                         aria-label={isFavorite ? "Remover dos favoritos" : "Favoritar produto"}
                         aria-pressed={isFavorite}
@@ -850,7 +850,7 @@ const ProductPage = () => {
                         <Heart className={`h-5 w-5 ${isFavorite ? "fill-primary text-primary animate-heart-pop" : ""}`} />
                       </Button>
                       {/* Share */}
-                      <Button variant="outline" size="lg" className="px-4" onClick={handleShare}>
+                      <Button variant="outline" size="lg" className="min-h-11 min-w-11 shrink-0 px-3 sm:px-4" onClick={handleShare} aria-label="Compartilhar produto">
                         <Share2 className="h-5 w-5" />
                       </Button>
                     </div>
@@ -899,7 +899,7 @@ const ProductPage = () => {
               </div>
 
               {/* Trust Badges - Horizontal */}
-              <div className="grid grid-cols-3 gap-3 mb-6">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-6">
                 <div className="flex flex-col items-center text-center p-3 bg-card rounded-lg border border-border/50">
                   <Send className="h-5 w-5 text-primary mb-2" />
                   <span className="text-xs font-medium text-foreground">Envio todo Brasil</span>
