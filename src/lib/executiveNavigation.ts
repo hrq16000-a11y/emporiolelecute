@@ -44,7 +44,6 @@ export const EXECUTIVE_NAV: NavGroup[] = [
       { label: "Clientes", path: "/admin/clientes", icon: "Users" },
       { label: "Produtos", path: "/admin/produtos", icon: "Package" },
       { label: "Reviews", path: "/admin/reviews", icon: "Star" },
-      { label: "Reviews Elo7 (Auditoria)", path: "/admin/reviews-real-audit", icon: "ShieldCheck" },
       { label: "Blog", path: "/admin/blog", icon: "BookOpen" },
     ],
   },

@@ -65,7 +65,7 @@ const AdminOccasionLandings = lazyWithRetry(() => import("./pages/admin/AdminOcc
 const AdminHeroSlides = lazyWithRetry(() => import("./pages/admin/AdminHeroSlides"), "AdminHeroSlides");
 const AdminTestimonials = lazyWithRetry(() => import("./pages/admin/AdminTestimonials"), "AdminTestimonials");
 const AdminProductReviews = lazyWithRetry(() => import("./pages/admin/AdminProductReviews"), "AdminProductReviews");
-const AdminReviewsRealAudit = lazyWithRetry(() => import("./pages/admin/AdminReviewsRealAudit"), "AdminReviewsRealAudit");
+
 const AdminSitemapStatus = lazyWithRetry(() => import("./pages/admin/AdminSitemapStatus"), "AdminSitemapStatus");
 const AdminProductsHealth = lazyWithRetry(() => import("./pages/admin/AdminProductsHealth"), "AdminProductsHealth");
 const AdminCoupons = lazyWithRetry(() => import("./pages/admin/AdminCoupons"), "AdminCoupons");
@@ -667,11 +667,6 @@ const App = () => {
                   <Route path="reviews" element={
                     <Suspense fallback={<AdminSkeleton />}>
                       <AdminProductReviews />
-                    </Suspense>
-                  } />
-                  <Route path="reviews-real-audit" element={
-                    <Suspense fallback={<AdminSkeleton />}>
-                      <AdminReviewsRealAudit />
                     </Suspense>
                   } />
                   <Route path="sitemap-status" element={

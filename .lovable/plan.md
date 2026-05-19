@@ -1,51 +1,72 @@
-## Objetivo
-Permitir gerenciamento 100% no admin de (1) ordem/visibilidade das seções da Página de Produto (PDP) e (2) ordenação/filtros da lista de pedidos.
+# Auditoria & remoção completa de "Elo7"
 
-## Parte 1 — CMS de seções da PDP
+## Inventário encontrado
 
-Espelhar o padrão já consolidado de `home_sections`.
+**Banco (Lovable Cloud)**
 
-**Banco** (`supabase/migrations/...`):
-- Tabela `pdp_sections` com `section_key` (unique), `label`, `description`, `position` (int), `is_visible` (bool), `editable_props` (jsonb), timestamps.
-- RLS: leitura pública (apenas visíveis), escrita só admin via `has_role`.
-- Trigger de auditoria igual `audit_home_sections` -> `pdp_section_audit`.
-- Seed inicial com as seções existentes na ordem atual:
-  1. `description` — Descrição do produto
-  2. `cross_sell_complete` — Complete o kit
-  3. `bundle_belongs_to` — Kits aos quais este produto pertence
-  4. `visual_composition` — Composição visual
-  5. `editorial` — Conteúdo editorial
-  6. `reviews` — Avaliações
-  7. `faq` — Perguntas frequentes
-  8. `related_smart` / `related_by_taxonomy` — Relacionados
+- `product_reviews`: **118 avaliações com `source = 'elo7'**` (único source em uso hoje).
+- `store_settings.social_links`: chave `elo7` apontando para `elo7.com.br/emporiolelecute`.
+- Não existem mais tabelas `elo7_reviews_audit` nem colunas `elo7_link` (migrations antigas já removidas).
+- Bucket de Storage `elo7-review-images` (pode estar vazio, mas existe).
 
-**Frontend**:
-- `src/hooks/usePdpSections.ts` — fetch + cache (react-query) + realtime.
-- `src/lib/pdpSectionsRegistry.tsx` — registry mapeando `section_key` -> componente render `(ctx) => JSX`, recebendo `dbProduct`, `product`, etc.
-- Refatorar bloco principal de `src/pages/ProductPage.tsx` (linhas ~915-1050) para iterar `pdpSections` ordenadas por `position` e renderizar via registry, respeitando `is_visible`.
+**Código (16 arquivos)**
 
-**Admin**:
-- Nova rota `/admin/pdp-sections` (`src/pages/admin/AdminPdpSections.tsx`) — lista drag-and-drop (dnd-kit já presente no projeto), toggle de visibilidade, edição de label/descrição, preview ao vivo.
-- Entrada no menu lateral do admin.
 
-## Parte 2 — Ordenação/filtros da lista de pedidos
+| Arquivo                                      | O que tem                                           |
+| -------------------------------------------- | --------------------------------------------------- |
+| `src/components/ProductReviews.tsx`          | Badge "elo7" no card (linha 150)                    |
+| `src/hooks/useProductReviews.ts`             | Comentário "verificadas (Elo7/compra real)"         |
+| `src/pages/admin/AdminImport.tsx`            | Texto "integração com o Elo7 foi removida"          |
+| `src/pages/admin/AdminProductReviews.tsx`    | `'elo7'` na lista `SOURCES` + comentário            |
+| `src/pages/admin/AdminReviewsRealAudit.tsx`  | Página inteira de auditoria Elo7                    |
+| `src/components/admin/ProductReviewForm.tsx` | Opção `elo7` no select de origem                    |
+| `src/lib/executiveNavigation.ts`             | Item de menu "Reviews Elo7 (Auditoria)"             |
+| `supabase/functions/chat/index.ts`           | Regra no prompt mencionando "Elo7"                  |
+| `src/integrations/supabase/types.ts`         | Tipos da extinta `elo7_reviews_audit` (auto-gerado) |
+| `docs/slugs-phase-3-hardening-audit.md`      | Menção histórica                                    |
+| 6 migrations em `supabase/migrations/*`      | Histórico — **NÃO alterar** (imutáveis)             |
 
-`src/pages/admin/AdminOrders.tsx`:
-- Adicionar dropdown "Ordenar por": Mais recente (default), Mais antigo, Maior valor, Menor valor, Cliente A-Z, Status.
-- Persistir escolha em localStorage (`admin.orders.sort`).
-- Manter filtros existentes (status, busca). Sem mudança de schema.
 
-## Detalhes técnicos
-- Reutilizar componentes shadcn já usados em `AdminHomeSections` (Card, Switch, Button, drag handle).
-- Auditoria: mesma estratégia de `home_section_audit` para rastreabilidade.
-- Cache invalidation no client após mutação via react-query.
+## Plano de execução
 
-## Entregáveis
-- 1 migração (tabela + RLS + trigger + seed)
-- 1 hook, 1 registry, refactor de `ProductPage.tsx`
-- 1 página admin nova + entrada no menu
-- Sort dropdown em `AdminOrders.tsx`
+### 1. Banco
 
-## Fora de escopo
-- Edição inline do conteúdo textual de cada seção (já existe via campos do produto/FAQ/avaliações).
-- Mudanças visuais nas próprias seções.
+Migration única que:
+
+- Atualiza `product_reviews.source = 'site'` onde `source = 'elo7'` (preserva as 118 avaliações reais, só troca o rótulo).
+- Remove a chave `elo7` de `store_settings.social_links` (jsonb).
+- Dropa o bucket `elo7-review-images` e suas policies (se vazio).
+- Dropa tabela `elo7_reviews_audit` se ainda existir (idempotente).
+
+> Migrations antigas ficam intocadas (são imutáveis e já foram aplicadas no passado).
+
+### 2. Frontend / Admin
+
+- `**ProductReviews.tsx**`: remover o badge "elo7" (linha 150) — fica só "Compra verificada" quando `verified=true`.
+- `**AdminProductReviews.tsx**`: remover `'elo7'` de `SOURCES` e atualizar comentário.
+- `**ProductReviewForm.tsx**`: remover opção `elo7` do select.
+- `**useProductReviews.ts**`: ajustar comentário (sem citar Elo7).
+- `**AdminImport.tsx**`: trocar texto para mensagem neutra ("Cadastre os produtos manualmente.").
+- `**executiveNavigation.ts**`: remover item "Reviews Elo7 (Auditoria)".
+- `**AdminReviewsRealAudit.tsx**`: deletar arquivo + remover rota correspondente.
+- `**chat/index.ts` (edge function)**: trocar regra para "NUNCA mencione, recomende ou direcione para marketplaces externos…" (sem nomear Elo7).
+- `**docs/slugs-phase-3-hardening-audit.md**`: remover linha que cita Elo7.
+
+### 3. Tipos
+
+`src/integrations/supabase/types.ts` é regenerado automaticamente após a migration dropar a tabela — não editar manualmente.
+
+### 4. Memória do projeto
+
+Atualizar `mem://index.md` removendo qualquer referência à Elo7 (não há nenhuma hoje, mas confirmo).
+
+## Resultado final
+
+- Zero ocorrências de "elo7" no código vivo (`rg -i elo7 src supabase/functions`).
+- 118 avaliações preservadas com `source='site'`.
+- Painel admin sem rota/menu/opção Elo7.
+- Chat AI sem citar Elo7.
+
+**Confirma para eu executar?  sim, sem quebrar nada.**
+
+&nbsp;

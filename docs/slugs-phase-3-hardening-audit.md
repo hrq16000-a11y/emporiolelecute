@@ -231,7 +231,7 @@ Classificação:
 | 1 | **Catálogo** | Reescrita dos 10 slugs truncados + aliases | dívida real isolada |
 | 2 | **SEO editorial** | Expandir blog com 4-6 posts pillar mapeando hubs `/lembrancinhas-*` | tráfego orgânico segue branding pronto |
 | 3 | **Conversão** | A/B no Sticky CTA e Quick Summary (`/admin/conversao`) | infra pronta, falta uso |
-| 4 | **Branding** | Padronização visual em hero/testimonials com fotos artesanais reais | substituir placeholders Elo7 nas migrations |
+| 4 | **Branding** | Padronização visual em hero/testimonials com fotos artesanais reais | substituir placeholders externos antigos nas migrations |
 | 5 | **Aquisição** | Revisar `/loja` (Google Ads landing) com base em GSC D+30 pós-flip | aproveitar consolidação de namespace |
 | 6 | **Refinamento incremental** | Aplicar ações P2 acima sob demanda | sem urgência |
 
