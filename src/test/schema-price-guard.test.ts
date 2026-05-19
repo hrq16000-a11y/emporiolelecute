@@ -1,6 +1,8 @@
+/// <reference types="node" />
 import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync, statSync } from "fs";
-import { join, resolve } from "path";
+import { join, resolve, dirname } from "path";
+import { fileURLToPath } from "url";
 
 /**
  * Guard estático: garante que nenhum componente renderiza
@@ -11,7 +13,8 @@ import { join, resolve } from "path";
  *   - Padrão SAFE adotado: visual em <span> sem itemProp; semântico em <meta itemProp="price" content={n.toFixed(2)} />.
  */
 
-const SRC = resolve(__dirname, "..");
+const __filename = fileURLToPath(import.meta.url);
+const SRC = resolve(dirname(__filename), "..");
 const EXCLUDED = new Set(["test", "integrations"]);
 
 function walk(dir: string, acc: string[] = []): string[] {
