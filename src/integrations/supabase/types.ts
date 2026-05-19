@@ -1466,6 +1466,56 @@ export type Database = {
         }
         Relationships: []
       }
+      pdp_badge_events: {
+        Row: {
+          badge_label: string | null
+          created_at: string
+          event_name: string
+          id: string
+          position: string | null
+          product_id: string | null
+          product_slug: string | null
+          session_id: string | null
+          source: string
+          tone: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          badge_label?: string | null
+          created_at?: string
+          event_name: string
+          id?: string
+          position?: string | null
+          product_id?: string | null
+          product_slug?: string | null
+          session_id?: string | null
+          source?: string
+          tone?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          badge_label?: string | null
+          created_at?: string
+          event_name?: string
+          id?: string
+          position?: string | null
+          product_id?: string | null
+          product_slug?: string | null
+          session_id?: string | null
+          source?: string
+          tone?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdp_badge_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pdp_funnel_events: {
         Row: {
           created_at: string
@@ -1794,6 +1844,7 @@ export type Database = {
           min_quantity: number | null
           name: string
           original_price: number | null
+          pdp_badge_override: Json | null
           personalization_enabled: boolean | null
           personalization_label: string | null
           personalization_placeholder: string | null
@@ -1824,6 +1875,7 @@ export type Database = {
           min_quantity?: number | null
           name: string
           original_price?: number | null
+          pdp_badge_override?: Json | null
           personalization_enabled?: boolean | null
           personalization_label?: string | null
           personalization_placeholder?: string | null
@@ -1854,6 +1906,7 @@ export type Database = {
           min_quantity?: number | null
           name?: string
           original_price?: number | null
+          pdp_badge_override?: Json | null
           personalization_enabled?: boolean | null
           personalization_label?: string | null
           personalization_placeholder?: string | null
@@ -5797,6 +5850,7 @@ export type Database = {
         Args: { _order_id: string }
         Returns: Json
       }
+      cleanup_pdp_badge_events: { Args: never; Returns: undefined }
       cleanup_pdp_funnel_events: { Args: never; Returns: undefined }
       cleanup_seo_url_status: { Args: never; Returns: undefined }
       cleanup_stale_bundle_logs: { Args: never; Returns: Json }
@@ -5851,6 +5905,7 @@ export type Database = {
         }[]
       }
       normalize_slug: { Args: { _s: string }; Returns: string }
+      pdp_badge_stats: { Args: { _from?: string; _to?: string }; Returns: Json }
       pdp_funnel_stats: {
         Args: { _from?: string; _to?: string }
         Returns: Json

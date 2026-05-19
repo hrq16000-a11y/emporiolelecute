@@ -29,6 +29,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDbProducts } from "@/hooks/useProducts";
 import { urls, CANONICAL_ORIGIN } from "@/lib/urls";
+import { PdpBadge } from "@/components/PdpBadge";
 
 // ============================================================================
 // Pré-visualização padrão (quando nenhum produto é selecionado)
@@ -113,6 +114,7 @@ export default function AdminConversionCTA() {
           <TabsTrigger value="config"><MessageCircle className="h-4 w-4 mr-1" /> Configuração</TabsTrigger>
           <TabsTrigger value="preview"><Eye className="h-4 w-4 mr-1" /> Pré-visualização</TabsTrigger>
           <TabsTrigger value="funnel"><BarChart3 className="h-4 w-4 mr-1" /> Funil</TabsTrigger>
+          <TabsTrigger value="badge"><BarChart3 className="h-4 w-4 mr-1" /> Badge</TabsTrigger>
           <TabsTrigger value="qa"><ClipboardCheck className="h-4 w-4 mr-1" /> Checklist & QA</TabsTrigger>
         </TabsList>
 
@@ -126,6 +128,10 @@ export default function AdminConversionCTA() {
 
         <TabsContent value="funnel">
           <FunnelTab />
+        </TabsContent>
+
+        <TabsContent value="badge">
+          <BadgeStatsTab />
         </TabsContent>
 
         <TabsContent value="qa">
@@ -286,7 +292,7 @@ function ConfigTab({
           <div className="flex items-center justify-between gap-3">
             <div>
               <CardTitle>Badge da PDP (ex.: "Frete reduzido")</CardTitle>
-              <CardDescription>Selo flutuante sobre a imagem do produto. Desligado por padrão.</CardDescription>
+              <CardDescription>Selo flutuante sobre a imagem do produto. Pode ser sobrescrito por produto.</CardDescription>
             </div>
             <Switch
               checked={draft.pdpBadge.enabled}
@@ -294,36 +300,83 @@ function ConfigTab({
             />
           </div>
         </CardHeader>
-        <CardContent className="grid sm:grid-cols-3 gap-4">
-          <div className="sm:col-span-2 space-y-1">
-            <Label>Texto</Label>
-            <Input
-              value={draft.pdpBadge.label}
-              maxLength={40}
-              onChange={(e) => update("pdpBadge", { label: e.target.value })}
-            />
+        <CardContent className="grid lg:grid-cols-[1fr_320px] gap-6">
+          <div className="grid sm:grid-cols-3 gap-4">
+            <div className="sm:col-span-2 space-y-1">
+              <Label>Texto</Label>
+              <Input
+                value={draft.pdpBadge.label}
+                maxLength={40}
+                onChange={(e) => update("pdpBadge", { label: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Cor</Label>
+              <select
+                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                value={draft.pdpBadge.tone}
+                onChange={(e) => update("pdpBadge", { tone: e.target.value as any })}
+              >
+                <option value="blue">Azul</option>
+                <option value="coral">Coral (marca)</option>
+                <option value="green">Verde</option>
+                <option value="amber">Âmbar</option>
+                <option value="neutral">Neutro</option>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <Label>Posição</Label>
+              <select
+                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                value={draft.pdpBadge.position}
+                onChange={(e) => update("pdpBadge", { position: e.target.value as any })}
+              >
+                <option value="top-left">Superior esquerda</option>
+                <option value="top-right">Superior direita</option>
+                <option value="bottom-left">Inferior esquerda</option>
+                <option value="bottom-right">Inferior direita</option>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <Label>Offset horizontal (px)</Label>
+              <Input
+                type="number" min={0} max={80}
+                value={draft.pdpBadge.offsetX}
+                onChange={(e) => update("pdpBadge", { offsetX: Number(e.target.value) })}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Offset vertical (px)</Label>
+              <Input
+                type="number" min={0} max={80}
+                value={draft.pdpBadge.offsetY}
+                onChange={(e) => update("pdpBadge", { offsetY: Number(e.target.value) })}
+              />
+            </div>
+            <label className="flex items-center gap-2 sm:col-span-3">
+              <Switch
+                checked={draft.pdpBadge.showIcon}
+                onCheckedChange={(v) => update("pdpBadge", { showIcon: v })}
+              />
+              <span className="text-sm">Mostrar ícone de caminhão</span>
+            </label>
           </div>
-          <div className="space-y-1">
-            <Label>Cor</Label>
-            <select
-              className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-              value={draft.pdpBadge.tone}
-              onChange={(e) => update("pdpBadge", { tone: e.target.value as any })}
-            >
-              <option value="blue">Azul</option>
-              <option value="coral">Coral (marca)</option>
-              <option value="green">Verde</option>
-              <option value="amber">Âmbar</option>
-              <option value="neutral">Neutro</option>
-            </select>
+
+          {/* Live preview */}
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Pré-visualização ao vivo</Label>
+            <div className="relative w-[320px] h-[320px] rounded-lg overflow-hidden border bg-gradient-to-br from-muted/40 to-muted">
+              <img
+                src="/placeholder.svg"
+                alt="Mock produto"
+                className="absolute inset-0 w-full h-full object-cover opacity-70"
+              />
+              <PdpBadge config={draft.pdpBadge} previewOnly />
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Posição e offsets aplicados sobre a imagem real do produto na PDP.
+            </p>
           </div>
-          <label className="flex items-center gap-2 sm:col-span-3">
-            <Switch
-              checked={draft.pdpBadge.showIcon}
-              onCheckedChange={(v) => update("pdpBadge", { showIcon: v })}
-            />
-            <span className="text-sm">Mostrar ícone de caminhão</span>
-          </label>
         </CardContent>
       </Card>
     </div>
@@ -750,6 +803,130 @@ function Field({ label, value, onChange }: { label: string; value: string; onCha
     <div className="space-y-1">
       <Label>{label}</Label>
       <Input value={value} onChange={(e) => onChange(e.target.value)} />
+    </div>
+  );
+}
+
+// ============================================================================
+// BADGE STATS — métricas de impressões e cliques do Badge da PDP
+// ============================================================================
+function BadgeStatsTab() {
+  const [days, setDays] = useState(30);
+  const { data, isLoading, refetch, isFetching } = useQuery({
+    queryKey: ["pdp_badge_stats", days],
+    queryFn: async () => {
+      const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+      const to = new Date().toISOString();
+      const { data, error } = await supabase.rpc("pdp_badge_stats", { _from: from, _to: to });
+      if (error) throw error;
+      return data as {
+        impressions: number;
+        clicks: number;
+        ctr: number;
+        top_products: Array<{ product_slug: string; impressions: number; clicks: number }>;
+        by_tone: Record<string, number>;
+        by_position: Record<string, number>;
+        by_source: Record<string, number>;
+      };
+    },
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-2 justify-between">
+        <div className="flex items-center gap-2">
+          <Label className="text-sm">Período:</Label>
+          <select
+            value={days}
+            onChange={(e) => setDays(Number(e.target.value))}
+            className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+          >
+            <option value={7}>7 dias</option>
+            <option value={30}>30 dias</option>
+            <option value={90}>90 dias</option>
+          </select>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw className={`h-4 w-4 mr-1 ${isFetching ? "animate-spin" : ""}`} /> Atualizar
+        </Button>
+      </div>
+
+      {isLoading ? (
+        <div className="flex items-center gap-2 text-muted-foreground p-6">
+          <Loader2 className="h-4 w-4 animate-spin" /> Carregando métricas…
+        </div>
+      ) : (
+        <>
+          <div className="grid sm:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-2"><CardDescription>Impressões</CardDescription></CardHeader>
+              <CardContent><div className="text-3xl font-bold">{data?.impressions ?? 0}</div></CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2"><CardDescription>Cliques</CardDescription></CardHeader>
+              <CardContent><div className="text-3xl font-bold">{data?.clicks ?? 0}</div></CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2"><CardDescription>CTR</CardDescription></CardHeader>
+              <CardContent><div className="text-3xl font-bold">{data?.ctr ?? 0}%</div></CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader><CardTitle className="text-base">Top produtos por cliques</CardTitle></CardHeader>
+            <CardContent>
+              {data?.top_products && data.top_products.length > 0 ? (
+                <table className="w-full text-sm">
+                  <thead className="text-left text-xs text-muted-foreground">
+                    <tr><th className="py-1">Produto</th><th className="py-1 text-right">Impressões</th><th className="py-1 text-right">Cliques</th></tr>
+                  </thead>
+                  <tbody>
+                    {data.top_products.map((p) => (
+                      <tr key={p.product_slug} className="border-t">
+                        <td className="py-2">{p.product_slug}</td>
+                        <td className="py-2 text-right">{p.impressions}</td>
+                        <td className="py-2 text-right font-medium">{p.clicks}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className="text-sm text-muted-foreground">Sem dados ainda.</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="grid sm:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-sm">Cliques por cor</CardTitle></CardHeader>
+              <CardContent className="text-xs space-y-1">
+                {Object.entries(data?.by_tone ?? {}).map(([k, v]) => (
+                  <div key={k} className="flex justify-between"><span>{k}</span><span className="font-medium">{v}</span></div>
+                ))}
+                {Object.keys(data?.by_tone ?? {}).length === 0 && <p className="text-muted-foreground">—</p>}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-sm">Cliques por posição</CardTitle></CardHeader>
+              <CardContent className="text-xs space-y-1">
+                {Object.entries(data?.by_position ?? {}).map(([k, v]) => (
+                  <div key={k} className="flex justify-between"><span>{k}</span><span className="font-medium">{v}</span></div>
+                ))}
+                {Object.keys(data?.by_position ?? {}).length === 0 && <p className="text-muted-foreground">—</p>}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-sm">Cliques por origem</CardTitle></CardHeader>
+              <CardContent className="text-xs space-y-1">
+                {Object.entries(data?.by_source ?? {}).map(([k, v]) => (
+                  <div key={k} className="flex justify-between"><span>{k === "product_override" ? "Override por produto" : "Global"}</span><span className="font-medium">{v}</span></div>
+                ))}
+                {Object.keys(data?.by_source ?? {}).length === 0 && <p className="text-muted-foreground">—</p>}
+              </CardContent>
+            </Card>
+          </div>
+        </>
+      )}
     </div>
   );
 }

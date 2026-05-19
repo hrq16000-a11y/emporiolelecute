@@ -50,6 +50,7 @@ export interface ToastConfig {
 }
 
 export type PdpBadgeTone = "blue" | "coral" | "green" | "amber" | "neutral";
+export type PdpBadgePosition = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
 export interface PdpBadgeConfig {
   enabled: boolean;
@@ -57,6 +58,11 @@ export interface PdpBadgeConfig {
   /** Mostra o ícone de caminhão à esquerda do texto. */
   showIcon: boolean;
   tone: PdpBadgeTone;
+  position: PdpBadgePosition;
+  /** Distância horizontal da borda (px). */
+  offsetX: number;
+  /** Distância vertical da borda (px). */
+  offsetY: number;
 }
 
 export interface ConversionCtaConfig {
@@ -108,6 +114,9 @@ export const DEFAULT_CONVERSION_CTA: ConversionCtaConfig = {
     label: "Frete reduzido",
     showIcon: true,
     tone: "blue",
+    position: "top-left",
+    offsetX: 12,
+    offsetY: 12,
   },
 };
 
@@ -201,6 +210,9 @@ const pdpBadgeSchema = z.object({
   label: z.string().trim().min(1, "Texto do badge obrigatório").max(40),
   showIcon: z.boolean(),
   tone: z.enum(["blue", "coral", "green", "amber", "neutral"]),
+  position: z.enum(["top-left", "top-right", "bottom-left", "bottom-right"]),
+  offsetX: z.coerce.number().int().min(0).max(80),
+  offsetY: z.coerce.number().int().min(0).max(80),
 });
 
 export const conversionCtaConfigSchema = z.object({
