@@ -162,7 +162,7 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
             <span className="text-xs md:text-sm text-muted-foreground line-through">{product.originalPrice}</span>
           )}
           {typeof product.priceValue === "number" && (
-            <meta itemProp="price" content={product.priceValue.toFixed(2)} />
+            <meta itemProp="price" content={Number(product.priceValue).toFixed(2)} />
           )}
           <meta itemProp="priceCurrency" content="BRL" />
           <meta itemProp="availability" content="https://schema.org/InStock" />

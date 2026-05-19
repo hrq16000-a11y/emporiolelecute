@@ -45,7 +45,7 @@ const ItemListStructuredData = ({ products, listName = "Produtos em Destaque" }:
           "@type": "Offer",
           "url": urls.productCanonical(product.slug),
           "priceCurrency": "BRL",
-          "price": Number(product.price.toFixed(2)),
+          "price": Number(Number(product.price).toFixed(2)),
           "priceValidUntil": priceValidUntilStr,
           "availability": "https://schema.org/InStock",
           "itemCondition": "https://schema.org/NewCondition",

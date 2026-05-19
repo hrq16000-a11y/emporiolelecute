@@ -75,7 +75,7 @@ const ProductStructuredData = ({
       "@type": "Offer",
       "url": productUrl,
       "priceCurrency": "BRL",
-      "price": Number(price.toFixed(2)),
+      "price": Number(Number(price).toFixed(2)),
       "priceValidUntil": priceValidUntilStr,
       "availability": "https://schema.org/InStock",
       "itemCondition": "https://schema.org/NewCondition",
