@@ -182,9 +182,9 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
             </>
           )}
 
-          {/* Image Counter (mobile) — affordance discreta de progresso */}
+          {/* Image Counter (mobile) — canto inferior direito, fora da área do favorito */}
           {images.length > 1 && (
-            <div className="absolute top-3 right-3 md:hidden px-2 py-0.5 rounded-full bg-background/80 backdrop-blur-sm text-[11px] font-medium text-foreground/80 pointer-events-none">
+            <div className="absolute bottom-3 right-3 md:hidden px-2 py-0.5 rounded-full bg-background/80 backdrop-blur-sm text-[11px] font-medium text-foreground/80 pointer-events-none shadow-sm">
               {currentIndex + 1} / {images.length}
             </div>
           )}
