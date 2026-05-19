@@ -45,6 +45,7 @@ import DynamicSEO from "@/components/DynamicSEO";
 import ProductStructuredData from "@/components/ProductStructuredData";
 import BreadcrumbStructuredData from "@/components/BreadcrumbStructuredData";
 import TrustBadges from "@/components/TrustBadges";
+import { PdpBadge, resolveEffectiveBadge } from "@/components/PdpBadge";
 import FAQSection from "@/components/FAQSection";
 import { useDbProduct, useDbProducts } from "@/hooks/useProducts";
 import { useProductReviews, useProductReviewStats } from "@/hooks/useProductReviews";
