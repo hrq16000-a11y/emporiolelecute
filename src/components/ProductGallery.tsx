@@ -36,42 +36,83 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
     setIsLoaded(true);
   }, []);
 
+  // Vibração tátil sutil ao trocar de slide (mobile, quando disponível)
+  const hapticTick = useCallback(() => {
+    if (typeof navigator === 'undefined' || !('vibrate' in navigator)) return;
+    if (typeof window !== 'undefined') {
+      const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      if (reduced) return;
+    }
+    try { navigator.vibrate?.(8); } catch { /* noop */ }
+  }, []);
+
   const goToPrevious = () => {
+    hapticTick();
     setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
 
   const goToNext = () => {
+    hapticTick();
     setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
   const goToSlide = (index: number) => {
-    setCurrentIndex(index);
+    setCurrentIndex((prev) => {
+      if (prev !== index) hapticTick();
+      return index;
+    });
   };
 
-  // Touch handlers for swipe — também pausam o autoplay momentaneamente
+  // Touch handlers para swipe — discriminam intenção horizontal vs scroll vertical,
+  // sem bloquear a rolagem da página.
+  const touchAxisRef = useRef<'undecided' | 'horizontal' | 'vertical'>('undecided');
+  const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
+
   const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0].clientX;
+    touchStartYRef.current = e.touches[0].clientY;
+    touchAxisRef.current = 'undecided';
     setTouchStart(e.touches[0].clientX);
     setIsPaused(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
+    if (touchAxisRef.current !== 'undecided') {
+      if (touchAxisRef.current === 'horizontal' && e.cancelable) {
+        e.preventDefault(); // mantém o swipe sem permitir scroll horizontal acidental
+      }
+      return;
+    }
+    const dx = Math.abs(e.touches[0].clientX - touchStartXRef.current);
+    const dy = Math.abs(e.touches[0].clientY - touchStartYRef.current);
+    if (dx < 8 && dy < 8) return;
+    touchAxisRef.current = dx > dy ? 'horizontal' : 'vertical';
+    if (touchAxisRef.current === 'horizontal' && e.cancelable) {
+      e.preventDefault();
+    }
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStart === null) {
       setIsPaused(false);
+      touchAxisRef.current = 'undecided';
       return;
     }
 
+    const wasHorizontal = touchAxisRef.current === 'horizontal';
     const touchEnd = e.changedTouches[0].clientX;
     const diff = touchStart - touchEnd;
 
-    if (Math.abs(diff) > 50) {
-      if (diff > 0) {
-        goToNext();
-      } else {
-        goToPrevious();
-      }
+    if (wasHorizontal && Math.abs(diff) > 40) {
+      if (diff > 0) goToNext();
+      else goToPrevious();
     }
     setTouchStart(null);
-    // Retoma autoplay após pequeno delay para não disparar logo após o swipe
+    touchAxisRef.current = 'undecided';
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
     window.setTimeout(() => setIsPaused(false), 1500);
   };
 
@@ -188,10 +229,11 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
       {/* Main Image Container */}
       <div className="flex-1 min-w-0 max-w-full">
         <div
-          className="relative aspect-square w-full max-w-full rounded-xl sm:rounded-2xl overflow-hidden bg-muted shadow-card sm:shadow-lg group cursor-pointer"
+          className="relative aspect-square w-full max-w-full rounded-xl sm:rounded-2xl overflow-hidden bg-muted shadow-card sm:shadow-lg group cursor-pointer touch-pan-y select-none"
           data-testid="pdp-gallery-main"
           onClick={() => setIsZoomed(true)}
           onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
@@ -309,6 +351,22 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
           )}
 
         </div>
+
+        {/* Progresso discreto abaixo da galeria (mobile) — barra fina + contador editorial */}
+        {images.length > 1 && (
+          <div className="md:hidden mt-3 px-1 flex items-center gap-3" aria-hidden="true">
+            <div className="relative flex-1 h-px bg-foreground/10 overflow-hidden rounded-full">
+              <div
+                className="absolute inset-y-0 left-0 bg-primary/70 rounded-full transition-[width] duration-500 ease-out"
+                style={{ width: `${((currentIndex + 1) / images.length) * 100}%` }}
+              />
+            </div>
+            <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-light tabular-nums">
+              {String(currentIndex + 1).padStart(2, '0')} <span className="opacity-50">/</span> {String(images.length).padStart(2, '0')}
+            </span>
+          </div>
+        )}
+
 
         {/* Horizontal Thumbnails - Below (for horizontal layout) */}
         {layout === 'horizontal' && images.length > 1 && (
@@ -447,9 +505,10 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
             </div>
 
             {/* Main Zoomed Image */}
-            <div 
-              className="flex-1 flex items-center justify-center p-3 sm:p-8 overflow-hidden"
+            <div
+              className="flex-1 flex items-center justify-center p-3 sm:p-8 overflow-hidden touch-pan-y"
               onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
               <img
