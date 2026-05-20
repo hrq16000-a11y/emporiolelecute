@@ -121,7 +121,8 @@ export default function AdminBackup() {
       setProgressLabel("Compactando ZIP...");
       const blob = await zip.generateAsync({ type: "blob", compression: "DEFLATE", compressionOptions: { level: 6 } });
       const stamp = new Date().toISOString().slice(0, 10);
-      saveAs(blob, `backup-emporio-${stamp}.zip`);
+      const suffix = exportMode === "selected" ? `-${selectedRefs.size}produtos` : "";
+      saveAs(blob, `backup-emporio${suffix}-${stamp}.zip`);
       setProgress(100);
       setProgressLabel("Pronto.");
       toast.success("Backup gerado com sucesso");
