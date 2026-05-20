@@ -231,6 +231,7 @@ export default function AdminBackup() {
         <TabsList>
           <TabsTrigger value="export"><Download className="w-4 h-4 mr-2" />Exportar</TabsTrigger>
           <TabsTrigger value="import"><Upload className="w-4 h-4 mr-2" />Importar</TabsTrigger>
+          <TabsTrigger value="audit"><ShieldCheck className="w-4 h-4 mr-2" />Auditoria do sistema</TabsTrigger>
         </TabsList>
 
         <TabsContent value="export" className="space-y-4">
