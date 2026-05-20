@@ -85,15 +85,7 @@ export const pdpSectionRegistry: Record<string, Renderer> = {
   bundle_belongs_to: ({ dbProduct }) =>
     dbProduct?.id ? <ProductBundleBelongsTo key="bundle_belongs_to" productId={dbProduct.id} /> : null,
 
-  visual_composition: ({ dbProduct }) =>
-    dbProduct?.id ? (
-      <VisualComposition
-        key="visual_composition"
-        currentProductId={dbProduct.id}
-        occasions={dbProduct?.occasions ?? []}
-        limit={6}
-      />
-    ) : null,
+  visual_composition: () => null,
 
   editorial: ({ dbProduct, product, canonicalUrl }) =>
     dbProduct?.editorial_content ? (
