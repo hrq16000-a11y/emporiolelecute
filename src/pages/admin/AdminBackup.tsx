@@ -262,6 +262,53 @@ export default function AdminBackup() {
                   <AlertDescription>O arquivo conterá nomes, e-mails, telefones e endereços de clientes. Armazene em local seguro.</AlertDescription>
                 </Alert>
               )}
+
+              <div className="space-y-3 pt-2 border-t">
+                <div>
+                  <Label className="text-sm font-medium flex items-center gap-2"><Package className="w-4 h-4" />Escopo dos produtos</Label>
+                  <div className="mt-2 space-y-2">
+                    <Label className="flex items-start gap-3 cursor-pointer">
+                      <input type="radio" checked={exportMode === "all"} onChange={() => setExportMode("all")} className="mt-1" />
+                      <div>
+                        <p className="text-sm font-medium">Todos os produtos</p>
+                        <p className="text-xs text-muted-foreground">Catálogo completo ({productList.length} produtos)</p>
+                      </div>
+                    </Label>
+                    <Label className="flex items-start gap-3 cursor-pointer">
+                      <input type="radio" checked={exportMode === "selected"} onChange={() => setExportMode("selected")} className="mt-1" />
+                      <div>
+                        <p className="text-sm font-medium">Apenas produtos selecionados ({selectedRefs.size})</p>
+                        <p className="text-xs text-muted-foreground">Exporta SQL + imagens só dos produtos marcados. Categorias e kits relacionados são incluídos automaticamente.</p>
+                      </div>
+                    </Label>
+                  </div>
+                </div>
+
+                {exportMode === "selected" && (
+                  <div className="rounded-lg border p-3 space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Input placeholder="Filtrar por nome, slug ou ref..." value={filterQ} onChange={(e) => setFilterQ(e.target.value)} className="flex-1 min-w-[200px] h-9" />
+                      <Button type="button" variant="outline" size="sm" onClick={selectAllVisible}>Selecionar visíveis</Button>
+                      <Button type="button" variant="ghost" size="sm" onClick={clearSelection}>Limpar</Button>
+                    </div>
+                    <ScrollArea className="h-64 rounded border">
+                      <div className="p-2 space-y-1">
+                        {filteredProducts.length === 0 && <p className="text-sm text-muted-foreground p-2">Nenhum produto encontrado.</p>}
+                        {filteredProducts.map((p) => (
+                          <Label key={p.external_ref} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer">
+                            <Checkbox checked={selectedRefs.has(p.external_ref)} onCheckedChange={() => toggleRef(p.external_ref)} />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm truncate">{p.name} {!p.is_active && <Badge variant="outline" className="ml-1 text-[10px]">inativo</Badge>}</p>
+                              <p className="text-[11px] text-muted-foreground truncate">{p.external_ref}</p>
+                            </div>
+                          </Label>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                )}
+              </div>
+
               {exporting && (
                 <div className="space-y-1">
                   <Progress value={progress} />
