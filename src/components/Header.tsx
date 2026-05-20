@@ -99,8 +99,8 @@ const Header = () => {
     <header 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled 
-          ? "bg-background/80 backdrop-blur-lg border-b border-border/50 shadow-medium py-1" 
-          : "bg-background/95 backdrop-blur-md border-b border-border/30 py-3"
+          ? "bg-background/80 backdrop-blur-lg border-b border-border/50 shadow-medium py-1 md:py-1" 
+          : "bg-background/95 backdrop-blur-md border-b border-border/30 py-2 md:py-3"
       }`}
     >
       <nav ref={navRef} className="container mx-auto px-4" aria-label="Navegação principal">
@@ -114,7 +114,7 @@ const Header = () => {
               src={logo}
               alt="Logo Empório LeleCute - Ateliê Criativo de Lembrancinhas Artesanais"
               className={`w-auto object-contain transition-all duration-500 group-hover:scale-105 ${
-                isScrolled ? "h-16 md:h-20" : "h-24 md:h-28"
+                isScrolled ? "h-12 sm:h-14 md:h-20" : "h-16 sm:h-20 md:h-28"
               }`}
               width="112"
               height="112"
@@ -192,7 +192,7 @@ const Header = () => {
             </Link>
           </div>
 
-          <div className="lg:hidden flex items-center gap-1">
+          <div className="lg:hidden flex items-center gap-2">
             <button
               data-mobile-search-toggle
               className="p-2 text-foreground hover:text-primary transition-colors"
