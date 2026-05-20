@@ -450,7 +450,7 @@ const HeroSlider = () => {
         </>
       )}
 
-      <TrustBadges className="mt-6 md:mt-10" />
+      <TrustBadges className="mt-2 md:mt-4" />
     </section>
   );
 };
