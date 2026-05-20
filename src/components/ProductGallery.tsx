@@ -264,8 +264,8 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
               <div key={index} className="flex h-14 items-center justify-center">
                 <span
                   className={cn(
-                    "h-px rounded-full transition-all duration-300 ease-out",
-                    index === currentIndex ? "w-5 bg-primary/80" : "w-0 bg-transparent"
+                    "w-px rounded-full transition-all duration-300 ease-out",
+                    index === currentIndex ? "h-8 bg-primary/80" : "h-0 bg-transparent"
                   )}
                 />
               </div>
