@@ -61,6 +61,7 @@ interface TaxonomyEntity {
   h1_override: string | null;
   description_seo: string | null;
   is_indexed: boolean;
+  is_draft: boolean | null;
   faqs: unknown;
 }
 
@@ -79,7 +80,7 @@ const TaxonomyPage = ({ kind }: Props) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from(cfg.table)
-        .select("id, name, slug, description, image_url, meta_title, meta_description, h1_override, description_seo, is_indexed, faqs")
+        .select("id, name, slug, description, image_url, meta_title, meta_description, h1_override, description_seo, is_indexed, is_draft, faqs")
         .eq("slug", slug)
         .maybeSingle();
       if (error) throw error;
@@ -216,7 +217,10 @@ const TaxonomyPage = ({ kind }: Props) => {
   );
 
   const loading = entityQuery.isLoading || productsQuery.isLoading;
-  const notFound = !entityQuery.isLoading && !entity;
+  // Bloco 3 SAFE — rascunho NUNCA pode ser renderizado publicamente.
+  // Tratado como 404 + noindex (mesmo fluxo de entidade inexistente).
+  const isDraft = entity?.is_draft === true;
+  const notFound = !entityQuery.isLoading && (!entity || isDraft);
 
   // ============ SEO ============
   const pageUrl = `${SITE_ORIGIN}${cfg.routePrefix}/${slug}`;

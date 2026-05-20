@@ -436,6 +436,10 @@ export function useUpdateCategory() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['taxonomy', 'categories'] });
+      queryClient.invalidateQueries({ queryKey: ['taxonomy-navigation'] });
+      // Sinaliza pipeline SEO (sitemap_dirty + auto-resubmit).
+      void import('@/lib/taxonomyAutomation').then((m) => m.markPublicTaxonomyDirty('categories'));
     },
   });
 }
@@ -467,6 +471,9 @@ export function useUpdateOccasion() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['occasions'] });
+      queryClient.invalidateQueries({ queryKey: ['taxonomy', 'occasions'] });
+      queryClient.invalidateQueries({ queryKey: ['taxonomy-navigation'] });
+      void import('@/lib/taxonomyAutomation').then((m) => m.markPublicTaxonomyDirty('occasions'));
     },
   });
 }
