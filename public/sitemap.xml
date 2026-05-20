@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- lovable:sitemap-source generate-sitemap@v2.1b -->
-<!-- lovable:sitemap-generated-at 2026-05-20T04:18:16.039Z -->
+<!-- lovable:sitemap-generated-at 2026-05-20T06:53:40.702Z -->
 <!-- lovable:sitemap-namespace /produto -->
 <!-- lovable:sitemap-products-count 51 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -24,38 +24,18 @@
   
   <!-- Individual Product Pages -->
   <url>
-    <loc>https://emporiolelecute.com.br/produto/vela-margarida-perfumada</loc>
-    <lastmod>2026-05-19</lastmod>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-mini-carrinho-2-letras</loc>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544605492-m5rkz9.jpg</image:loc>
-      <image:title>Vela Margarida Perfumada</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/sabonete-lembrancinha-natal</loc>
-    <lastmod>2026-05-19</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778546230675-tgm7tq.jpg</image:loc>
-      <image:title>Sabonete Lembrancinha Natal</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/escalda-pes-lembrancinha-personalizada</loc>
-    <lastmod>2026-05-19</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544178415-uk5wr.jpg</image:loc>
-      <image:title>Escalda Pés Lembrancinha Personalizada</image:title>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544461874-qhkoy.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Mini Carrinho + 2 Letras</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://emporiolelecute.com.br/produto/escalda-pes-sache-personalizado</loc>
-    <lastmod>2026-05-19</lastmod>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -64,88 +44,18 @@
     </image:image>
   </url>
   <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-nome-4-letras-personalizado</loc>
-    <lastmod>2026-05-18</lastmod>
+    <loc>https://emporiolelecute.com.br/produto/sabonete-lembrancinha-natal</loc>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545394427-42gf1w.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Nome 4 Letras Personalizado</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-chuva-de-amor</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545939691-94kcg.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Chuva de Amor</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-letra-brasao-coracao</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545201151-4zwjj.jpg</image:loc>
-      <image:title>Lembrancinha Letra Brasão + Coração - Laço + Tag</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-borboleta-letra-coracao</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545634039-fo75i.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Borboleta + Letra + Coração</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-patinho-letra-mini-coracao</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545958422-pnpbdf.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Patinho + Letra + Mini Coração</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-borboleta-cute</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544020912-tkl7oi.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Borboleta Cute</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/sabonete-lembrancinha-rosa-aberta-na-caixinha</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544435695-6fywvq.jpg</image:loc>
-      <image:title>Sabonete Lembrancinha Rosa Aberta na Caixinha</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/vela-margarida-perfumada-card</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545709107-d5h5zp.jpg</image:loc>
-      <image:title>Vela Margarida Perfumada - Card</image:title>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778546230675-tgm7tq.jpg</image:loc>
+      <image:title>Sabonete Lembrancinha Natal</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-arco</loc>
-    <lastmod>2026-05-18</lastmod>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -155,7 +65,7 @@
   </url>
   <url>
     <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-solzinho-letra-nuvem</loc>
-    <lastmod>2026-05-18</lastmod>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -165,7 +75,7 @@
   </url>
   <url>
     <loc>https://emporiolelecute.com.br/produto/lembrancinha-letra-brasao-coracao-na-caixinha</loc>
-    <lastmod>2026-05-18</lastmod>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -174,128 +84,108 @@
     </image:image>
   </url>
   <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-pezinho-1-letra-coracao</loc>
-    <lastmod>2026-05-18</lastmod>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-nome-4-letras-personalizado</loc>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545532290-gpcqwh.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Pezinho + 1 Letra + Coração</image:title>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545394427-42gf1w.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Nome 4 Letras Personalizado</image:title>
     </image:image>
   </url>
   <url>
-    <loc>https://emporiolelecute.com.br/produto/kit-wax-melts-difuso-rechaud</loc>
-    <lastmod>2026-05-18</lastmod>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-ursinho-1-letra-mini-coracao</loc>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544341912-je7grh.jpg</image:loc>
-      <image:title>Kit Wax Melts + Difuso Réchaud</image:title>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545728575-j6mm7.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Ursinho + 1 Letra + Mini Coração</image:title>
     </image:image>
   </url>
   <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-fundo-do-mar</loc>
-    <lastmod>2026-05-18</lastmod>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-chuva-de-amor</loc>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544126637-o5ewxo.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Fundo do Mar</image:title>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545939691-94kcg.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Chuva de Amor</image:title>
     </image:image>
   </url>
   <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-mini-carrinho-letra</loc>
-    <lastmod>2026-05-18</lastmod>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-letra-brasao-coracao</loc>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545109169-gtaxzi.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Mini Carrinho + Letra</image:title>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545201151-4zwjj.jpg</image:loc>
+      <image:title>Lembrancinha Letra Brasão + Coração - Laço + Tag</image:title>
     </image:image>
   </url>
   <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-nome-5-letras-personalizado</loc>
-    <lastmod>2026-05-18</lastmod>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-borboleta-letra-coracao</loc>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545459256-6csk4o.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Nome 5 Letras Personalizado</image:title>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545634039-fo75i.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Borboleta + Letra + Coração</image:title>
     </image:image>
   </url>
   <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-nome-6-letras-personalizado</loc>
-    <lastmod>2026-05-18</lastmod>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-dinossauro-cute-letra-mini-coracao</loc>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544408896-22tvre.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Nome 6 Letras Personalizado</image:title>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545048615-v0q3pq.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Dinossauro Cute + Letra + Mini Coração</image:title>
     </image:image>
   </url>
   <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-safari-circo-letra</loc>
-    <lastmod>2026-05-18</lastmod>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-patinho-letra-mini-coracao</loc>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545507034-g36la.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Safari/circo + Letra</image:title>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545958422-pnpbdf.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Patinho + Letra + Mini Coração</image:title>
     </image:image>
   </url>
   <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-safari-cute</loc>
-    <lastmod>2026-05-18</lastmod>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-borboleta-cute</loc>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778546006797-c5cogr.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Safari Cute</image:title>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544020912-tkl7oi.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Borboleta Cute</image:title>
     </image:image>
   </url>
   <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-sereia-fundo-do-mar</loc>
-    <lastmod>2026-05-18</lastmod>
+    <loc>https://emporiolelecute.com.br/produto/sabonete-lembrancinha-rosa-aberta-na-caixinha</loc>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778546068032-w4onqj.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Sereia / Fundo do Mar</image:title>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544435695-6fywvq.jpg</image:loc>
+      <image:title>Sabonete Lembrancinha Rosa Aberta na Caixinha</image:title>
     </image:image>
   </url>
   <url>
-    <loc>https://emporiolelecute.com.br/produto/sabonete-foguete-letra-com-tag-personalizada</loc>
-    <lastmod>2026-05-18</lastmod>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-safari-cute-com-tag-personalizada</loc>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544245597-meey3q.jpg</image:loc>
-      <image:title>Sabonete Foguete + Letra com Tag Personalizada</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/vela-ursinho-grande-perfumada</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/defaults/category-velas.jpg</image:loc>
-      <image:title>Vela Ursinho Grande Perfumada</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-mini-carrinho-2-letras</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544461874-qhkoy.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Mini Carrinho + 2 Letras</image:title>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544579246-0cmktf.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Safari Cute com Tag Personalizada</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-balao-letra-nuvem</loc>
-    <lastmod>2026-05-18</lastmod>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -304,8 +194,18 @@
     </image:image>
   </url>
   <url>
+    <loc>https://emporiolelecute.com.br/produto/vela-margarida-perfumada</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544605492-m5rkz9.jpg</image:loc>
+      <image:title>Vela Margarida Perfumada</image:title>
+    </image:image>
+  </url>
+  <url>
     <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-fundo-do-mar-2-letra</loc>
-    <lastmod>2026-05-18</lastmod>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -315,7 +215,7 @@
   </url>
   <url>
     <loc>https://emporiolelecute.com.br/produto/sabonete-divino-espirito-santo-com-mini-terco</loc>
-    <lastmod>2026-05-18</lastmod>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -325,7 +225,7 @@
   </url>
   <url>
     <loc>https://emporiolelecute.com.br/produto/sabonete-cavalinho-letra-com-tag-personalizada</loc>
-    <lastmod>2026-05-18</lastmod>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -335,7 +235,7 @@
   </url>
   <url>
     <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-margarida</loc>
-    <lastmod>2026-05-18</lastmod>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -344,148 +244,8 @@
     </image:image>
   </url>
   <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-margarida-na-caixinha</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545553021-yb1vw.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Margarida na Caixinha</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-solzinho-nuvem</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545249984-2ykcna.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Solzinho + Nuvem</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-flor-de-cerejeira-letra</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544504061-sp997.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Flor de Cerejeira + Letra</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-brasao-15-anos</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778546089093-zqodxc.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Brasão 15 Anos</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-brasao-2-letras</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545885373-mpdjs.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Brasão 2 Letras</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-pezinho-coracao</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544216482-cisn3k.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Pezinhos + Coração</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-coracao-amore</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544094902-1qwe9a.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Coração Amore</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-safari-cute-com-tag-personalizada</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544579246-0cmktf.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Safari Cute com Tag Personalizada</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-ursinho-1-letra-mini-coracao</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545728575-j6mm7.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Ursinho + 1 Letra + Mini Coração</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-dinossauro-cute-letra-mini-coracao</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545048615-v0q3pq.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Dinossauro Cute + Letra + Mini Coração</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/sabonete-letra-brasao-espirito-santo-com-mini-terco</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545319891-1cgbzp.jpg</image:loc>
-      <image:title>Sabonete Letra Brasão + Espirito Santo com Mini Terço</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-patinho-com-tag-personalizada</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778546124559-i4ceut.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Patinho com Tag Personalizada</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-pezinho-no-tule-com-tag-personalizada</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778546325157-bcezff.jpg</image:loc>
-      <image:title>Lembrancinha Sabonete Pezinho no Tule com Tag Personalizada</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/produto/sabonete-cavalinho-cute-letra-com-tag-personalizada</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778546281812-yhvmj.jpg</image:loc>
-      <image:title>Sabonete Cavalinho Cute + Letra com Tag Personalizada</image:title>
-    </image:image>
-  </url>
-  <url>
     <loc>https://emporiolelecute.com.br/produto/mini-vela-na-latinha-personalizada-com-mensagem-secreta</loc>
-    <lastmod>2026-05-18</lastmod>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -495,7 +255,7 @@
   </url>
   <url>
     <loc>https://emporiolelecute.com.br/produto/sabonete-letra-inicial-brasao-com-tag-personalizada</loc>
-    <lastmod>2026-05-18</lastmod>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -504,8 +264,98 @@
     </image:image>
   </url>
   <url>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-margarida-na-caixinha</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545553021-yb1vw.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Margarida na Caixinha</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-solzinho-nuvem</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545249984-2ykcna.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Solzinho + Nuvem</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-brasao-2-letras</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545885373-mpdjs.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Brasão 2 Letras</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-flor-de-cerejeira-letra</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544504061-sp997.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Flor de Cerejeira + Letra</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-pezinho-coracao</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544216482-cisn3k.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Pezinhos + Coração</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/escalda-pes-lembrancinha-personalizada</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544178415-uk5wr.jpg</image:loc>
+      <image:title>Escalda Pés Lembrancinha Personalizada</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-brasao-15-anos</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778546089093-zqodxc.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Brasão 15 Anos</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-coracao-amore</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544094902-1qwe9a.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Coração Amore</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-pezinho-1-letra-coracao</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545532290-gpcqwh.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Pezinho + 1 Letra + Coração</image:title>
+    </image:image>
+  </url>
+  <url>
     <loc>https://emporiolelecute.com.br/produto/lembrancinha-anjinho-cute-letra-com-tag-personalizada</loc>
-    <lastmod>2026-05-18</lastmod>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -515,7 +365,7 @@
   </url>
   <url>
     <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-fundo-do-mar-letra-mini-coracao</loc>
-    <lastmod>2026-05-18</lastmod>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -525,12 +375,162 @@
   </url>
   <url>
     <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-nome-3-letras-personalizado</loc>
-    <lastmod>2026-05-18</lastmod>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
       <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545351641-dmaqaj.jpg</image:loc>
       <image:title>Lembrancinha Sabonete Nome 3 Letras Personalizado</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/kit-wax-melts-difuso-rechaud</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544341912-je7grh.jpg</image:loc>
+      <image:title>Kit Wax Melts + Difuso Réchaud</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-patinho-com-tag-personalizada</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778546124559-i4ceut.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Patinho com Tag Personalizada</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-pezinho-no-tule-com-tag-personalizada</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778546325157-bcezff.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Pezinho no Tule com Tag Personalizada</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/sabonete-cavalinho-cute-letra-com-tag-personalizada</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778546281812-yhvmj.jpg</image:loc>
+      <image:title>Sabonete Cavalinho Cute + Letra com Tag Personalizada</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/sabonete-letra-brasao-espirito-santo-com-mini-terco</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545319891-1cgbzp.jpg</image:loc>
+      <image:title>Sabonete Letra Brasão + Espirito Santo com Mini Terço</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-fundo-do-mar</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544126637-o5ewxo.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Fundo do Mar</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-mini-carrinho-letra</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545109169-gtaxzi.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Mini Carrinho + Letra</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-nome-5-letras-personalizado</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545459256-6csk4o.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Nome 5 Letras Personalizado</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-nome-6-letras-personalizado</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544408896-22tvre.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Nome 6 Letras Personalizado</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-safari-circo-letra</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545507034-g36la.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Safari/circo + Letra</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-safari-cute</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778546006797-c5cogr.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Safari Cute</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/lembrancinha-sabonete-sereia-fundo-do-mar</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778546068032-w4onqj.jpg</image:loc>
+      <image:title>Lembrancinha Sabonete Sereia / Fundo do Mar</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/sabonete-foguete-letra-com-tag-personalizada</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778544245597-meey3q.jpg</image:loc>
+      <image:title>Sabonete Foguete + Letra com Tag Personalizada</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/vela-ursinho-grande-perfumada</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/defaults/category-velas.jpg</image:loc>
+      <image:title>Vela Ursinho Grande Perfumada</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/produto/vela-margarida-perfumada-card</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://xfqffqxqiuqauefrrcxn.supabase.co/storage/v1/object/public/product-images/products/1778545709107-d5h5zp.jpg</image:loc>
+      <image:title>Vela Margarida Perfumada - Card</image:title>
     </image:image>
   </url>
   <url>
@@ -570,6 +570,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://emporiolelecute.com.br/ocasiao/natal</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://emporiolelecute.com.br/ocasiao/cha-revelacao</loc>
     <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
@@ -595,12 +601,6 @@
   </url>
   <url>
     <loc>https://emporiolelecute.com.br/ocasiao/maternidade</loc>
-    <lastmod>2026-05-20</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://emporiolelecute.com.br/ocasiao/natal</loc>
     <lastmod>2026-05-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
