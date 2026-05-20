@@ -34,10 +34,10 @@ const PRODUCTS_PER_PAGE = 12;
 const Produtos = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: dbProducts, isLoading: loadingProducts } = useDbProducts();
-  const { data: dbCategories } = useDbCategories();
-  const { data: dbOccasions } = useDbOccasions();
+  const { data: dbCategories } = useDbCategories({ publicOnly: true });
+  const { data: dbOccasions } = useDbOccasions({ publicOnly: true });
   const { data: dbTags } = useTags();
-  const { data: dbSegments } = useSegments();
+  const { data: dbSegments } = useSegments({ publicOnly: true });
 
   const [search, setSearch] = useState(searchParams.get('busca') || searchParams.get('search') || "");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(searchParams.get('categoria') || null);

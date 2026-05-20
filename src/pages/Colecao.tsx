@@ -24,10 +24,10 @@ const SITE_ORIGIN = "https://emporiolelecute.com.br";
 const Colecao = () => {
   const { slug = "" } = useParams<{ slug: string }>();
   const { data: collection, isLoading } = useCollectionBySlug(slug);
-  const { data: dbCategories } = useDbCategories();
-  const { data: dbOccasions } = useDbOccasions();
+  const { data: dbCategories } = useDbCategories({ publicOnly: true });
+  const { data: dbOccasions } = useDbOccasions({ publicOnly: true });
   const { data: dbTags } = useTags();
-  const { data: dbSegments } = useSegments();
+  const { data: dbSegments } = useSegments({ publicOnly: true });
   const [filters, setFilters] = useCatalogFiltersFromUrl();
 
   const normalized = useMemo(
