@@ -85,20 +85,18 @@ export default function VisualComposition({ currentProductId, occasions, limit =
       <p className="text-sm text-muted-foreground mb-4">
         Composição visual sugerida para a mesma ocasião.
       </p>
-      <div className="grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3">
+      <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 gap-2 md:gap-3 [column-fill:_balance]">
         {items.map((p, i) => (
           <Link
             key={p.id}
             to={urls.product(p.slug)}
-            className={`group relative block rounded-xl overflow-hidden bg-muted aspect-square ${
-              i === 0 ? "col-span-2 row-span-2 aspect-auto md:aspect-[2/2]" : ""
-            }`}
+            className="group relative mb-2 md:mb-3 block break-inside-avoid rounded-xl overflow-hidden bg-muted"
             title={p.name}
           >
             <img
-              src={optimizeImage(p.images[0], { width: i === 0 ? 640 : 320 })}
+              src={optimizeImage(p.images[0], { width: i === 0 ? 640 : 400 })}
               alt={p.name}
-              className="absolute inset-0 w-full h-full object-contain p-1 group-hover:scale-105 transition-transform duration-500"
+              className="block w-full h-auto group-hover:scale-[1.03] transition-transform duration-500"
               loading="lazy"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
