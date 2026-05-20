@@ -432,6 +432,29 @@ const HeroSlider = () => {
         >
           <SlideRenderer slide={slide} isPriority={isPriority} />
         </div>
+
+        {slides.length > 1 && (
+          <>
+            <button
+              onClick={prevSlideFn}
+              className="absolute left-2 md:left-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 md:w-12 md:h-12 bg-transparent md:bg-background/80 md:backdrop-blur-sm md:shadow-md rounded-full flex items-center justify-center hover:bg-primary/10 md:hover:bg-primary hover:text-primary md:hover:text-primary-foreground active:scale-95 transition-all"
+              aria-label="Slide anterior"
+            >
+              <span className="flex h-8 w-8 md:h-auto md:w-auto items-center justify-center rounded-full bg-background/85 shadow-sm md:bg-transparent md:shadow-none">
+                <ChevronLeft className="h-4 w-4 md:h-6 md:w-6" />
+              </span>
+            </button>
+            <button
+              onClick={nextSlideFn}
+              className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 md:w-12 md:h-12 bg-transparent md:bg-background/80 md:backdrop-blur-sm md:shadow-md rounded-full flex items-center justify-center hover:bg-primary/10 md:hover:bg-primary hover:text-primary md:hover:text-primary-foreground active:scale-95 transition-all"
+              aria-label="Próximo slide"
+            >
+              <span className="flex h-8 w-8 md:h-auto md:w-auto items-center justify-center rounded-full bg-background/85 shadow-sm md:bg-transparent md:shadow-none">
+                <ChevronRight className="h-4 w-4 md:h-6 md:w-6" />
+              </span>
+            </button>
+          </>
+        )}
       </div>
 
       {/* Navigation dots + arrows — shown when there are multiple slides */}
@@ -462,25 +485,6 @@ const HeroSlider = () => {
             ))}
           </div>
 
-          {/* Prev / Next arrows */}
-          <button
-            onClick={prevSlideFn}
-            className="absolute left-2 md:left-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 md:w-12 md:h-12 bg-transparent md:bg-background/80 md:backdrop-blur-sm md:shadow-md rounded-full flex items-center justify-center hover:bg-primary/10 md:hover:bg-primary hover:text-primary md:hover:text-primary-foreground active:scale-95 transition-all"
-            aria-label="Slide anterior"
-          >
-            <span className="flex h-8 w-8 md:h-auto md:w-auto items-center justify-center rounded-full bg-background/85 shadow-sm md:bg-transparent md:shadow-none">
-              <ChevronLeft className="h-4 w-4 md:h-6 md:w-6" />
-            </span>
-          </button>
-          <button
-            onClick={nextSlideFn}
-            className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 md:w-12 md:h-12 bg-transparent md:bg-background/80 md:backdrop-blur-sm md:shadow-md rounded-full flex items-center justify-center hover:bg-primary/10 md:hover:bg-primary hover:text-primary md:hover:text-primary-foreground active:scale-95 transition-all"
-            aria-label="Próximo slide"
-          >
-            <span className="flex h-8 w-8 md:h-auto md:w-auto items-center justify-center rounded-full bg-background/85 shadow-sm md:bg-transparent md:shadow-none">
-              <ChevronRight className="h-4 w-4 md:h-6 md:w-6" />
-            </span>
-          </button>
         </>
       )}
 
