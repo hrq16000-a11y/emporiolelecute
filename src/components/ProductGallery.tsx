@@ -227,7 +227,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
       )}
 
       {/* Main Image Container */}
-      <div className="flex-1 min-w-0 max-w-full md:max-w-[360px] lg:max-w-[420px] md:mx-auto">
+      <div className="flex-1 min-w-0 max-w-full md:max-w-[300px] lg:max-w-[420px] md:mx-auto">
         <div
           className="relative aspect-square w-full max-w-full rounded-xl sm:rounded-2xl overflow-hidden bg-muted shadow-card sm:shadow-lg group cursor-pointer touch-pan-y select-none"
           data-testid="pdp-gallery-main"
