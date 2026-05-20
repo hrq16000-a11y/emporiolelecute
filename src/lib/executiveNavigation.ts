@@ -171,6 +171,7 @@ export const EXECUTIVE_NAV: NavGroup[] = [
       { label: "Usuários", path: "/admin/usuarios", icon: "ShieldCheck" },
       { label: "Solicitações", path: "/admin/usuarios/solicitacoes", icon: "ShieldCheck" },
       { label: "Auditoria", path: "/admin/auditoria", icon: "BarChart3" },
+      { label: "Backup & Migração", path: "/admin/backup", icon: "Boxes" },
     ],
   },
   {

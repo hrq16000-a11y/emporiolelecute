@@ -286,7 +286,7 @@ export function useCreateProduct() {
     mutationFn: async (product: Omit<DbProduct, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
         .from('products')
-        .insert(product)
+        .insert({ external_ref: '', ...product })
         .select()
         .single();
 
@@ -348,7 +348,7 @@ export function useCreateCategory() {
     mutationFn: async (category: { name: string; slug: string }) => {
       const { data, error } = await supabase
         .from('categories')
-        .insert(category)
+        .insert({ external_ref: '', ...category })
         .select()
         .single();
 
@@ -387,7 +387,7 @@ export function useCreateOccasion() {
     mutationFn: async (occasion: { name: string; slug: string }) => {
       const { data, error } = await supabase
         .from('occasions')
-        .insert(occasion)
+        .insert({ external_ref: '', ...occasion })
         .select()
         .single();
 
