@@ -287,8 +287,8 @@ const Buscar = () => {
           {/* Resultados */}
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm text-muted-foreground">
-              {isLoading
-                ? "Carregando…"
+              {isLoading || isSearching
+                ? "Buscando…"
                 : `${filtered.length} ${filtered.length === 1 ? "resultado" : "resultados"}`}
             </p>
             <Link to="/produtos" className="text-xs text-primary hover:underline">
@@ -296,7 +296,7 @@ const Buscar = () => {
             </Link>
           </div>
 
-          {isLoading ? (
+          {isLoading || isSearching ? (
             <div className="flex items-center justify-center py-16">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
