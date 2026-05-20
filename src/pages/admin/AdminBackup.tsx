@@ -396,6 +396,10 @@ export default function AdminBackup() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="audit" className="space-y-4">
+          <AuditTab />
+        </TabsContent>
       </Tabs>
     </div>
   );
