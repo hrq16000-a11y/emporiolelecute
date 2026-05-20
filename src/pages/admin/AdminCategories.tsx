@@ -396,7 +396,9 @@ const AdminCategories = () => {
     setEditImageUrl('');
   };
 
-  // Bloco 3 SAFE — toggle inline de is_draft / is_indexed direto na lista
+  // Bloco 3 SAFE — toggle inline de is_draft / is_indexed direto na lista.
+  // Garante: (1) update no DB, (2) invalidação de cache público em tempo real,
+  // (3) marca sitemap_dirty + ping de auto-resubmit (IndexNow/GSC).
   const handleToggleField = async (
     id: string,
     field: 'is_draft' | 'is_indexed',
@@ -405,7 +407,9 @@ const AdminCategories = () => {
     try {
       const { error } = await supabase.from('categories').update({ [field]: value }).eq('id', id);
       if (error) throw error;
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      invalidatePublicTaxonomy(queryClient, 'categories');
+      void markPublicTaxonomyDirty('categories');
+      trackAdminEvent('toggle_publish', `category_${field}_${value ? 'on' : 'off'}`);
       toast({ title: field === 'is_draft' ? (value ? 'Marcado como rascunho' : 'Publicado') : (value ? 'Indexável ativado' : 'Removido do índice') });
     } catch {
       toast({ title: 'Erro ao atualizar', variant: 'destructive' });
