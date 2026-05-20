@@ -314,6 +314,8 @@ const HeroSlider = () => {
     return () => clearTimeout(t);
   }, [prevSlide, currentSlide]);
 
+  const activeSlideId = slides[currentSlide]?.id;
+
   // Animate stage height to match the active slide.
   // Stable observer (deps []), rAF-coalesced, no-op when value unchanged.
   // Skipped entirely in reduced-motion mode (height: auto).
@@ -340,7 +342,7 @@ const HeroSlider = () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
     };
-  }, [currentSlide, reducedMotion]);
+  }, [currentSlide, reducedMotion, activeSlideId]);
 
   const slide = slides[currentSlide] ?? slides[0];
   if (!slide) return null;
