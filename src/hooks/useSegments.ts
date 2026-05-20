@@ -12,20 +12,26 @@ export interface DbSegment {
   h1_override: string | null;
   description_seo: string | null;
   is_indexed: boolean;
+  is_draft?: boolean | null;
   position: number;
   created_at: string;
   updated_at: string;
 }
 
-export function useSegments() {
+// `publicOnly` (default false) aplica trava SAFE Bloco 3 (is_draft=false AND is_indexed=true).
+// Componentes públicos DEVEM passar publicOnly:true. Admin consome sem flag.
+export function useSegments(opts?: { publicOnly?: boolean }) {
+  const publicOnly = opts?.publicOnly === true;
   return useQuery({
-    queryKey: ['segments'],
+    queryKey: ['segments', publicOnly ? 'public' : 'all'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from('segments')
         .select('*')
         .order('position', { ascending: true })
         .order('name', { ascending: true });
+      if (publicOnly) q = q.eq('is_draft', false).eq('is_indexed', true);
+      const { data, error } = await q;
       if (error) throw error;
       return (data ?? []) as DbSegment[];
     },
