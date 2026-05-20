@@ -280,7 +280,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
         layout === 'horizontal' && "sm:max-lg:w-[420px] sm:max-lg:flex-none sm:max-lg:max-w-[calc(100vw-7rem)]"
       )}>
         <div
-          className="relative aspect-square w-full max-w-full rounded-xl sm:rounded-2xl overflow-hidden bg-muted shadow-card sm:shadow-lg group cursor-pointer touch-pan-y select-none"
+          className="relative aspect-square w-full max-w-full rounded-xl sm:rounded-2xl overflow-hidden bg-transparent group cursor-pointer touch-pan-y select-none"
           data-testid="pdp-gallery-main"
           onClick={() => setIsZoomed(true)}
           onTouchStart={handleTouchStart}
