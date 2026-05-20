@@ -19,6 +19,19 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [isPaused, setIsPaused] = useState(false);
 
+  // Tira horizontal de miniaturas — refs e estado de bordas
+  const thumbsRef = useRef<HTMLDivElement>(null);
+  const thumbItemsRef = useRef<Array<HTMLButtonElement | null>>([]);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const updateThumbEdges = useCallback(() => {
+    const el = thumbsRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+
   useEffect(() => {
     setIsLoaded(true);
   }, []);
