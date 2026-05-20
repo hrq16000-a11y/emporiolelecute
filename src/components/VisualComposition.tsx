@@ -98,7 +98,7 @@ export default function VisualComposition({ currentProductId, occasions, limit =
             <img
               src={optimizeImage(p.images[0], { width: i === 0 ? 640 : 320 })}
               alt={p.name}
-              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              className="absolute inset-0 w-full h-full object-contain p-1 group-hover:scale-105 transition-transform duration-500"
               loading="lazy"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
