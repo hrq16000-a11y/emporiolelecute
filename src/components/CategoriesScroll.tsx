@@ -24,7 +24,7 @@ const ShimmerBlock = ({ className }: { className?: string }) => (
 );
 
 const CategoriesScroll = () => {
-  const { data: categories, isLoading } = useDbCategories();
+  const { data: categories, isLoading } = useDbCategories({ publicOnly: true });
   const visible = (categories ?? []).filter((c) => c.is_indexed !== false);
 
   const {

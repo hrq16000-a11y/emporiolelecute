@@ -34,7 +34,7 @@ const ShimmerBlock = ({ className }: { className?: string }) => (
 );
 
 const OccasionsThumbs = () => {
-  const { data: occasions, isLoading } = useDbOccasions();
+  const { data: occasions, isLoading } = useDbOccasions({ publicOnly: true });
   const list = (occasions || []).filter((o: any) => o.is_indexed !== false).slice(0, 12);
 
   const {

@@ -66,6 +66,7 @@ export interface DbCategory {
   icon?: string | null;
   position?: number | null;
   is_indexed?: boolean | null;
+  is_draft?: boolean | null;
   description?: string | null;
 }
 
@@ -79,6 +80,7 @@ export interface DbOccasion {
   meta_title?: string | null;
   meta_description?: string | null;
   is_indexed?: boolean | null;
+  is_draft?: boolean | null;
   created_at: string;
 }
 
@@ -238,33 +240,38 @@ export function useDbProductById(id: string) {
   });
 }
 
-// Fetch all categories
-export function useDbCategories() {
+// Fetch all categories.
+// `publicOnly` (default false) aplica a trava SAFE Bloco 3:
+//   só retorna registros com is_draft=false AND is_indexed=true.
+// Componentes públicos (Header, Footer, filtros, vitrines) DEVEM passar publicOnly:true.
+// Admin (CRUD) consome sem flag e enxerga rascunhos.
+export function useDbCategories(opts?: { publicOnly?: boolean }) {
+  const publicOnly = opts?.publicOnly === true;
   return useQuery({
-    queryKey: ['categories'],
+    queryKey: ['categories', publicOnly ? 'public' : 'all'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from('categories')
         .select('*')
         .order('position', { ascending: true, nullsFirst: false })
         .order('name', { ascending: true });
-
+      if (publicOnly) q = q.eq('is_draft', false).eq('is_indexed', true);
+      const { data, error } = await q;
       if (error) throw error;
       return data as DbCategory[];
     },
   });
 }
 
-// Fetch all occasions
-export function useDbOccasions() {
+// Fetch all occasions. Mesma semântica de `publicOnly` que useDbCategories.
+export function useDbOccasions(opts?: { publicOnly?: boolean }) {
+  const publicOnly = opts?.publicOnly === true;
   return useQuery({
-    queryKey: ['occasions'],
+    queryKey: ['occasions', publicOnly ? 'public' : 'all'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('occasions')
-        .select('*')
-        .order('name');
-
+      let q = supabase.from('occasions').select('*').order('name');
+      if (publicOnly) q = q.eq('is_draft', false).eq('is_indexed', true);
+      const { data, error } = await q;
       if (error) throw error;
       return data as DbOccasion[];
     },

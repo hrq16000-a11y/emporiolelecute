@@ -26,9 +26,10 @@ interface UseTaxonomyNavigationResult {
 }
 
 export function useTaxonomyNavigation(): UseTaxonomyNavigationResult {
-  const cats = useDbCategories();
-  const occs = useDbOccasions();
-  const segs = useSegments();
+  // Bloco 3 SAFE: nav semântico só consome taxonomias publicadas + indexáveis.
+  const cats = useDbCategories({ publicOnly: true });
+  const occs = useDbOccasions({ publicOnly: true });
+  const segs = useSegments({ publicOnly: true });
 
   return useMemo(() => {
     const map = <T extends { id: string; name: string; slug: string; position?: number | null; image_url?: string | null; is_indexed?: boolean | null }>(
