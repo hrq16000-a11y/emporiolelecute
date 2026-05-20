@@ -40,7 +40,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
   const hapticTick = useCallback(() => {
     if (typeof navigator === 'undefined' || !('vibrate' in navigator)) return;
     if (typeof window !== 'undefined') {
-      const reduced = window.matchMedia?.('(prevers-reduced-motion: reduce)').matches;
+      const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
       if (reduced) return;
     }
     try { navigator.vibrate?.(8); } catch { /* noop */ }
