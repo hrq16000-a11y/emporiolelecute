@@ -47,6 +47,8 @@ import BreadcrumbStructuredData from "@/components/BreadcrumbStructuredData";
 import TrustBadges from "@/components/TrustBadges";
 import { PdpBadge, resolveEffectiveBadge } from "@/components/PdpBadge";
 import FAQSection from "@/components/FAQSection";
+import { ProductFAQ } from "@/components/ProductFAQ";
+import { useProductFaqs, buildAutoFaq } from "@/hooks/useProductFaqs";
 import { useDbProduct, useDbProducts } from "@/hooks/useProducts";
 import { useProductReviews, useProductReviewStats } from "@/hooks/useProductReviews";
 import ProductReviews from "@/components/ProductReviews";
@@ -975,6 +977,26 @@ const ProductPage = () => {
       </main>
 
       <TrustBadges />
+
+      {/* FAQ editorial por PDP — usa overrides do admin (product_faqs) ou 3 perguntas-padrão automáticas */}
+      {dbProduct?.id && (() => {
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        const { data: pf = [] } = useProductFaqs(dbProduct.id);
+        const items = pf.length > 0
+          ? pf.map((f) => ({ question: f.question, answer: f.answer }))
+          : buildAutoFaq({
+              productName: product.name,
+              productionDays: dbProduct.production_days,
+              personalizationEnabled: dbProduct.personalization_enabled,
+              categoryName: dbProduct.category?.name ?? null,
+            });
+        return (
+          <section className="container mx-auto px-4">
+            <ProductFAQ productName={product.name} items={items} />
+          </section>
+        );
+      })()}
+
       <FAQSection />
 
       <Footer />
