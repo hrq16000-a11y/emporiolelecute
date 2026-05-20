@@ -415,7 +415,7 @@ const HeroSlider = () => {
         {previous && (
           <div
             key={`prev-${previous.id}-${prevSlide}`}
-            className="absolute inset-0 w-full motion-safe:animate-[fade-opacity-out_720ms_ease-in-out_forwards] motion-reduce:hidden pointer-events-none"
+            className="absolute inset-0 w-full hero-fade-out motion-reduce:hidden pointer-events-none"
             aria-hidden="true"
           >
             <SlideRenderer slide={previous} isPriority={false} />
@@ -427,7 +427,7 @@ const HeroSlider = () => {
           className={
             reducedMotion
               ? "relative w-full"
-              : "relative w-full opacity-0 animate-[fade-opacity_720ms_ease-in-out_forwards] motion-reduce:opacity-100"
+              : "relative w-full opacity-0 hero-fade-in motion-reduce:opacity-100"
           }
         >
           <SlideRenderer slide={slide} isPriority={isPriority} />
