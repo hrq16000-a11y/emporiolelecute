@@ -114,7 +114,7 @@ const Header = () => {
               src={logo}
               alt="Logo Empório LeleCute - Ateliê Criativo de Lembrancinhas Artesanais"
               className={`w-auto object-contain transition-all duration-500 group-hover:scale-105 ${
-                isScrolled ? "h-16 md:h-20" : "h-24 md:h-28"
+                isScrolled ? "h-12 sm:h-14 md:h-20" : "h-16 sm:h-20 md:h-28"
               }`}
               width="112"
               height="112"
