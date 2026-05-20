@@ -44,7 +44,7 @@ interface OccasionsSectionProps {
 }
 
 const OccasionsSection = ({ eyebrow }: OccasionsSectionProps = {}) => {
-  const { data: dbOccasions } = useDbOccasions();
+  const { data: dbOccasions } = useDbOccasions({ publicOnly: true });
 
   // Build occasions from database, with fallback defaults for description and image
   const occasions = (dbOccasions || []).slice(0, 6).map(o => ({
