@@ -926,11 +926,21 @@ const ProductPage = () => {
           </div>
 
 
-          {/* Seções gerenciadas via /admin/pdp-sections (ordem + visibilidade) */}
-          {(pdpSections ?? []).map((s) => {
+          {/* Seções gerenciadas via /admin/pdp-sections (ordem + visibilidade).
+              Wrapper aplica cadência editorial: hairline mobile entre módulos (a partir do 2º). */}
+          {(pdpSections ?? []).map((s, idx) => {
             const renderer = pdpSectionRegistry[s.section_key];
             if (!renderer) return null;
-            return renderer({ product, dbProduct, canonicalUrl });
+            const node = renderer({ product, dbProduct, canonicalUrl });
+            if (!node) return null;
+            return (
+              <div
+                key={s.section_key}
+                className={idx > 0 ? "border-t border-border/40 pt-10 md:border-0 md:pt-0" : undefined}
+              >
+                {node}
+              </div>
+            );
           })}
 
           {/* Fase 11.1 — Linking semântico contextual (SAFE MODE) */}

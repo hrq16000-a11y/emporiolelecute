@@ -23,9 +23,12 @@ type Renderer = (ctx: PdpSectionContext) => ReactNode;
 
 export const pdpSectionRegistry: Record<string, Renderer> = {
   description: ({ product }) => (
-    <div className="mb-12" key="description">
-      <h2 className="font-display text-2xl text-foreground mb-6">Descrição do produto</h2>
-      <div className="bg-card rounded-xl border border-border p-6">
+    <section className="mb-14 md:mb-16" key="description" aria-labelledby="pdp-description-title">
+      <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 mb-2">Sobre o produto</p>
+      <h2 id="pdp-description-title" className="font-display text-2xl md:text-3xl font-light text-foreground mb-5">
+        Descrição
+      </h2>
+      <div className="prose prose-sm md:prose-base max-w-none">
         <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
           {product.longDescription || product.description || `${product.name} artesanal da LeleCute.
 
@@ -34,7 +37,7 @@ Cada peça é feita à mão com ingredientes hipoalergênicos de alta qualidade.
 Personalizamos conforme o tema do seu evento com cores, aromas e papelaria exclusivos.`}
         </p>
       </div>
-    </div>
+    </section>
   ),
 
   cross_sell_complete: ({ dbProduct, product }) =>
@@ -65,11 +68,12 @@ Personalizamos conforme o tema do seu evento com cores, aromas e papelaria exclu
 
   editorial: ({ dbProduct, product, canonicalUrl }) =>
     dbProduct?.editorial_content ? (
-      <section key="editorial" className="mb-12" aria-labelledby="editorial-title">
-        <h2 id="editorial-title" className="font-display text-2xl text-foreground mb-6">
+      <section key="editorial" className="mb-14 md:mb-16" aria-labelledby="editorial-title">
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 mb-2">Inspire-se</p>
+        <h2 id="editorial-title" className="font-display text-2xl md:text-3xl font-light text-foreground mb-5">
           Sobre esta lembrancinha
         </h2>
-        <div className="bg-primary/5 rounded-xl border border-primary/10 p-6 prose prose-sm md:prose-base max-w-none text-muted-foreground">
+        <div className="prose prose-sm md:prose-base max-w-none text-muted-foreground border-l-2 border-primary/20 pl-5 md:pl-6">
           <div className="whitespace-pre-line leading-relaxed">{dbProduct.editorial_content}</div>
         </div>
         <script
@@ -97,8 +101,9 @@ Personalizamos conforme o tema do seu evento com cores, aromas e papelaria exclu
 
   related_themes: ({ dbProduct }) =>
     dbProduct?.tags && dbProduct.tags.length > 0 ? (
-      <section key="related_themes" className="mb-12" aria-labelledby="themes-title">
-        <h2 id="themes-title" className="font-display text-xl text-foreground mb-4">
+      <section key="related_themes" className="mb-10 md:mb-12" aria-labelledby="themes-title">
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 mb-2">Explore</p>
+        <h2 id="themes-title" className="font-display text-lg md:text-xl font-light text-foreground mb-4">
           Temas relacionados
         </h2>
         <div className="flex flex-wrap gap-2">
@@ -106,9 +111,9 @@ Personalizamos conforme o tema do seu evento com cores, aromas e papelaria exclu
             <Link
               key={t.id}
               to={`/produtos?tag=${t.slug}`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted hover:bg-primary/10 hover:text-primary rounded-full text-sm text-muted-foreground transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted/60 hover:bg-muted rounded-full text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              <Tag className="h-3 w-3" />
+              <Tag className="h-3 w-3" strokeWidth={1.5} />
               {t.name}
             </Link>
           ))}
