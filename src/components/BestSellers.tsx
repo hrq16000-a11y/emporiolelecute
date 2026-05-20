@@ -8,6 +8,7 @@ import type { Product } from "@/data/products";
 import { useHomeRegistry } from "@/contexts/HomeRegistry";
 import { sortByHomePriority } from "@/lib/homePriority";
 import { urls, CANONICAL_ORIGIN } from "@/lib/urls";
+import SectionEyebrow from "@/components/SectionEyebrow";
 
 const STORAGE_KEY = "bestsellers:selection:v2";
 const TTL_MS = 1000 * 60 * 60 * 24; // 24h — same selection across reloads / sessions
@@ -43,7 +44,11 @@ const shuffle = <T,>(arr: T[]): T[] => {
   return a;
 };
 
-const BestSellers = () => {
+interface BestSellersProps {
+  eyebrow?: string;
+}
+
+const BestSellers = ({ eyebrow }: BestSellersProps = {}) => {
   const { data: dbProducts, isLoading } = useDbProducts();
   const registry = useHomeRegistry();
 
@@ -128,9 +133,11 @@ const BestSellers = () => {
   return (
     <section
       id="mais-vendidos"
-      className="py-16 md:py-24 bg-background relative overflow-hidden"
+      className="py-14 md:py-24 bg-background relative overflow-hidden"
       aria-labelledby="mais-vendidos-heading"
     >
+      {/* Mobile hairline divider — cadência visual entre seções */}
+      <div aria-hidden className="md:hidden h-px bg-border/40 mx-6 mb-10" />
       {itemListJsonLd && (
         <Helmet>
           <script type="application/ld+json">{JSON.stringify(itemListJsonLd)}</script>
@@ -140,9 +147,12 @@ const BestSellers = () => {
         <div className="max-w-7xl mx-auto">
           {/* Section Header — editorial, alinhado à PDP/RelatedProducts */}
           <header className="flex items-end justify-between gap-4 mb-10 flex-wrap">
-            <h2 id="mais-vendidos-heading" className="font-display text-2xl lg:text-3xl font-light text-foreground">
-              Mais vendidos
-            </h2>
+            <div className="min-w-0">
+              <SectionEyebrow>{eyebrow}</SectionEyebrow>
+              <h2 id="mais-vendidos-heading" className="font-display text-2xl lg:text-3xl font-light text-foreground">
+                Mais vendidos
+              </h2>
+            </div>
             <Link
               to="/produtos"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors border-b border-border/60 hover:border-foreground/40 pb-0.5"

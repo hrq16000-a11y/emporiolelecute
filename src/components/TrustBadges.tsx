@@ -17,7 +17,7 @@ const TrustBadges = ({ className = "" }: TrustBadgesProps) => {
   return (
     <aside
       aria-label="Informações de envio, pagamento e atendimento"
-      className={`relative z-10 border-t border-border/50 bg-cream/40 py-6 md:py-8 ${className}`}
+      className={`relative z-10 border-t border-border/50 bg-cream/40 py-7 pb-9 md:py-8 ${className}`}
     >
       <div className="container mx-auto px-4">
         <ul
