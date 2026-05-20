@@ -187,7 +187,8 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
     <div className={cn(
       "relative w-full max-w-full min-w-0 overflow-hidden transition-all duration-500",
       isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
-      layout === 'vertical' && "flex gap-4"
+      layout === 'vertical' && "flex gap-4",
+      layout === 'horizontal' && "sm:max-lg:flex sm:max-lg:w-fit sm:max-lg:mx-auto sm:max-lg:items-start sm:max-lg:justify-center sm:max-lg:gap-3"
     )}>
       {/* Vertical Thumbnails - Left Side */}
       {layout === 'vertical' && images.length > 1 && (
@@ -226,8 +227,44 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
         </div>
       )}
 
+      {/* Tablet Thumbnails - Left Side (horizontal PDP layout only) */}
+      {layout === 'horizontal' && images.length > 1 && (
+        <div className="hidden sm:max-lg:flex flex-col gap-2 w-14 shrink-0">
+          {images.slice(0, 5).map((image, index) => {
+            const isActive = index === currentIndex;
+            return (
+              <button
+                key={index}
+                onClick={() => goToSlide(index)}
+                aria-label={`Ver imagem ${index + 1} de ${images.length}`}
+                aria-current={isActive ? "true" : undefined}
+                className={cn(
+                  "w-14 h-14 rounded-sm overflow-hidden transition-opacity duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                  isActive ? "opacity-100" : "opacity-45 hover:opacity-75"
+                )}
+              >
+                <img
+                  src={optimizeImage(image, { width: 128, resize: "contain" })}
+                  alt=""
+                  className="w-full h-full object-contain bg-muted/30 pointer-events-none"
+                  loading="lazy"
+                  decoding="async"
+                  draggable={false}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/placeholder.svg';
+                  }}
+                />
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Main Image Container */}
-      <div className="flex-1 min-w-0 max-w-full sm:max-w-[360px] md:max-w-[420px] lg:max-w-[420px]">
+      <div className={cn(
+        "flex-1 min-w-0 max-w-full sm:max-w-[360px] md:max-w-[420px] lg:max-w-[420px]",
+        layout === 'horizontal' && "sm:max-lg:w-[288px] sm:max-lg:flex-none sm:max-lg:max-w-[calc(100vw-7rem)]"
+      )}>
         <div
           className="relative aspect-square w-full max-w-full rounded-xl sm:rounded-2xl overflow-hidden bg-muted shadow-card sm:shadow-lg group cursor-pointer touch-pan-y select-none"
           data-testid="pdp-gallery-main"
@@ -370,7 +407,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
 
         {/* Horizontal Thumbnails - Below (for horizontal layout) */}
         {layout === 'horizontal' && images.length > 1 && (
-          <div className="relative mt-3 sm:mt-4">
+          <div className="relative mt-3 sm:mt-4 sm:max-lg:hidden">
             {/* Edge fade masks (somem suavemente quando não há mais conteúdo no lado) */}
             <div
               className={cn(
