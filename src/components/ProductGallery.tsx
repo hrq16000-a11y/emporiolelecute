@@ -191,7 +191,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
     )}>
       {/* Vertical Thumbnails - Left Side */}
       {layout === 'vertical' && images.length > 1 && (
-        <div className="hidden md:flex flex-col gap-3 w-20 shrink-0">
+        <div className="hidden sm:flex flex-col gap-2 sm:gap-3 w-16 md:w-20 shrink-0">
           {images.slice(0, 5).map((image, index) => (
             <button
               key={index}
