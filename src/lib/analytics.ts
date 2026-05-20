@@ -171,28 +171,74 @@ export interface FunnelPayload {
 }
 
 /**
- * Registra evento do funil:
- *  1) dispara em GA (compat com `event()`)
- *  2) persiste em `pdp_funnel_events` para o painel admin (fire-and-forget)
+ * Fila de eventos do funil — batch + keepalive para nunca bloquear a UI.
+ *
+ * Antes: cada chamada fazia um POST imediato e aguardado pelo navegador,
+ * o que travava cliques/navegações quando o backend respondia em 5–25s.
+ * Agora: enfileiramos em memória, flush a cada 4s, ao atingir 10 eventos,
+ * ou quando a aba é escondida/descarregada (com fetch keepalive).
  */
+const FUNNEL_QUEUE: any[] = [];
+let funnelFlushTimer: ReturnType<typeof setTimeout> | null = null;
+const FUNNEL_FLUSH_MS = 4000;
+const FUNNEL_MAX_BATCH = 10;
+
+function flushFunnelQueue(useKeepalive = false) {
+  if (typeof window === "undefined") return;
+  if (FUNNEL_QUEUE.length === 0) return;
+  const batch = FUNNEL_QUEUE.splice(0, FUNNEL_QUEUE.length);
+  if (funnelFlushTimer) { clearTimeout(funnelFlushTimer); funnelFlushTimer = null; }
+
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/pdp_funnel_events`;
+  const apikey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  try {
+    void fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey,
+        Authorization: `Bearer ${apikey}`,
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify(batch),
+      keepalive: useKeepalive, // garante envio em pagehide/unload
+      // @ts-expect-error: alguns ambientes aceitam priority
+      priority: "low",
+    }).catch(() => { /* fire-and-forget */ });
+  } catch { /* noop */ }
+}
+
+if (typeof window !== "undefined") {
+  const onHide = () => flushFunnelQueue(true);
+  window.addEventListener("pagehide", onHide);
+  window.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") onHide();
+  });
+}
+
 export const trackFunnelEvent = (name: string, payload: FunnelPayload = {}) => {
   event(name, payload);
   if (!FUNNEL_EVENTS.has(name)) return;
   if (typeof window === "undefined") return;
 
-  import("@/integrations/supabase/client")
-    .then(({ supabase }) => {
-      const { source, product_slug, quantity, personalized, ...rest } = payload;
-      return supabase.from("pdp_funnel_events").insert({
-        event_name: name,
-        source: source ?? null,
-        product_slug: product_slug ?? null,
-        quantity:
-          typeof quantity === "number" ? Math.max(0, Math.min(99999, Math.floor(quantity))) : null,
-        personalized: typeof personalized === "boolean" ? personalized : null,
-        session_id: getSessionId(),
-        meta: Object.keys(rest).length ? (rest as any) : null,
-      });
-    })
-    .catch(() => { /* fire-and-forget — telemetria nunca quebra a UX */ });
+  const { source, product_slug, quantity, personalized, ...rest } = payload;
+  FUNNEL_QUEUE.push({
+    event_name: name,
+    source: source ?? null,
+    product_slug: product_slug ?? null,
+    quantity:
+      typeof quantity === "number" ? Math.max(0, Math.min(99999, Math.floor(quantity))) : null,
+    personalized: typeof personalized === "boolean" ? personalized : null,
+    session_id: getSessionId(),
+    meta: Object.keys(rest).length ? (rest as any) : null,
+  });
+
+  if (FUNNEL_QUEUE.length >= FUNNEL_MAX_BATCH) {
+    flushFunnelQueue(false);
+    return;
+  }
+  if (!funnelFlushTimer) {
+    funnelFlushTimer = setTimeout(() => flushFunnelQueue(false), FUNNEL_FLUSH_MS);
+  }
 };
+
