@@ -202,8 +202,6 @@ function flushFunnelQueue(useKeepalive = false) {
       },
       body: JSON.stringify(batch),
       keepalive: useKeepalive, // garante envio em pagehide/unload
-      // @ts-expect-error: alguns ambientes aceitam priority
-      priority: "low",
     }).catch(() => { /* fire-and-forget */ });
   } catch { /* noop */ }
 }
