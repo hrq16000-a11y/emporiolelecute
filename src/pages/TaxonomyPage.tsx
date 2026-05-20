@@ -23,6 +23,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { optimizeImage } from "@/lib/image";
 import { normalizeFaqs, metaTitleFallback, metaDescriptionFallback, buildBreadcrumbs, type TaxonomyKind as TaxKind } from "@/lib/taxonomy";
+import { getEditorialEyebrow } from "@/lib/categoryEyebrows";
 import { useSemanticContext } from "@/hooks/useSemanticContext";
 import { buildContextualLinksForTaxonomy } from "@/lib/linkOrchestrator";
 import SemanticLinkingBlock from "@/components/SemanticLinkingBlock";
