@@ -67,6 +67,7 @@ interface SortableRowProps {
   onCancelEdit: () => void;
   onSaveEdit: () => void;
   onDelete: (id: string) => void;
+  onToggleField: (id: string, field: 'is_draft' | 'is_indexed', value: boolean) => void;
   setEditName: (v: string) => void;
   setEditSlug: (v: string) => void;
   setEditIcon: (v: string | null) => void;
@@ -76,6 +77,25 @@ interface SortableRowProps {
 }
 
 const SortableRow = ({
+  category,
+  editingId,
+  editName,
+  editSlug,
+  editIcon,
+  editImageUrl,
+  isSaving,
+  onStartEdit,
+  onCancelEdit,
+  onSaveEdit,
+  onDelete,
+  onToggleField,
+  setEditName,
+  setEditSlug,
+  setEditIcon,
+  setEditImageUrl,
+  generateSlug,
+  slugCheck,
+}: SortableRowProps) => {
   category,
   editingId,
   editName,
