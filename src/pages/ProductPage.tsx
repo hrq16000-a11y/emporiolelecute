@@ -978,24 +978,18 @@ const ProductPage = () => {
 
       <TrustBadges />
 
-      {/* FAQ editorial por PDP — usa overrides do admin (product_faqs) ou 3 perguntas-padrão automáticas */}
-      {dbProduct?.id && (() => {
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        const { data: pf = [] } = useProductFaqs(dbProduct.id);
-        const items = pf.length > 0
-          ? pf.map((f) => ({ question: f.question, answer: f.answer }))
-          : buildAutoFaq({
-              productName: product.name,
-              productionDays: dbProduct.production_days,
-              personalizationEnabled: dbProduct.personalization_enabled,
-              categoryName: dbProduct.category?.name ?? null,
-            });
-        return (
-          <section className="container mx-auto px-4">
-            <ProductFAQ productName={product.name} items={items} />
-          </section>
-        );
-      })()}
+      {/* FAQ editorial por PDP — overrides do admin (product_faqs) ou fallback automático */}
+      {dbProduct?.id && (
+        <section className="container mx-auto px-4">
+          <ProductPdpFaq
+            productId={dbProduct.id}
+            productName={product.name}
+            productionDays={dbProduct.production_days}
+            personalizationEnabled={dbProduct.personalization_enabled}
+            categoryName={dbProduct.category?.name ?? null}
+          />
+        </section>
+      )}
 
       <FAQSection />
 
