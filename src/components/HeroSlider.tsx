@@ -124,10 +124,12 @@ function SlideTextImage({
               </p>
             )}
             {slide.cta_label && slide.cta_url && (
-              <a href={slide.cta_url} className="inline-block mb-8">
-                <Button size="lg" className="rounded-full px-8">
-                  {slide.cta_label}
-                </Button>
+              <a
+                href={slide.cta_url}
+                className="inline-flex items-center gap-2 mb-8 text-sm text-foreground border-b border-foreground/30 hover:border-foreground pb-1 transition-colors"
+              >
+                {slide.cta_label}
+                <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">→</span>
               </a>
             )}
           </div>

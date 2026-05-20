@@ -1,7 +1,5 @@
 import { useMemo } from "react";
 import { Helmet } from "react-helmet-async";
-import { ShoppingBag, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import ProductCard from "@/components/ProductCard";
 import { ProductGridSkeleton } from "@/components/ProductSkeleton";
@@ -140,19 +138,17 @@ const BestSellers = () => {
       )}
       <div className="container mx-auto px-4">
         <div className="max-w-7xl mx-auto">
-          {/* Section Header */}
-          <header className="text-center mb-12">
-            <span className="text-sm text-muted-foreground uppercase tracking-widest mb-2 block">
-              Nossos Favoritos
-            </span>
-            <h2 id="mais-vendidos-heading" className="font-display text-3xl md:text-4xl text-foreground">
+          {/* Section Header — editorial, alinhado à PDP/RelatedProducts */}
+          <header className="flex items-end justify-between gap-4 mb-10 flex-wrap">
+            <h2 id="mais-vendidos-heading" className="font-display text-2xl lg:text-3xl font-light text-foreground">
               Mais vendidos
             </h2>
-            {!isLoading && products.length > 0 && (
-              <p className="mt-3 text-sm text-muted-foreground" aria-live="polite">
-                Exibindo <strong>{products.length}</strong> de <strong>{totalActive}</strong> produtos ativos
-              </p>
-            )}
+            <Link
+              to="/produtos"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors border-b border-border/60 hover:border-foreground/40 pb-0.5"
+            >
+              Ver todos
+            </Link>
           </header>
 
           {/* Products Grid */}
@@ -165,7 +161,7 @@ const BestSellers = () => {
               <p className="text-muted-foreground">Nenhum produto disponível no momento.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-12">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
               {products.map((product, index) => (
                 <div
                   key={product.id}
@@ -177,20 +173,6 @@ const BestSellers = () => {
               ))}
             </div>
           )}
-
-          {/* View All CTA */}
-          <div className="text-center flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to="/produtos">
-              <Button
-                size="lg"
-                className="bg-primary hover:bg-primary-dark text-primary-foreground rounded-full px-10 py-6 text-lg shadow-medium transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group"
-              >
-                <ShoppingBag className="h-5 w-5 mr-2" />
-                Ver mais produtos
-                <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
-          </div>
         </div>
       </div>
     </section>
