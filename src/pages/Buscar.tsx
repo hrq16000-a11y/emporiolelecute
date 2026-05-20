@@ -94,23 +94,48 @@ const Buscar = () => {
   }, [dbProducts]);
 
   const filtered = useMemo(() => {
-    const q = debouncedQuery.trim().toLowerCase();
+    // Fase 2 SAFE — busca tolerante: normaliza acento/caixa e expande sinônimos.
+    // Mantém o comportamento de substring atual (zero regressão lógica).
+    const rawQuery = debouncedQuery.trim();
+    const terms = rawQuery ? expandWithSynonyms(rawQuery, synonyms) : [];
     const range = PRICE_RANGES.find((r) => r.id === selectedPrice);
+    const matches = (haystack: string) => {
+      if (!terms.length) return true;
+      const norm = normalizeSearch(haystack);
+      return terms.some((t) => norm.includes(t));
+    };
     return products.filter((p: any) => {
       const matchesQ =
-        !q ||
-        p.name.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        p._categoryName.toLowerCase().includes(q) ||
-        p._occasionNames.some((n: string) => n.toLowerCase().includes(q)) ||
-        p._tagNames.some((n: string) => n.toLowerCase().includes(q)) ||
-        p.keywords.some((k: string) => k.toLowerCase().includes(q));
+        !terms.length ||
+        matches(p.name) ||
+        matches(p.description) ||
+        matches(p._categoryName) ||
+        p._occasionNames.some((n: string) => matches(n)) ||
+        p._tagNames.some((n: string) => matches(n)) ||
+        p.keywords.some((k: string) => matches(k));
       const matchesCat = !selectedCategory || p._categoryId === selectedCategory;
       const matchesPrice =
         !range || (p._priceNum >= range.min && p._priceNum < range.max);
       return matchesQ && matchesCat && matchesPrice;
     });
-  }, [products, debouncedQuery, selectedCategory, selectedPrice]);
+  }, [products, debouncedQuery, selectedCategory, selectedPrice, synonyms]);
+
+  // Sugestão "Você quis dizer..." — gerada quando há termo mas nenhum resultado.
+  const suggestion = useMemo(() => {
+    const q = debouncedQuery.trim();
+    if (!q || filtered.length > 0) return null;
+    const pool: string[] = [];
+    for (const p of products as any[]) {
+      pool.push(p.name);
+      if (p._categoryName) pool.push(p._categoryName);
+      pool.push(...(p._tagNames || []));
+      pool.push(...(p._occasionNames || []));
+    }
+    for (const s of synonyms ?? []) {
+      pool.push(s.canonical_term, ...(s.aliases ?? []));
+    }
+    return suggestClosest(q, pool);
+  }, [debouncedQuery, filtered.length, products, synonyms]);
 
   const activeCount =
     (debouncedQuery ? 1 : 0) + (selectedCategory ? 1 : 0) + (selectedPrice ? 1 : 0);
