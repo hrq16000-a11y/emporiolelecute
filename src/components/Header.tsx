@@ -192,7 +192,7 @@ const Header = () => {
             </Link>
           </div>
 
-          <div className="lg:hidden flex items-center gap-1">
+          <div className="lg:hidden flex items-center gap-2">
             <button
               data-mobile-search-toggle
               className="p-2 text-foreground hover:text-primary transition-colors"
