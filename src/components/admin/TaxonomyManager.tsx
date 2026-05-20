@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Plus, Pencil, Trash2, ArrowUp, ArrowDown, Check, AlertTriangle, EyeOff } from 'lucide-react';
+import { Plus, Pencil, Trash2, ArrowUp, ArrowDown, Check, AlertTriangle, EyeOff, FileEdit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -126,10 +126,15 @@ const TaxonomyManager = ({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-medium truncate">{item.name}</p>
+                        {showSeo && item.is_draft === true && (
+                          <Badge variant="outline" className="gap-1 border-amber-400 text-amber-700 dark:text-amber-300">
+                            <FileEdit className="w-3 h-3" /> Rascunho
+                          </Badge>
+                        )}
                         {showSeo && item.is_indexed === false && (
                           <Badge variant="outline" className="gap-1"><EyeOff className="w-3 h-3" /> noindex</Badge>
                         )}
-                        {showSeo && !hasIssue && (
+                        {showSeo && !hasIssue && item.is_draft !== true && (
                           <Badge variant="secondary" className="gap-1 text-emerald-700 dark:text-emerald-400">
                             <Check className="w-3 h-3" /> SEO OK
                           </Badge>

@@ -31,6 +31,8 @@ export interface TaxonomyEntity {
   h1_override?: string | null;
   description_seo?: string | null;
   is_indexed?: boolean;
+  // Bloco 3 SAFE: rascunho. true = invisível ao público (sitemap/SEO/listagens).
+  is_draft?: boolean;
   faqs?: TaxonomyFaq[] | null;
 }
 

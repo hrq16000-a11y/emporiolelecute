@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
+import { FileEdit, Globe } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
@@ -34,6 +35,8 @@ const TaxonomyForm = ({
   const [description, setDescription] = useState(initial?.description ?? '');
   const [imageUrl, setImageUrl] = useState(initial?.image_url ?? '');
   const [isIndexed, setIsIndexed] = useState<boolean>(initial?.is_indexed ?? true);
+  // Bloco 3 SAFE: novos itens nascem como rascunho; existentes preservam o estado salvo.
+  const [isDraft, setIsDraft] = useState<boolean>(initial?.is_draft ?? true);
   const [metaTitle, setMetaTitle] = useState(initial?.meta_title ?? '');
   const [metaDescription, setMetaDescription] = useState(initial?.meta_description ?? '');
   const [h1, setH1] = useState(initial?.h1_override ?? '');
@@ -81,6 +84,7 @@ const TaxonomyForm = ({
       payload.description = description || null;
       payload.image_url = imageUrl || null;
       payload.is_indexed = isIndexed;
+      payload.is_draft = isDraft;
       payload.meta_title = metaTitle || null;
       payload.meta_description = metaDescription || null;
       payload.h1_override = h1 || null;
@@ -182,11 +186,39 @@ const TaxonomyForm = ({
             />
           </div>
 
-          <div className="flex items-center gap-3 pt-1">
-            <Switch id="tx-indexed" checked={isIndexed} onCheckedChange={setIsIndexed} />
-            <Label htmlFor="tx-indexed" className="cursor-pointer">
-              Indexável (aparece no sitemap e permite robots index)
-            </Label>
+          <div className="rounded-md border border-border p-3 space-y-3 bg-muted/30">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                {isDraft ? (
+                  <FileEdit className="w-4 h-4 text-amber-600 shrink-0" aria-hidden />
+                ) : (
+                  <Globe className="w-4 h-4 text-emerald-600 shrink-0" aria-hidden />
+                )}
+                <Label htmlFor="tx-draft" className="cursor-pointer leading-tight">
+                  {isDraft ? 'Rascunho' : 'Publicado'}
+                  <span className="block text-xs font-normal text-muted-foreground">
+                    {isDraft
+                      ? 'Invisível ao público, sitemap e Google. Só você vê no admin.'
+                      : 'Visível ao público (respeitando "Indexável" abaixo).'}
+                  </span>
+                </Label>
+              </div>
+              <Switch
+                id="tx-draft"
+                checked={!isDraft}
+                onCheckedChange={(checked) => setIsDraft(!checked)}
+                aria-label="Alternar entre rascunho e publicado"
+              />
+            </div>
+            <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
+              <Label htmlFor="tx-indexed" className="cursor-pointer leading-tight">
+                Indexável
+                <span className="block text-xs font-normal text-muted-foreground">
+                  Aparece no sitemap e permite robots index. Requer "Publicado".
+                </span>
+              </Label>
+              <Switch id="tx-indexed" checked={isIndexed} onCheckedChange={setIsIndexed} />
+            </div>
           </div>
 
           <div className="rounded-md border border-border p-4 space-y-4">
