@@ -286,19 +286,13 @@ const Buscar = () => {
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-foreground font-medium mb-2">
-                Nenhum produto encontrado
-              </p>
-              <p className="text-sm text-muted-foreground mb-4">
-                Tente outra palavra-chave ou remova os filtros.
-              </p>
-              {activeCount > 0 && (
-                <Button variant="outline" size="sm" onClick={clearAll}>
-                  Limpar filtros
-                </Button>
-              )}
-            </div>
+            <SearchEmptyState
+              query={debouncedQuery}
+              suggestion={suggestion}
+              onApplySuggestion={(term) => setQuery(term)}
+              onClearFilters={clearAll}
+              hasActiveFilters={activeCount > 0}
+            />
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
               {filtered.slice(0, 60).map((p) => (
