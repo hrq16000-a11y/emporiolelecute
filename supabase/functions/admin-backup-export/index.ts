@@ -141,7 +141,9 @@ Deno.serve(async (req) => {
     if (scope.images) {
       const imgs: { external_ref: string; idx: number; filename: string; signed_url: string; source_url: string }[] = [];
       const products = (result.catalog as { products?: { external_ref: string; images?: string[] }[] } | undefined)?.products
-        ?? (await admin.from("products").select("external_ref, images")).data
+        ?? (productRefs
+              ? (await admin.from("products").select("external_ref, images").in("external_ref", productRefs)).data
+              : (await admin.from("products").select("external_ref, images")).data)
         ?? [];
 
       for (const p of products) {
