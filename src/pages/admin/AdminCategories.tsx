@@ -601,6 +601,7 @@ const AdminCategories = () => {
                         onCancelEdit={handleCancelEdit}
                         onSaveEdit={handleSaveEdit}
                         onDelete={setDeleteId}
+                        onToggleField={handleToggleField}
                         setEditName={setEditName}
                         setEditSlug={setEditSlug}
                         setEditIcon={setEditIcon}
@@ -632,6 +633,7 @@ const AdminCategories = () => {
                       onCancelEdit={handleCancelEdit}
                       onSaveEdit={handleSaveEdit}
                       onDelete={setDeleteId}
+                      onToggleField={handleToggleField}
                       setEditName={setEditName}
                       setEditSlug={setEditSlug}
                       setEditIcon={setEditIcon}
