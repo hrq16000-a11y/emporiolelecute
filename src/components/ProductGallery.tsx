@@ -188,8 +188,9 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
       "relative w-full max-w-full min-w-0 overflow-hidden transition-all duration-500",
       isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
       layout === 'vertical' && "flex gap-4",
-      layout === 'horizontal' && "sm:max-lg:flex sm:max-lg:w-fit sm:max-lg:mx-auto sm:max-lg:items-start sm:max-lg:justify-center sm:max-lg:gap-4"
+      layout === 'horizontal' && "sm:max-lg:flex sm:max-lg:w-fit sm:max-lg:mx-auto sm:max-lg:items-center sm:max-lg:justify-center sm:max-lg:gap-3 md:max-lg:gap-4 sm:max-lg:px-2"
     )}>
+
       {/* Vertical Thumbnails - Left Side */}
       {layout === 'vertical' && images.length > 1 && (
         <div className="hidden sm:flex flex-col gap-2 sm:gap-3 w-16 md:w-20 shrink-0">
