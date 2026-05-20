@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Heart, Star, ArrowRight, Clock, Sparkles } from "lucide-react";
+import { Heart, ArrowRight, Clock, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -112,22 +112,8 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
       
       {/* Product Info */}
       <div className="p-3 md:p-5">
-        {/* Rating — meta sempre presente para SEO; visual oculto em mobile (ruído marketplace) */}
-        <div className="hidden md:flex items-center gap-1 mb-2 text-muted-foreground/80" itemProp="aggregateRating" itemScope itemType="https://schema.org/AggregateRating">
-          <meta itemProp="ratingValue" content={String(product.rating)} />
-          <meta itemProp="ratingCount" content="1" />
-          <meta itemProp="reviewCount" content="1" />
-          <meta itemProp="bestRating" content="5" />
-          <Star className="h-3 w-3 fill-current" strokeWidth={0} />
-          <span className="text-[10px] md:text-xs">{product.rating.toFixed(1)}</span>
-        </div>
-        {/* Schema-only mirror para mobile (mantém rich snippets sem ruído visual) */}
-        <div className="md:hidden sr-only" itemProp="aggregateRating" itemScope itemType="https://schema.org/AggregateRating">
-          <meta itemProp="ratingValue" content={String(product.rating)} />
-          <meta itemProp="ratingCount" content="1" />
-          <meta itemProp="reviewCount" content="1" />
-          <meta itemProp="bestRating" content="5" />
-        </div>
+        {/* Rating removido — exibido apenas quando há avaliações reais (gerenciado na PDP) */}
+
 
         {/* Name — peso leve, sem hover coral */}
         <Link to={urls.product(product.slug)}>
