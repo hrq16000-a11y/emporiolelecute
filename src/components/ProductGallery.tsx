@@ -207,7 +207,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
               <div
                 key={index}
                 className={cn(
-                  "absolute inset-0 transition-opacity duration-500",
+                  "absolute inset-0 transition-opacity duration-700 ease-out motion-reduce:transition-none",
                   index === currentIndex ? "opacity-100" : "opacity-0"
                 )}
               >
