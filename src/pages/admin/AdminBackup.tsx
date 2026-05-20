@@ -37,12 +37,50 @@ export default function AdminBackup() {
   const [importPreview, setImportPreview] = useState<{ products: number; cats: number; occs: number; tags: number; kits: number; images: number; orders: number } | null>(null);
   const [importReport, setImportReport] = useState<unknown>(null);
 
+  // Per-product selection
+  const [productList, setProductList] = useState<{ external_ref: string; name: string; slug: string; is_active: boolean }[]>([]);
+  const [selectedRefs, setSelectedRefs] = useState<Set<string>>(new Set());
+  const [filterQ, setFilterQ] = useState("");
+  const [exportMode, setExportMode] = useState<"all" | "selected">("all");
+
+  useEffect(() => {
+    (async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("external_ref, name, slug, is_active")
+        .order("name");
+      if (error) { console.warn(error); return; }
+      setProductList((data ?? []).filter((p) => p.external_ref));
+    })();
+  }, []);
+
+  const filteredProducts = useMemo(() => {
+    const q = filterQ.trim().toLowerCase();
+    if (!q) return productList;
+    return productList.filter((p) => p.name.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q) || p.external_ref.toLowerCase().includes(q));
+  }, [productList, filterQ]);
+
+  function toggleRef(ref: string) {
+    setSelectedRefs((s) => {
+      const n = new Set(s);
+      if (n.has(ref)) n.delete(ref); else n.add(ref);
+      return n;
+    });
+  }
+  function selectAllVisible() { setSelectedRefs(new Set(filteredProducts.map((p) => p.external_ref))); }
+  function clearSelection() { setSelectedRefs(new Set()); }
+
   async function handleExport() {
     setExporting(true);
     setProgress(2);
     setProgressLabel("Coletando dados do servidor...");
     try {
-      const { data, error } = await supabase.functions.invoke<ExportManifest>("admin-backup-export", { body: { scope } });
+      const productRefs = exportMode === "selected" ? Array.from(selectedRefs) : undefined;
+      if (exportMode === "selected" && (!productRefs || productRefs.length === 0)) {
+        toast.error("Selecione ao menos um produto");
+        setExporting(false); setProgress(0); return;
+      }
+      const { data, error } = await supabase.functions.invoke<ExportManifest>("admin-backup-export", { body: { scope, productRefs } });
       if (error || !data) throw new Error(error?.message ?? "Falha ao exportar");
       setProgress(25);
 
