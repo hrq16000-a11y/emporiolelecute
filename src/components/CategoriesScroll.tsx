@@ -44,7 +44,7 @@ const CategoriesScroll = () => {
   const total = visible.length;
 
   return (
-    <section ref={sectionRef} className="py-8 md:py-14 bg-background" aria-label="Categorias">
+    <section ref={sectionRef} className="py-10 md:py-16 bg-background" aria-label="Categorias">
       <div className="container mx-auto px-4">
         <h1 className="sr-only">Empório LeleCute - Lembrancinhas Artesanais Personalizadas</h1>
 
