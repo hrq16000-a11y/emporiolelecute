@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Trash2, Edit, Check, X, Search, Calendar, Loader2, AlertCircle, Image as ImageIcon } from 'lucide-react';
+import { Plus, Trash2, Edit, Check, X, Search, Calendar, Loader2, AlertCircle, Image as ImageIcon, FileEdit, Globe } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { trackAdminEvent } from '@/lib/adminUsage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -364,7 +366,18 @@ const AdminOccasions = () => {
                           )}
                         </div>
                         <div className="cursor-pointer min-w-0" onClick={() => handleStartEdit(occasion)}>
-                          <p className="font-medium text-foreground truncate">{occasion.name}</p>
+                          <p className="font-medium text-foreground truncate flex items-center gap-2 flex-wrap">
+                            {occasion.name}
+                            {(occasion as any).is_draft === true ? (
+                              <Badge variant="outline" className="gap-1 border-amber-400 text-amber-700 dark:text-amber-300 text-[10px] px-1.5 py-0">
+                                <FileEdit className="w-3 h-3" /> Rascunho
+                              </Badge>
+                            ) : (occasion as any).is_draft === false ? (
+                              <Badge variant="outline" className="gap-1 border-emerald-400 text-emerald-700 dark:text-emerald-300 text-[10px] px-1.5 py-0">
+                                <Globe className="w-3 h-3" /> Publicado
+                              </Badge>
+                            ) : null}
+                          </p>
                           <p className="text-sm text-muted-foreground truncate">
                             {occasion.slug}
                             {(!occasion.meta_title || !occasion.meta_description || !occasion.description) && (
@@ -374,6 +387,19 @@ const AdminOccasions = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
+                        {/* Bloco 3 SAFE: toggle inline rascunho/publicado */}
+                        <label className="hidden md:flex items-center gap-1.5 text-xs cursor-pointer mr-1" title="Publicado / Rascunho">
+                          <Switch
+                            checked={(occasion as any).is_draft === false}
+                            onCheckedChange={async (checked) => {
+                              try {
+                                await updateOccasion.mutateAsync({ id: occasion.id, is_draft: !checked } as any);
+                                toast({ title: checked ? 'Publicado' : 'Marcado como rascunho' });
+                              } catch { toast({ title: 'Erro ao atualizar', variant: 'destructive' }); }
+                            }}
+                            aria-label="Alternar publicado/rascunho"
+                          />
+                        </label>
                         <Button
                           variant="outline"
                           size="sm"
