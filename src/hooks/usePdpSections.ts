@@ -31,6 +31,18 @@ const QK = {
   audit: ["pdp_sections", "audit"] as const,
 };
 
+// Fallback estático — garante que a PDP (incl. descrição) renderiza
+// imediatamente mesmo quando o backend está saturado/lento. O fetch
+// real continua em background e sobrescreve quando retorna.
+const PDP_SECTIONS_FALLBACK: PdpSection[] = [
+  { id: "fb-description", section_key: "description", label: "Descrição do produto", description: null, is_visible: true, position: 10, editable_props: {}, created_at: "", updated_at: "" },
+  { id: "fb-bundle", section_key: "bundle_belongs_to", label: "Kits relacionados", description: null, is_visible: true, position: 30, editable_props: {}, created_at: "", updated_at: "" },
+  { id: "fb-editorial", section_key: "editorial", label: "Conteúdo editorial", description: null, is_visible: true, position: 50, editable_props: {}, created_at: "", updated_at: "" },
+  { id: "fb-reviews", section_key: "reviews", label: "Avaliações", description: null, is_visible: true, position: 60, editable_props: {}, created_at: "", updated_at: "" },
+  { id: "fb-related-themes", section_key: "related_themes", label: "Temas relacionados", description: null, is_visible: true, position: 75, editable_props: {}, created_at: "", updated_at: "" },
+  { id: "fb-related-smart", section_key: "related_smart", label: "Relacionados", description: null, is_visible: true, position: 80, editable_props: {}, created_at: "", updated_at: "" },
+];
+
 export const usePdpSectionsPublic = () =>
   useQuery({
     queryKey: QK.public,
@@ -43,7 +55,9 @@ export const usePdpSectionsPublic = () =>
       if (error) throw error;
       return (data || []) as unknown as PdpSection[];
     },
-    staleTime: 60_000,
+    placeholderData: PDP_SECTIONS_FALLBACK,
+    staleTime: 10 * 60_000,
+    gcTime: 60 * 60_000,
   });
 
 export const useAdminPdpSections = () =>
