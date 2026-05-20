@@ -415,7 +415,7 @@ const HeroSlider = () => {
           {/* Dots */}
           <div
             className={`flex items-center justify-center gap-3 ${
-              isBanner ? "py-3" : "pb-4"
+              isBanner ? "pt-2 pb-1 md:pt-3 md:pb-2" : "pb-3"
             } relative z-10`}
           >
             {slides.map((_, index) => (
