@@ -66,7 +66,7 @@ const Buscar = () => {
   const debouncedQuery = useDebounce(query, 300);
   const { data: dbProducts, isLoading } = useDbProducts();
   const { data: dbCategories } = useDbCategories({ publicOnly: true });
-  const { data: synonyms } = useSearchSynonyms();
+  const { data: searchResult, isFetching: isSearching } = useServerSearch(debouncedQuery);
 
   // Autofoco no campo ao abrir a página (UX mobile)
   useEffect(() => {
