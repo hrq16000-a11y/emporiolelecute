@@ -230,8 +230,8 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
 
       {/* Tablet Thumbnails - Left Side (horizontal PDP layout only) */}
       {layout === 'horizontal' && images.length > 1 && (
-        <div className="hidden sm:max-lg:flex items-start gap-3 shrink-0">
-          <div className="flex max-h-[420px] w-16 shrink-0 flex-col gap-3 overflow-y-auto overscroll-contain scrollbar-hide">
+        <div className="hidden sm:max-lg:flex items-center gap-2 shrink-0 self-stretch">
+          <div className="flex w-14 md:w-16 shrink-0 flex-col justify-center gap-2 md:gap-3">
             {images.slice(0, 5).map((image, index) => {
               const isActive = index === currentIndex;
               return (
@@ -241,14 +241,14 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
                   aria-label={`Ver imagem ${index + 1} de ${images.length}`}
                   aria-current={isActive ? "true" : undefined}
                   className={cn(
-                    "h-16 w-16 rounded-md overflow-hidden transition-opacity duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                    "aspect-[4/5] w-full overflow-hidden rounded-md transition-opacity duration-300 bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                     isActive ? "opacity-100" : "opacity-45 hover:opacity-75"
                   )}
                 >
                   <img
                     src={optimizeImage(image, { width: 160, resize: "contain" })}
                     alt=""
-                    className="w-full h-full object-contain bg-muted/30 pointer-events-none"
+                    className="w-full h-full object-cover object-center pointer-events-none"
                     loading="lazy"
                     decoding="async"
                     draggable={false}
@@ -260,9 +260,9 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
               );
             })}
           </div>
-          <div className="flex w-4 flex-col gap-3" aria-hidden="true">
+          <div className="flex w-3 flex-col justify-center gap-2 md:gap-3" aria-hidden="true">
             {images.slice(0, 5).map((_, index) => (
-              <div key={index} className="flex h-16 items-center justify-center">
+              <div key={index} className="flex aspect-[4/5] items-center justify-center">
                 <span
                   className={cn(
                     "w-px rounded-full transition-all duration-300 ease-out",
@@ -273,6 +273,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
             ))}
           </div>
         </div>
+
       )}
 
       {/* Main Image Container */}
