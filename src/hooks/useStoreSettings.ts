@@ -160,7 +160,9 @@ export const usePaymentConfig = () => {
 
       return defaultPaymentConfig;
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    placeholderData: defaultPaymentConfig,
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 60,
   });
 };
 
@@ -200,7 +202,9 @@ export const useSEOConfig = () => {
 
       return defaultSEOConfig;
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    placeholderData: defaultSEOConfig,
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 60,
   });
 };
 
@@ -234,7 +238,9 @@ export const useFooterConfig = () => {
 
       return defaultFooterConfig;
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    placeholderData: defaultFooterConfig,
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 60,
   });
 };
 
@@ -277,6 +283,8 @@ export const useTrustBadgesConfig = () => {
         show_whatsapp: typeof val.show_whatsapp === 'boolean' ? val.show_whatsapp : defaultTrustBadgesConfig.show_whatsapp,
       };
     },
-    staleTime: 1000 * 60 * 5,
+    placeholderData: defaultTrustBadgesConfig,
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 60,
   });
 };

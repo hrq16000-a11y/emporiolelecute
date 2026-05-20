@@ -135,7 +135,9 @@ function mergeConfig(raw: any): ConversionCtaConfig {
 export const useConversionCtaConfig = () =>
   useQuery({
     queryKey: ["store_settings", KEY],
-    staleTime: 60_000,
+    placeholderData: DEFAULT_CONVERSION_CTA,
+    staleTime: 10 * 60_000,
+    gcTime: 60 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("store_settings")

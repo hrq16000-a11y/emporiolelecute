@@ -32,6 +32,9 @@ export const useMenuItems = (location?: 'header' | 'footer') => {
       if (error) throw error;
       return (data || []) as MenuItem[];
     },
+    placeholderData: [] as MenuItem[],
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 60,
   });
 };
 
