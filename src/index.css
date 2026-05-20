@@ -242,6 +242,11 @@
     from { opacity: 0; }
     to   { opacity: 1; }
   }
+
+  @keyframes fade-opacity-out {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+  }
   
   /* Stagger animations */
   .stagger-1 { animation-delay: 0.1s; }
