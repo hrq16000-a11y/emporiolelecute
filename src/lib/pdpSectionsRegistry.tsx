@@ -21,6 +21,39 @@ export interface PdpSectionContext {
 
 type Renderer = (ctx: PdpSectionContext) => ReactNode;
 
+// Biblioteca editorial de fallback — usada apenas quando não há
+// description/longDescription/editorial_content preenchidos.
+// Tom: artesanal, sensorial, silencioso. Sem adjetivos promocionais.
+const EDITORIAL_FALLBACKS: string[] = [
+  `Composto à mão, em pequena tiragem.
+Embalado peça a peça no ateliê.`,
+  `Aroma pensado para durar.
+Discreto no ambiente, presente na memória.`,
+  `Feito para ser usado.
+Não para ficar guardado.`,
+  `Cada unidade passa por revisão antes de sair da bancada.`,
+  `Pequena produção.
+Estoque limitado por composição.`,
+  `Uma peça de perfumaria artesanal pensada para repousar onde for vista.`,
+  `Material e fragrância selecionados um a um.`,
+  `Para quem oferece pensando em quem recebe.`,
+  `Do nosso ateliê em Curitiba.
+Embalado com calma.`,
+  `Acompanha bem mesas postas, banheiros de visita e gestos cotidianos.`,
+];
+
+// Hash determinístico simples (djb2) — evita randomização instável
+// e mantém SSR/hydration consistente entre servidor e cliente.
+const pickEditorialFallback = (seed: string): string => {
+  if (!seed) return EDITORIAL_FALLBACKS[0];
+  let hash = 5381;
+  for (let i = 0; i < seed.length; i++) {
+    hash = ((hash << 5) + hash) ^ seed.charCodeAt(i);
+  }
+  const idx = Math.abs(hash) % EDITORIAL_FALLBACKS.length;
+  return EDITORIAL_FALLBACKS[idx];
+};
+
 export const pdpSectionRegistry: Record<string, Renderer> = {
   description: ({ product }) => (
     <section className="mb-14 md:mb-16" key="description" aria-labelledby="pdp-description-title">
@@ -30,11 +63,7 @@ export const pdpSectionRegistry: Record<string, Renderer> = {
       </h2>
       <div className="prose prose-sm md:prose-base max-w-none">
         <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-          {product.longDescription || product.description || `${product.name} artesanal da LeleCute.
-
-Cada peça é feita à mão com ingredientes hipoalergênicos de alta qualidade. Perfeito para lembrancinhas de maternidade, chá de bebê, batizado, casamento, aniversário e eventos corporativos.
-
-Personalizamos conforme o tema do seu evento com cores, aromas e papelaria exclusivos.`}
+          {product.longDescription || product.description || pickEditorialFallback(product.id || product.slug || product.name)}
         </p>
       </div>
     </section>
