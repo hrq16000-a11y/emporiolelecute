@@ -238,7 +238,9 @@ export const useFooterConfig = () => {
 
       return defaultFooterConfig;
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    placeholderData: defaultFooterConfig,
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 60,
   });
 };
 
