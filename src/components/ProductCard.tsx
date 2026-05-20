@@ -159,7 +159,7 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
           const personalizable = !!product.personalization_enabled;
           if (!speed && !minQty && !personalizable) return null;
           return (
-            <ul className="mt-2 mb-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] md:text-xs text-muted-foreground">
+            <ul className="mt-2 mb-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] md:text-xs text-muted-foreground/70">
               {minQty && (
                 <li className="inline-flex items-center gap-1">
                   <span aria-hidden>•</span> Mín. {minQty} un.
@@ -179,10 +179,10 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
           );
         })()}
 
-        {/* CTA — link editorial, sem affordance ecommerce */}
+        {/* CTA — link editorial; sem border em mobile (card inteiro já é clicável) */}
         <Link
           to={urls.product(product.slug)}
-          className="inline-flex items-center gap-1 mt-3 text-xs md:text-sm text-foreground/80 hover:text-foreground border-b border-border/60 hover:border-foreground/60 pb-0.5 transition-colors"
+          className="inline-flex items-center gap-1 mt-3 text-xs md:text-sm text-foreground/70 md:text-foreground/80 hover:text-foreground border-b-0 md:border-b md:border-border/60 md:hover:border-foreground/60 pb-0.5 transition-colors"
         >
           Ver detalhes
           <ArrowRight className="h-3 w-3 md:h-3.5 md:w-3.5" strokeWidth={1.5} />
