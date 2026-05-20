@@ -209,7 +209,7 @@ export default function CrossSellComplete({
               <img
                 src={optimizeImage(p.images?.[0] || "/placeholder.svg", { width: 320 })}
                 alt={p.name}
-                className="w-full max-w-full aspect-square object-cover bg-muted sm:group-hover:scale-105 transition-transform duration-500"
+                className="w-full max-w-full aspect-[4/5] object-cover bg-muted sm:group-hover:scale-105 transition-transform duration-500"
                 loading="lazy"
               />
               <Badge
