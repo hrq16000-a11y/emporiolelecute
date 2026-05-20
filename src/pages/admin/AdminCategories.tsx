@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Trash2, Edit, Check, X, Search, GripVertical, Loader2, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Edit, Check, X, Search, GripVertical, Loader2, AlertCircle, FileEdit, Globe, EyeOff, Eye } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { trackAdminEvent } from '@/lib/adminUsage';
 import {
   DndContext,
@@ -200,8 +202,23 @@ const SortableRow = ({
               )}
             </div>
             <div className="cursor-pointer min-w-0" onClick={() => onStartEdit(category)}>
-              <p className="font-medium text-foreground truncate flex items-center gap-2">
+              <p className="font-medium text-foreground truncate flex items-center gap-2 flex-wrap">
                 {category.name}
+                {category.is_draft === true && (
+                  <Badge variant="outline" className="gap-1 border-amber-400 text-amber-700 dark:text-amber-300 text-[10px] px-1.5 py-0">
+                    <FileEdit className="w-3 h-3" /> Rascunho
+                  </Badge>
+                )}
+                {category.is_draft === false && (
+                  <Badge variant="outline" className="gap-1 border-emerald-400 text-emerald-700 dark:text-emerald-300 text-[10px] px-1.5 py-0">
+                    <Globe className="w-3 h-3" /> Publicado
+                  </Badge>
+                )}
+                {category.is_indexed === false && (
+                  <Badge variant="outline" className="gap-1 text-[10px] px-1.5 py-0">
+                    <EyeOff className="w-3 h-3" /> noindex
+                  </Badge>
+                )}
                 {category.icon && (
                   <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
                     <LucideIcon name={category.icon} className="w-3 h-3" />
@@ -218,6 +235,25 @@ const SortableRow = ({
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            {/* Bloco 3 SAFE: toggles rápidos de Publicado e Indexável */}
+            <div className="hidden md:flex items-center gap-3 mr-1 text-xs">
+              <label className="flex items-center gap-1.5 cursor-pointer" title="Publicado / Rascunho">
+                <Switch
+                  checked={category.is_draft === false}
+                  onCheckedChange={(checked) => onToggleField(category.id, 'is_draft', !checked)}
+                  aria-label={category.is_draft ? 'Marcar como publicado' : 'Marcar como rascunho'}
+                />
+                <span className="text-muted-foreground">{category.is_draft ? 'Rascunho' : 'Publicado'}</span>
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer" title="Aparece no sitemap/SEO">
+                <Switch
+                  checked={category.is_indexed !== false}
+                  onCheckedChange={(checked) => onToggleField(category.id, 'is_indexed', checked)}
+                  aria-label={category.is_indexed ? 'Remover do índice' : 'Indexar'}
+                />
+                <Eye className="w-3.5 h-3.5 text-muted-foreground" aria-hidden />
+              </label>
+            </div>
             <Button
               variant="ghost"
               size="icon"
