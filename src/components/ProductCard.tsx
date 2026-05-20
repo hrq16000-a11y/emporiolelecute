@@ -71,7 +71,7 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
       itemType="https://schema.org/Product"
     >
       {/* Product Image */}
-      <Link to={urls.product(product.slug)} className="block relative aspect-square max-w-full overflow-hidden bg-muted">
+      <Link to={urls.product(product.slug)} className="block relative aspect-[4/5] max-w-full overflow-hidden bg-muted">
         <img 
           src={optimizeImage(product.image, { width: 600, resize: "contain" })}
           srcSet={buildSrcSet(product.image, [300, 450, 600, 800], 75, "contain")}
@@ -83,8 +83,8 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
           // @ts-expect-error fetchpriority is a valid HTML attribute
           fetchpriority={priority ? "high" : "auto"}
           itemProp="image"
-          width="685"
-          height="685"
+          width="600"
+          height="750"
           onLoad={(e) => e.currentTarget.classList.add('loaded')}
           onError={(e) => {
             e.currentTarget.src = '/placeholder.svg';
