@@ -30,6 +30,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useDbProducts } from "@/hooks/useProducts";
 import { urls, CANONICAL_ORIGIN } from "@/lib/urls";
 import { PdpBadge } from "@/components/PdpBadge";
+import WhatsAppPreview from "@/components/admin/WhatsAppPreview";
 
 // ============================================================================
 // Pré-visualização padrão (quando nenhum produto é selecionado)
@@ -254,9 +255,9 @@ function ConfigTab({
             onChange={(e) => update("whatsappTemplate", { template: e.target.value })}
           />
           <Separator />
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Preview (dados de exemplo — use a aba Pré-visualização para escolher produto real)</Label>
-            <pre className="rounded-md border bg-muted/40 p-3 text-xs whitespace-pre-wrap break-words">{previewMessage}</pre>
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Pré-visualização (dados de exemplo) — exatamente como o cliente vê no WhatsApp</Label>
+            <WhatsAppPreview message={previewMessage} contactName="Empório LeleCute" />
           </div>
         </CardContent>
       </Card>
@@ -464,11 +465,9 @@ function PreviewTab({ template }: { template: string }) {
             </div>
           )}
         </div>
-        <div className="space-y-2">
-          <Label className="text-xs text-muted-foreground">Mensagem final do WhatsApp</Label>
-          <pre className="rounded-md border bg-muted/40 p-3 text-xs whitespace-pre-wrap break-words min-h-[300px]">
-{rendered}
-          </pre>
+        <div className="space-y-3">
+          <Label className="text-xs text-muted-foreground">Mensagem final do WhatsApp — exatamente como o cliente recebe</Label>
+          <WhatsAppPreview message={rendered} contactName="Empório LeleCute" />
           <Button
             variant="outline"
             className="w-full"
