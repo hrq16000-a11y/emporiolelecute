@@ -175,7 +175,7 @@ function SlideBannerMobile({
 
   return (
     // hidden on md+ (desktop)
-    <div className="block md:hidden w-full animate-fade-in">
+    <div className="block md:hidden w-full animate-fade-in pt-20 sm:pt-24">
       <img
         src={imgSrc}
         alt={alt}
