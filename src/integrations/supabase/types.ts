@@ -1859,6 +1859,7 @@ export type Database = {
           production_days: number | null
           production_speed: string | null
           rating: number | null
+          search_text: string | null
           seo_noindex: boolean
           slug: string
           updated_at: string
@@ -1890,6 +1891,7 @@ export type Database = {
           production_days?: number | null
           production_speed?: string | null
           rating?: number | null
+          search_text?: string | null
           seo_noindex?: boolean
           slug: string
           updated_at?: string
@@ -1921,6 +1923,7 @@ export type Database = {
           production_days?: number | null
           production_speed?: string | null
           rating?: number | null
+          search_text?: string | null
           seo_noindex?: boolean
           slug?: string
           updated_at?: string
@@ -2137,6 +2140,39 @@ export type Database = {
           status?: string
           target_email?: string
           target_user_id?: string | null
+        }
+        Relationships: []
+      }
+      search_synonyms: {
+        Row: {
+          active: boolean
+          aliases: string[]
+          boost_score: number
+          canonical_term: string
+          created_at: string
+          id: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          aliases?: string[]
+          boost_score?: number
+          canonical_term: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          aliases?: string[]
+          boost_score?: number
+          canonical_term?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -5913,6 +5949,7 @@ export type Database = {
           username: string
         }[]
       }
+      normalize_search: { Args: { _s: string }; Returns: string }
       normalize_slug: { Args: { _s: string }; Returns: string }
       pdp_badge_stats: { Args: { _from?: string; _to?: string }; Returns: Json }
       pdp_funnel_stats: {
@@ -5937,6 +5974,8 @@ export type Database = {
           product_id: string
         }[]
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       unaccent: { Args: { "": string }; Returns: string }
       validate_coupon: {
         Args: { _code: string; _subtotal: number }

@@ -11,6 +11,9 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import ProductCard from "@/components/ProductCard";
 import { useDbProducts, useDbCategories } from "@/hooks/useProducts";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useSearchSynonyms, expandWithSynonyms } from "@/hooks/useSearchSynonyms";
+import { normalizeSearch, suggestClosest } from "@/lib/searchNormalize";
+import SearchEmptyState from "@/components/SearchEmptyState";
 import type { Product } from "@/data/products";
 
 const PRICE_RANGES: { id: string; label: string; min: number; max: number }[] = [
@@ -34,6 +37,7 @@ const Buscar = () => {
   const debouncedQuery = useDebounce(query, 300);
   const { data: dbProducts, isLoading } = useDbProducts();
   const { data: dbCategories } = useDbCategories({ publicOnly: true });
+  const { data: synonyms } = useSearchSynonyms();
 
   // Autofoco no campo ao abrir a página (UX mobile)
   useEffect(() => {
@@ -90,23 +94,48 @@ const Buscar = () => {
   }, [dbProducts]);
 
   const filtered = useMemo(() => {
-    const q = debouncedQuery.trim().toLowerCase();
+    // Fase 2 SAFE — busca tolerante: normaliza acento/caixa e expande sinônimos.
+    // Mantém o comportamento de substring atual (zero regressão lógica).
+    const rawQuery = debouncedQuery.trim();
+    const terms = rawQuery ? expandWithSynonyms(rawQuery, synonyms) : [];
     const range = PRICE_RANGES.find((r) => r.id === selectedPrice);
+    const matches = (haystack: string) => {
+      if (!terms.length) return true;
+      const norm = normalizeSearch(haystack);
+      return terms.some((t) => norm.includes(t));
+    };
     return products.filter((p: any) => {
       const matchesQ =
-        !q ||
-        p.name.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        p._categoryName.toLowerCase().includes(q) ||
-        p._occasionNames.some((n: string) => n.toLowerCase().includes(q)) ||
-        p._tagNames.some((n: string) => n.toLowerCase().includes(q)) ||
-        p.keywords.some((k: string) => k.toLowerCase().includes(q));
+        !terms.length ||
+        matches(p.name) ||
+        matches(p.description) ||
+        matches(p._categoryName) ||
+        p._occasionNames.some((n: string) => matches(n)) ||
+        p._tagNames.some((n: string) => matches(n)) ||
+        p.keywords.some((k: string) => matches(k));
       const matchesCat = !selectedCategory || p._categoryId === selectedCategory;
       const matchesPrice =
         !range || (p._priceNum >= range.min && p._priceNum < range.max);
       return matchesQ && matchesCat && matchesPrice;
     });
-  }, [products, debouncedQuery, selectedCategory, selectedPrice]);
+  }, [products, debouncedQuery, selectedCategory, selectedPrice, synonyms]);
+
+  // Sugestão "Você quis dizer..." — gerada quando há termo mas nenhum resultado.
+  const suggestion = useMemo(() => {
+    const q = debouncedQuery.trim();
+    if (!q || filtered.length > 0) return null;
+    const pool: string[] = [];
+    for (const p of products as any[]) {
+      pool.push(p.name);
+      if (p._categoryName) pool.push(p._categoryName);
+      pool.push(...(p._tagNames || []));
+      pool.push(...(p._occasionNames || []));
+    }
+    for (const s of synonyms ?? []) {
+      pool.push(s.canonical_term, ...(s.aliases ?? []));
+    }
+    return suggestClosest(q, pool);
+  }, [debouncedQuery, filtered.length, products, synonyms]);
 
   const activeCount =
     (debouncedQuery ? 1 : 0) + (selectedCategory ? 1 : 0) + (selectedPrice ? 1 : 0);
@@ -257,19 +286,13 @@ const Buscar = () => {
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-foreground font-medium mb-2">
-                Nenhum produto encontrado
-              </p>
-              <p className="text-sm text-muted-foreground mb-4">
-                Tente outra palavra-chave ou remova os filtros.
-              </p>
-              {activeCount > 0 && (
-                <Button variant="outline" size="sm" onClick={clearAll}>
-                  Limpar filtros
-                </Button>
-              )}
-            </div>
+            <SearchEmptyState
+              query={debouncedQuery}
+              suggestion={suggestion}
+              onApplySuggestion={(term) => setQuery(term)}
+              onClearFilters={clearAll}
+              hasActiveFilters={activeCount > 0}
+            />
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
               {filtered.slice(0, 60).map((p) => (
