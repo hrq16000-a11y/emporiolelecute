@@ -46,7 +46,7 @@ export const useCreateTag = () => {
     mutationFn: async (tag: { name: string; slug: string }) => {
       const { data, error } = await supabase
         .from('tags')
-        .insert(tag)
+        .insert({ external_ref: '', ...tag })
         .select()
         .single();
 

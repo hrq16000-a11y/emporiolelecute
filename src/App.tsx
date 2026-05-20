@@ -46,6 +46,7 @@ const AdminCategories = lazyWithRetry(() => import("./pages/admin/AdminCategorie
 const AdminOccasions = lazyWithRetry(() => import("./pages/admin/AdminOccasions"), "AdminOccasions");
 const AdminTags = lazyWithRetry(() => import("./pages/admin/AdminTags"), "AdminTags");
 const AdminImport = lazyWithRetry(() => import("./pages/admin/AdminImport"), "AdminImport");
+const AdminBackup = lazyWithRetry(() => import("./pages/admin/AdminBackup"), "AdminBackup");
 const AdminOrders = lazyWithRetry(() => import("./pages/admin/AdminOrders"), "AdminOrders");
 const AdminCustomers = lazyWithRetry(() => import("./pages/admin/AdminCustomers"), "AdminCustomers");
 const AdminSettings = lazyWithRetry(() => import("./pages/admin/AdminSettings"), "AdminSettings");
@@ -463,6 +464,11 @@ const App = () => {
                   <Route path="importar" element={
                     <Suspense fallback={<AdminSkeleton />}>
                       <AdminImport />
+                    </Suspense>
+                  } />
+                  <Route path="backup" element={
+                    <Suspense fallback={<AdminSkeleton />}>
+                      <AdminBackup />
                     </Suspense>
                   } />
                   <Route path="paginas" element={
