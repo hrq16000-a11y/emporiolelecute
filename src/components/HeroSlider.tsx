@@ -440,6 +440,9 @@ const HeroSlider = () => {
         className="relative w-full touch-pan-y motion-safe:transition-[height] motion-safe:duration-700 motion-safe:ease-in-out"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchCancel}
+        onMouseEnter={pauseAutoplay}
+        onMouseLeave={() => scheduleResume(1200)}
         style={{
           height: stageHeight === "auto" ? undefined : stageHeight,
           minHeight: hasAnyBanner ? undefined : 280,
