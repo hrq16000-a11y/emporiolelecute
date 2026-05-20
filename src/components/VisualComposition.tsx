@@ -85,7 +85,7 @@ export default function VisualComposition({ currentProductId, occasions, limit =
       <p className="text-sm text-muted-foreground mb-4">
         Composição visual sugerida para a mesma ocasião.
       </p>
-      <div className="grid w-fit max-w-full grid-cols-[repeat(4,64px)] sm:grid-cols-[repeat(5,70px)] md:grid-cols-[repeat(5,78px)] lg:grid-cols-[repeat(5,84px)] gap-2">
+      <div className="grid w-fit max-w-full grid-cols-[repeat(4,64px)] sm:grid-cols-[repeat(4,70px)] md:grid-cols-[repeat(4,78px)] lg:grid-cols-[repeat(4,84px)] gap-2">
         {items.slice(0, 5).map((p, i) => (
           <Link
             key={p.id}
