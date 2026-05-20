@@ -28,7 +28,9 @@ export const DEFAULT_TRACKING: TrackingConfig = {
 export const useTrackingConfig = () =>
   useQuery({
     queryKey: ["store_settings", "tracking_config"],
-    staleTime: 5 * 60_000,
+    placeholderData: DEFAULT_TRACKING,
+    staleTime: 10 * 60_000,
+    gcTime: 60 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("store_settings")
