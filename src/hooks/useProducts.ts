@@ -471,6 +471,9 @@ export function useUpdateOccasion() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['occasions'] });
+      queryClient.invalidateQueries({ queryKey: ['taxonomy', 'occasions'] });
+      queryClient.invalidateQueries({ queryKey: ['taxonomy-navigation'] });
+      void import('@/lib/taxonomyAutomation').then((m) => m.markPublicTaxonomyDirty('occasions'));
     },
   });
 }
