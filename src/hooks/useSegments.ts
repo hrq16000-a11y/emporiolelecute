@@ -63,7 +63,12 @@ export function useUpdateSegment() {
       if (error) throw error;
       return data as DbSegment;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['segments'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['segments'] });
+      qc.invalidateQueries({ queryKey: ['taxonomy', 'segments'] });
+      qc.invalidateQueries({ queryKey: ['taxonomy-navigation'] });
+      void import('@/lib/taxonomyAutomation').then((m) => m.markPublicTaxonomyDirty('segments'));
+    },
   });
 }
 
