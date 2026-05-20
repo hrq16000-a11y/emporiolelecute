@@ -333,7 +333,14 @@ const TaxonomyPage = ({ kind }: Props) => {
 
             <div className="flex flex-col-reverse lg:flex-row gap-8 items-start lg:items-center">
               <div className="flex-1 min-w-0">
-                <span className="inline-block text-xs uppercase tracking-wider text-primary font-semibold mb-2">{cfg.label}</span>
+                {(() => {
+                  const eyebrow = getEditorialEyebrow(cfg.kind, entity?.slug);
+                  return eyebrow ? (
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground mb-2">{eyebrow}</p>
+                  ) : (
+                    <span className="inline-block text-xs uppercase tracking-wider text-primary font-semibold mb-2">{cfg.label}</span>
+                  );
+                })()}
                 <h1 className="text-3xl lg:text-4xl font-display font-semibold text-foreground mb-3">{h1}</h1>
                 {entity?.description && (
                   <p className="text-muted-foreground text-base lg:text-lg max-w-2xl">{entity.description}</p>
