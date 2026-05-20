@@ -197,7 +197,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
               key={index}
               onClick={() => goToSlide(index)}
               className={cn(
-                "w-20 h-20 rounded-lg overflow-hidden transition-all duration-300 relative border-2",
+                "w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden transition-all duration-300 relative border-2",
                 index === currentIndex
                   ? "border-primary shadow-md"
                   : "border-transparent opacity-70 hover:opacity-100 hover:border-muted-foreground/30"
@@ -218,7 +218,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
           {images.length > 5 && (
             <button
               onClick={() => setIsZoomed(true)}
-              className="w-20 h-20 rounded-lg bg-muted flex items-center justify-center text-muted-foreground hover:bg-muted/80 transition-colors"
+              className="w-16 h-16 md:w-20 md:h-20 rounded-lg bg-muted flex items-center justify-center text-muted-foreground hover:bg-muted/80 transition-colors"
             >
               +{images.length - 5}
             </button>
