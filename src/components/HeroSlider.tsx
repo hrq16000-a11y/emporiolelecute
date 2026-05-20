@@ -447,20 +447,17 @@ const HeroSlider = () => {
               <button
                 key={index}
                 onClick={() => goTo(index)}
-                className={`h-8 min-w-8 rounded-full transition-all duration-500 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-                  index === currentSlide
-                    ? "before:bg-primary before:w-8 md:before:w-10"
-                    : "before:bg-primary/30 before:w-2.5 md:before:w-3 hover:before:bg-primary/50"
-                }`}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
+                className="inline-flex h-8 min-w-8 items-center justify-center rounded-full transition-all duration-500 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 aria-label={`Slide ${index + 1}`}
               >
                 <span className="sr-only">Slide {index + 1}</span>
-                <span className="block h-2.5 rounded-full transition-all duration-500 ease-in-out" />
+                <span
+                  className={`block h-2.5 rounded-full transition-all duration-500 ease-in-out ${
+                    index === currentSlide
+                      ? "w-8 bg-primary md:w-10"
+                      : "w-2.5 bg-primary/30 hover:bg-primary/50 md:w-3"
+                  }`}
+                />
               </button>
             ))}
           </div>
