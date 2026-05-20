@@ -56,28 +56,44 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const scope = body.scope ?? { catalog: true, images: true, orders: false, sql: true };
+    const productRefs: string[] | null = Array.isArray(body.productRefs) && body.productRefs.length > 0
+      ? body.productRefs.filter((x: unknown) => typeof x === "string")
+      : null;
+    const SENTINEL = ["00000000-0000-0000-0000-000000000000"];
 
     const result: Record<string, unknown> = {
       version: 1,
       exported_at: new Date().toISOString(),
       project_ref: SUPABASE_URL,
       scope,
+      productRefs,
     };
 
     if (scope.catalog) {
-      const [products, categories, occasions, tags, kits, kitProducts, productTags, productOccasions, productSegments] = await Promise.all([
-        admin.from("products").select("*").order("created_at"),
-        admin.from("categories").select("*").order("position"),
+      const products = productRefs
+        ? await admin.from("products").select("*").in("external_ref", productRefs).order("created_at")
+        : await admin.from("products").select("*").order("created_at");
+
+      const productIds = (products.data ?? []).map((p) => p.id);
+      const categoryIds = Array.from(new Set((products.data ?? []).map((p) => p.category_id).filter(Boolean)));
+      const pidFilter = productIds.length ? productIds : SENTINEL;
+      const cidFilter = categoryIds.length ? categoryIds : SENTINEL;
+
+      const [categories, occasions, tags, kits, kitProducts, productTags, productOccasions, productSegments] = await Promise.all([
+        productRefs
+          ? admin.from("categories").select("*").in("id", cidFilter).order("position")
+          : admin.from("categories").select("*").order("position"),
         admin.from("occasions").select("*").order("position"),
         admin.from("tags").select("*").order("name"),
-        admin.from("kits").select("*").order("position"),
-        admin.from("kit_products").select("*"),
-        admin.from("product_tags").select("*"),
-        admin.from("product_occasions").select("*"),
-        admin.from("product_segments").select("*"),
+        productRefs
+          ? admin.from("kits").select("*, kit_products!inner(product_id)").in("kit_products.product_id", pidFilter).order("position")
+          : admin.from("kits").select("*").order("position"),
+        productRefs ? admin.from("kit_products").select("*").in("product_id", pidFilter) : admin.from("kit_products").select("*"),
+        productRefs ? admin.from("product_tags").select("*").in("product_id", pidFilter) : admin.from("product_tags").select("*"),
+        productRefs ? admin.from("product_occasions").select("*").in("product_id", pidFilter) : admin.from("product_occasions").select("*"),
+        productRefs ? admin.from("product_segments").select("*").in("product_id", pidFilter) : admin.from("product_segments").select("*"),
       ]);
 
-      // Build ref maps to resolve UUIDs → external_refs in junctions
       const refOf = new Map<string, string>();
       for (const t of [products, categories, occasions, tags, kits]) {
         for (const r of (t.data ?? [])) refOf.set(r.id, r.external_ref);
@@ -90,18 +106,19 @@ Deno.serve(async (req) => {
           ...Object.fromEntries(Object.entries(r).filter(([k]) => !["id", aKey, bKey].includes(k))),
         })).filter((r) => r[aKey + "_ref"] && r[bKey + "_ref"]);
 
-      // Resolve products.category_id → category external_ref (kept alongside)
       const productsOut = (products.data ?? []).map((p) => ({
         ...p,
         category_ref: p.category_id ? refOf.get(p.category_id) ?? null : null,
       }));
+
+      const kitsClean = (kits.data ?? []).map(({ kit_products: _kp, ...rest }: Record<string, unknown>) => rest);
 
       result.catalog = {
         products: productsOut,
         categories: categories.data ?? [],
         occasions: occasions.data ?? [],
         tags: tags.data ?? [],
-        kits: kits.data ?? [],
+        kits: kitsClean,
         kit_products: resolveJunction(kitProducts.data ?? [], "kit_id", "product_id"),
         product_tags: resolveJunction(productTags.data ?? [], "product_id", "tag_id"),
         product_occasions: resolveJunction(productOccasions.data ?? [], "product_id", "occasion_id"),
@@ -109,12 +126,14 @@ Deno.serve(async (req) => {
       };
 
       if (scope.sql) {
-        let sql = `-- Backup gerado em ${new Date().toISOString()}\n-- Use external_ref como chave global ao reimportar\n\n`;
+        let sql = `-- Backup gerado em ${new Date().toISOString()}\n-- Use external_ref como chave global ao reimportar\n`;
+        if (productRefs) sql += `-- Escopo: ${productRefs.length} produto(s) selecionado(s)\n`;
+        sql += `\n`;
         sql += makeInserts("categories", categories.data ?? [], ["id"]);
         sql += makeInserts("occasions", occasions.data ?? [], ["id"]);
         sql += makeInserts("tags", tags.data ?? [], ["id"]);
         sql += makeInserts("products", productsOut.map(({ category_id: _ci, ...rest }) => rest), ["id"]);
-        sql += makeInserts("kits", kits.data ?? [], ["id"]);
+        sql += makeInserts("kits", kitsClean, ["id"]);
         result.sqlDump = sql;
       }
     }
