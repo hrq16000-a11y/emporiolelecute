@@ -382,7 +382,7 @@ const HeroSlider = () => {
         className="relative w-full motion-safe:transition-[height] motion-safe:duration-500 motion-safe:ease-out"
         style={{
           height: stageHeight === "auto" ? undefined : stageHeight,
-          minHeight: 280,
+          minHeight: hasAnyBanner ? undefined : 280,
         }}
       >
         {previous && (
@@ -433,17 +433,17 @@ const HeroSlider = () => {
           {/* Prev / Next arrows */}
           <button
             onClick={prevSlideFn}
-            className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-background/80 backdrop-blur-sm rounded-full shadow-md flex items-center justify-center hover:bg-primary hover:text-primary-foreground active:scale-95 transition-all"
+            className="absolute left-2 md:left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 md:w-12 md:h-12 bg-background/80 backdrop-blur-sm rounded-full shadow-md flex items-center justify-center hover:bg-primary hover:text-primary-foreground active:scale-95 transition-all"
             aria-label="Slide anterior"
           >
-            <ChevronLeft className="h-6 w-6" />
+            <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
           </button>
           <button
             onClick={nextSlideFn}
-            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-background/80 backdrop-blur-sm rounded-full shadow-md flex items-center justify-center hover:bg-primary hover:text-primary-foreground active:scale-95 transition-all"
+            className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 md:w-12 md:h-12 bg-background/80 backdrop-blur-sm rounded-full shadow-md flex items-center justify-center hover:bg-primary hover:text-primary-foreground active:scale-95 transition-all"
             aria-label="Próximo slide"
           >
-            <ChevronRight className="h-6 w-6" />
+            <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
           </button>
         </>
       )}
