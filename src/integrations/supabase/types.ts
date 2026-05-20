@@ -2143,6 +2143,77 @@ export type Database = {
         }
         Relationships: []
       }
+      search_boosts: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          product_id: string
+          term: string
+          term_normalized: string
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          product_id: string
+          term: string
+          term_normalized: string
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          product_id?: string
+          term?: string
+          term_normalized?: string
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "search_boosts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      search_query_log: {
+        Row: {
+          created_at: string
+          id: string
+          result_count: number
+          suggestion: string | null
+          term_normalized: string
+          term_raw: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          result_count?: number
+          suggestion?: string | null
+          term_normalized: string
+          term_raw: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          result_count?: number
+          suggestion?: string | null
+          term_normalized?: string
+          term_raw?: string
+        }
+        Relationships: []
+      }
       search_synonyms: {
         Row: {
           active: boolean
@@ -5871,6 +5942,16 @@ export type Database = {
           },
         ]
       }
+      search_insights_summary: {
+        Row: {
+          last_searched_at: string | null
+          last_suggestion: string | null
+          term_normalized: string | null
+          total_searches: number | null
+          zero_result_count: number | null
+        }
+        Relationships: []
+      }
       taxonomy_registry: {
         Row: {
           canonical_path: string | null
@@ -5948,6 +6029,10 @@ export type Database = {
           status: string
           username: string
         }[]
+      }
+      log_search: {
+        Args: { _q: string; _result_count: number; _suggestion?: string }
+        Returns: undefined
       }
       normalize_search: { Args: { _s: string }; Returns: string }
       normalize_slug: { Args: { _s: string }; Returns: string }

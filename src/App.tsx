@@ -58,6 +58,7 @@ const AdminFaqs = lazyWithRetry(() => import("./pages/admin/AdminFaqs"), "AdminF
 const AdminHomepageBlocks = lazyWithRetry(() => import("./pages/admin/AdminHomepageBlocks"), "AdminHomepageBlocks");
 const AdminHomeSections = lazyWithRetry(() => import("./pages/admin/AdminHomeSections"), "AdminHomeSections");
 const AdminPdpSections = lazyWithRetry(() => import("./pages/admin/AdminPdpSections"), "AdminPdpSections");
+const AdminSearch = lazyWithRetry(() => import("./pages/admin/AdminSearch"), "AdminSearch");
 const AdminMerchantFeed = lazyWithRetry(() => import("./pages/admin/AdminMerchantFeed"), "AdminMerchantFeed");
 const AdminInstagram = lazyWithRetry(() => import("./pages/admin/AdminInstagram"), "AdminInstagram");
 const AdminFeedInstagram = lazyWithRetry(() => import("./pages/admin/AdminFeedInstagram"), "AdminFeedInstagram");
@@ -487,6 +488,11 @@ const App = () => {
                   <Route path="pdp-sections" element={
                     <Suspense fallback={<AdminSkeleton />}>
                       <AdminPdpSections />
+                    </Suspense>
+                  } />
+                  <Route path="busca" element={
+                    <Suspense fallback={<AdminSkeleton />}>
+                      <AdminSearch />
                     </Suspense>
                   } />
                   <Route path="configuracoes" element={
