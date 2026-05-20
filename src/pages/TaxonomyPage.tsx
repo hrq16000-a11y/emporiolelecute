@@ -80,7 +80,7 @@ const TaxonomyPage = ({ kind }: Props) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from(cfg.table)
-        .select("id, name, slug, description, image_url, meta_title, meta_description, h1_override, description_seo, is_indexed, faqs")
+        .select("id, name, slug, description, image_url, meta_title, meta_description, h1_override, description_seo, is_indexed, is_draft, faqs")
         .eq("slug", slug)
         .maybeSingle();
       if (error) throw error;
