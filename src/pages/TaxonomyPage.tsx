@@ -217,7 +217,10 @@ const TaxonomyPage = ({ kind }: Props) => {
   );
 
   const loading = entityQuery.isLoading || productsQuery.isLoading;
-  const notFound = !entityQuery.isLoading && !entity;
+  // Bloco 3 SAFE — rascunho NUNCA pode ser renderizado publicamente.
+  // Tratado como 404 + noindex (mesmo fluxo de entidade inexistente).
+  const isDraft = entity?.is_draft === true;
+  const notFound = !entityQuery.isLoading && (!entity || isDraft);
 
   // ============ SEO ============
   const pageUrl = `${SITE_ORIGIN}${cfg.routePrefix}/${slug}`;
