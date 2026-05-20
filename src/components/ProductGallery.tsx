@@ -277,7 +277,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
       {/* Main Image Container */}
       <div className={cn(
         "flex-1 min-w-0 max-w-full sm:max-w-[360px] md:max-w-[420px] lg:max-w-[420px]",
-        layout === 'horizontal' && "sm:max-lg:w-[288px] sm:max-lg:flex-none sm:max-lg:max-w-[calc(100vw-7rem)]"
+        layout === 'horizontal' && "sm:max-lg:w-[336px] sm:max-lg:flex-none sm:max-lg:max-w-[calc(100vw-7rem)]"
       )}>
         <div
           className="relative aspect-square w-full max-w-full rounded-xl sm:rounded-2xl overflow-hidden bg-muted shadow-card sm:shadow-lg group cursor-pointer touch-pan-y select-none"
