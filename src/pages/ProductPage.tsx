@@ -767,6 +767,8 @@ const ProductPage = () => {
                 personalization={personalization}
                 onWhatsApp={() => openWhatsApp("quick_summary")}
                 productSlug={product.slug}
+                productName={product.name}
+                occasionName={dbProduct?.occasions?.[0]?.name}
                 enabled={
                   resolvePrimaryAction(dbProduct).primary !== "cart" &&
                   ctaConfig?.quickSummary?.enabled !== false
