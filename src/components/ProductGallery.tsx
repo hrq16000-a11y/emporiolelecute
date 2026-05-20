@@ -514,7 +514,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
               <img
                 src={optimizeImage(images[currentIndex], { width: 1600, quality: 85, resize: "contain" })}
                 alt={`${productName} - Imagem ampliada`}
-                className="max-w-full max-h-[70vh] object-contain rounded-xl shadow-2xl"
+                className="w-auto h-auto max-w-full max-h-[60vh] md:max-h-[65vh] lg:max-h-[75vh] object-contain rounded-xl shadow-2xl"
                 loading="eager"
                 decoding="async"
                 onError={(e) => {
