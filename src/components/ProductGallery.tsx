@@ -191,13 +191,13 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
     )}>
       {/* Vertical Thumbnails - Left Side */}
       {layout === 'vertical' && images.length > 1 && (
-        <div className="hidden md:flex flex-col gap-3 w-20 shrink-0">
+        <div className="hidden sm:flex flex-col gap-2 sm:gap-3 w-16 md:w-20 shrink-0">
           {images.slice(0, 5).map((image, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
               className={cn(
-                "w-20 h-20 rounded-lg overflow-hidden transition-all duration-300 relative border-2",
+                "w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden transition-all duration-300 relative border-2",
                 index === currentIndex
                   ? "border-primary shadow-md"
                   : "border-transparent opacity-70 hover:opacity-100 hover:border-muted-foreground/30"
@@ -218,7 +218,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
           {images.length > 5 && (
             <button
               onClick={() => setIsZoomed(true)}
-              className="w-20 h-20 rounded-lg bg-muted flex items-center justify-center text-muted-foreground hover:bg-muted/80 transition-colors"
+              className="w-16 h-16 md:w-20 md:h-20 rounded-lg bg-muted flex items-center justify-center text-muted-foreground hover:bg-muted/80 transition-colors"
             >
               +{images.length - 5}
             </button>
@@ -227,9 +227,9 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
       )}
 
       {/* Main Image Container */}
-      <div className="flex-1 min-w-0 max-w-full sm:max-w-[280px] md:max-w-[320px] lg:max-w-[420px] sm:mx-auto">
+      <div className="flex-1 min-w-0 max-w-full sm:max-w-[360px] md:max-w-[420px] lg:max-w-[420px]">
         <div
-          className="relative aspect-square sm:aspect-[4/5] lg:aspect-square w-full max-w-full rounded-xl sm:rounded-2xl overflow-hidden bg-muted shadow-card sm:shadow-lg group cursor-pointer touch-pan-y select-none"
+          className="relative aspect-square w-full max-w-full rounded-xl sm:rounded-2xl overflow-hidden bg-muted shadow-card sm:shadow-lg group cursor-pointer touch-pan-y select-none"
           data-testid="pdp-gallery-main"
           onClick={() => setIsZoomed(true)}
           onTouchStart={handleTouchStart}
