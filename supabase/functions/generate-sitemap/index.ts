@@ -62,31 +62,34 @@ Deno.serve(async (req) => {
     
     console.log(`Found ${products?.length || 0} active products`)
     
-    // Fetch all occasions (apenas indexáveis)
+    // Fetch all occasions (apenas indexáveis E publicadas — Bloco 3 SAFE)
     const { data: occasions, error: occasionsError } = await supabase
       .from('occasions')
       .select('slug, name, is_indexed')
       .eq('is_indexed', true)
+      .eq('is_draft', false)
     
     if (occasionsError) {
       console.error('Error fetching occasions:', occasionsError)
     }
     
-    // Fetch all categories (apenas indexáveis)
+    // Fetch all categories (apenas indexáveis E publicadas)
     const { data: categories, error: categoriesError } = await supabase
       .from('categories')
       .select('slug, name, is_indexed')
       .eq('is_indexed', true)
+      .eq('is_draft', false)
     
     if (categoriesError) {
       console.error('Error fetching categories:', categoriesError)
     }
 
-    // Fetch all segments (apenas indexáveis)
+    // Fetch all segments (apenas indexáveis E publicados)
     const { data: segments, error: segmentsError } = await supabase
       .from('segments')
       .select('slug, name, is_indexed')
       .eq('is_indexed', true)
+      .eq('is_draft', false)
 
     // Fase 6 — Contagem de produtos por taxonomia (para excluir órfãos)
     const [catProductsRes, occProductsRes, segProductsRes] = await Promise.all([
@@ -107,13 +110,13 @@ Deno.serve(async (req) => {
       if (r.segment_id) segCount.set(r.segment_id, (segCount.get(r.segment_id) ?? 0) + 1)
     })
 
-    // Re-fetch taxonomies WITH id para correlacionar com counts
+    // Re-fetch taxonomies WITH id para correlacionar com counts (mesmas travas SAFE)
     const { data: catRows } = await supabase
-      .from('categories').select('id, slug, is_indexed').eq('is_indexed', true)
+      .from('categories').select('id, slug, is_indexed').eq('is_indexed', true).eq('is_draft', false)
     const { data: occRows } = await supabase
-      .from('occasions').select('id, slug, is_indexed').eq('is_indexed', true)
+      .from('occasions').select('id, slug, is_indexed').eq('is_indexed', true).eq('is_draft', false)
     const { data: segRows } = await supabase
-      .from('segments').select('id, slug, is_indexed').eq('is_indexed', true)
+      .from('segments').select('id, slug, is_indexed').eq('is_indexed', true).eq('is_draft', false)
 
     const today = new Date().toISOString().split('T')[0]
 

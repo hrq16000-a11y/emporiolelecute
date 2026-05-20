@@ -185,8 +185,9 @@ Deno.serve(async (req) => {
   // --- 1. Snapshot DB --------------------------------------------------------
   const [productsRes, catsRes, occRes, tagsRes, pagesRes, landingsRes] = await Promise.all([
     admin.from("products").select("slug,updated_at").eq("is_active", true).lte("updated_at", run_timestamp),
-    admin.from("categories").select("slug,is_indexed,updated_at").lte("updated_at", run_timestamp),
-    admin.from("occasions").select("slug,is_indexed,updated_at").lte("updated_at", run_timestamp),
+    // Bloco 3 SAFE: leitura pública só vê publicadas (is_draft=false). Tags não têm is_draft.
+    admin.from("categories").select("slug,is_indexed,is_draft,updated_at").lte("updated_at", run_timestamp),
+    admin.from("occasions").select("slug,is_indexed,is_draft,updated_at").lte("updated_at", run_timestamp),
     admin.from("tags").select("slug,is_indexed,updated_at").lte("updated_at", run_timestamp),
     admin.from("pages").select("slug,updated_at").lte("updated_at", run_timestamp),
     admin.from("occasion_landings").select("slug,updated_at").lte("updated_at", run_timestamp),
@@ -194,8 +195,8 @@ Deno.serve(async (req) => {
 
   const dbPaths = new Set<string>();
   productsRes.data?.forEach((r: any) => r.slug && dbPaths.add(productPath(r.slug)));
-  catsRes.data?.forEach((r: any) => r.is_indexed !== false && r.slug && dbPaths.add(`/categoria/${r.slug}`));
-  occRes.data?.forEach((r: any) => r.is_indexed !== false && r.slug && dbPaths.add(`/ocasiao/${r.slug}`));
+  catsRes.data?.forEach((r: any) => r.is_indexed !== false && r.is_draft === false && r.slug && dbPaths.add(`/categoria/${r.slug}`));
+  occRes.data?.forEach((r: any) => r.is_indexed !== false && r.is_draft === false && r.slug && dbPaths.add(`/ocasiao/${r.slug}`));
   tagsRes.data?.forEach((r: any) => r.is_indexed !== false && r.slug && dbPaths.add(`/tag/${r.slug}`));
   pagesRes.data?.forEach((r: any) => r.slug && dbPaths.add(`/${r.slug}`));
   landingsRes.data?.forEach((r: any) => r.slug && dbPaths.add(`/lembrancinhas-${r.slug}`));
@@ -268,7 +269,7 @@ Deno.serve(async (req) => {
   };
 
   const productSamples = pickRandom(productsRes.data || [], 5).map((r: any) => productPath(r.slug));
-  const catSamples = pickRandom(catsRes.data?.filter((r: any) => r.is_indexed !== false) || [], 3).map((r: any) => `/categoria/${r.slug}`);
+  const catSamples = pickRandom(catsRes.data?.filter((r: any) => r.is_indexed !== false && r.is_draft === false) || [], 3).map((r: any) => `/categoria/${r.slug}`);
   const landingSamples = pickRandom(landingsRes.data || [], 2).map((r: any) => `/lembrancinhas-${r.slug}`);
 
   const fixedRoutes = [
