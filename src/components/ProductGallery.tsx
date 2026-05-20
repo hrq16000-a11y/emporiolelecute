@@ -352,6 +352,22 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
 
         </div>
 
+        {/* Progresso discreto abaixo da galeria (mobile) — barra fina + contador editorial */}
+        {images.length > 1 && (
+          <div className="md:hidden mt-3 px-1 flex items-center gap-3" aria-hidden="true">
+            <div className="relative flex-1 h-px bg-foreground/10 overflow-hidden rounded-full">
+              <div
+                className="absolute inset-y-0 left-0 bg-primary/70 rounded-full transition-[width] duration-500 ease-out"
+                style={{ width: `${((currentIndex + 1) / images.length) * 100}%` }}
+              />
+            </div>
+            <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-light tabular-nums">
+              {String(currentIndex + 1).padStart(2, '0')} <span className="opacity-50">/</span> {String(images.length).padStart(2, '0')}
+            </span>
+          </div>
+        )}
+
+
         {/* Horizontal Thumbnails - Below (for horizontal layout) */}
         {layout === 'horizontal' && images.length > 1 && (
           <div className="relative mt-3 sm:mt-4">
