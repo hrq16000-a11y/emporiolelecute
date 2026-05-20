@@ -85,8 +85,8 @@ export default function VisualComposition({ currentProductId, occasions, limit =
       <p className="text-sm text-muted-foreground mb-4">
         Composição visual sugerida para a mesma ocasião.
       </p>
-      <div className="grid w-fit max-w-full grid-cols-[repeat(4,68px)] sm:grid-cols-[repeat(5,76px)] md:grid-cols-[repeat(5,88px)] lg:grid-cols-[repeat(5,96px)] gap-2">
-        {items.map((p, i) => (
+      <div className="grid w-fit max-w-full grid-cols-[repeat(4,64px)] sm:grid-cols-[repeat(5,70px)] md:grid-cols-[repeat(5,78px)] lg:grid-cols-[repeat(5,84px)] gap-2">
+        {items.slice(0, 5).map((p, i) => (
           <Link
             key={p.id}
             to={urls.product(p.slug)}
@@ -96,10 +96,10 @@ export default function VisualComposition({ currentProductId, occasions, limit =
             title={p.name}
           >
             <img
-              src={optimizeImage(p.images[0], { width: i === 0 ? 520 : 260, resize: "contain" })}
+              src={optimizeImage(p.images[0], { width: i === 0 ? 360 : 180, resize: "contain" })}
               alt={p.name}
-              width={i === 0 ? 520 : 260}
-              height={i === 0 ? 520 : 260}
+              width={i === 0 ? 360 : 180}
+              height={i === 0 ? 360 : 180}
               className="absolute inset-0 m-auto max-w-full max-h-full w-auto h-auto object-contain"
               loading="lazy"
             />
