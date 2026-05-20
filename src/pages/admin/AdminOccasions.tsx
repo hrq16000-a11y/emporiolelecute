@@ -38,6 +38,7 @@ const AdminOccasions = () => {
   const createOccasion = useCreateOccasion();
   const deleteOccasion = useDeleteOccasion();
   const updateOccasion = useUpdateOccasion();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
