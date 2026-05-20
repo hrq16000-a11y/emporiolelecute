@@ -110,6 +110,37 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
     return () => document.removeEventListener('visibilitychange', onVis);
   }, []);
 
+  // Bordas da tira de thumbs (mostra/oculta setas)
+  useEffect(() => {
+    if (layout !== 'horizontal') return;
+    const el = thumbsRef.current;
+    if (!el) return;
+    updateThumbEdges();
+    el.addEventListener('scroll', updateThumbEdges, { passive: true });
+    window.addEventListener('resize', updateThumbEdges);
+    return () => {
+      el.removeEventListener('scroll', updateThumbEdges);
+      window.removeEventListener('resize', updateThumbEdges);
+    };
+  }, [layout, images.length, updateThumbEdges]);
+
+  // Centraliza a thumb ativa suavemente ao trocar de slide
+  useEffect(() => {
+    if (layout !== 'horizontal') return;
+    const el = thumbsRef.current;
+    const node = thumbItemsRef.current[currentIndex];
+    if (!el || !node) return;
+    const target = node.offsetLeft - el.clientWidth / 2 + node.offsetWidth / 2;
+    el.scrollTo({ left: target, behavior: 'smooth' });
+  }, [currentIndex, layout]);
+
+  const scrollThumbs = (dir: -1 | 1) => {
+    const el = thumbsRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * Math.min(el.clientWidth * 0.7, 240), behavior: 'smooth' });
+  };
+
+
 
   return (
     <div className={cn(
