@@ -1,4 +1,3 @@
-import { Heart, Award, Leaf, Users, CheckCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
@@ -7,160 +6,111 @@ import BreadcrumbStructuredData from "@/components/BreadcrumbStructuredData";
 
 const Sobre = () => {
   const breadcrumbItems = [
-    { name: 'Início', url: 'https://emporiolelecute.com.br/' },
-    { name: 'Sobre', url: 'https://emporiolelecute.com.br/sobre' },
+    { name: "Início", url: "https://emporiolelecute.com.br/" },
+    { name: "Ateliê", url: "https://emporiolelecute.com.br/sobre" },
   ];
 
   return (
     <div className="min-h-screen bg-background">
       <DynamicSEO
-        title="Sobre Nós | Empório LeleCute"
-        description="Conheça a história do Empório LeleCute. Há mais de 10 anos criando lembrancinhas artesanais com amor e dedicação."
+        title="Ateliê | Empório LeleCute"
+        description="Empório LeleCute é um ateliê de perfumaria artesanal em Curitiba. Pequenas tiragens, montagem manual, peças pensadas para repousar onde forem vistas."
         url="https://emporiolelecute.com.br/sobre"
       />
       <BreadcrumbStructuredData items={breadcrumbItems} />
-      
+
       <Header />
-      
-      <main className="pt-24 pb-16">
-        {/* Hero */}
-        <section className="container mx-auto px-4 py-16">
-          <div className="max-w-4xl mx-auto text-center">
-            <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-6">
-              Nossa História
-            </span>
-            <h1 className="font-display text-4xl md:text-5xl text-foreground mb-6">
-              Empório LeleCute
+
+      <main className="pt-24 pb-24">
+        {/* Abertura */}
+        <section className="container mx-auto px-4 pt-12 pb-20 md:pt-20 md:pb-28">
+          <div className="max-w-2xl mx-auto">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground/70 mb-6">
+              Ateliê
+            </p>
+            <h1 className="font-display text-3xl md:text-4xl font-light text-foreground leading-tight mb-8">
+              Objetos pequenos,
+              <br />
+              presentes por muito tempo.
             </h1>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              Há mais de 10 anos transformando momentos especiais em memórias eternas 
-              através de lembrancinhas artesanais únicas e personalizadas.
+            <p className="text-base md:text-lg text-muted-foreground leading-relaxed font-light">
+              Empório LeleCute nasceu da vontade de criar peças que continuam
+              sendo usadas depois da ocasião. Sabonetes, sachês, velas e
+              escalda-pés feitos em pequena escala, no ritmo do ateliê.
             </p>
           </div>
         </section>
 
-        {/* Story */}
-        <section className="container mx-auto px-4 py-16">
-          <div className="max-w-4xl mx-auto">
-            <div className="grid md:grid-cols-2 gap-12 items-center">
-              <div>
-                <h2 className="font-display text-3xl text-foreground mb-6">
-                  Como tudo começou
-                </h2>
-                <p className="text-muted-foreground mb-4 leading-relaxed">
-                  O Empório LeleCute nasceu do amor pela arte e pelo desejo de criar 
-                  peças únicas que pudessem eternizar os momentos mais especiais da 
-                  vida das pessoas.
-                </p>
-                <p className="text-muted-foreground mb-4 leading-relaxed">
-                  Começamos pequeno, em um ateliê caseiro, fazendo sabonetes artesanais 
-                  para amigos e familiares. A paixão pelo trabalho manual e a dedicação 
-                  em cada detalhe logo chamaram a atenção de mais pessoas.
-                </p>
-                <p className="text-muted-foreground leading-relaxed">
-                  Hoje, somos referência em lembrancinhas personalizadas para maternidade, 
-                  batizado, casamento e eventos especiais em todo o Brasil.
-                </p>
-              </div>
-              <div className="bg-primary-light rounded-2xl p-8">
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="text-center">
-                    <p className="text-4xl font-bold text-primary mb-2">10+</p>
-                    <p className="text-sm text-muted-foreground">Anos de experiência</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-4xl font-bold text-primary mb-2">50k+</p>
-                    <p className="text-sm text-muted-foreground">Clientes atendidos</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-4xl font-bold text-primary mb-2">100k+</p>
-                    <p className="text-sm text-muted-foreground">Lembrancinhas criadas</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-4xl font-bold text-primary mb-2">4.9</p>
-                    <p className="text-sm text-muted-foreground">Avaliação dos clientes</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Values */}
-        <section className="bg-muted/30 py-16">
-          <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="font-display text-3xl text-foreground text-center mb-12">
-                Nossos Valores
-              </h2>
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-card rounded-xl p-6 text-center border border-border/50">
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Heart className="h-6 w-6 text-primary" />
-                  </div>
-                  <h3 className="font-semibold text-foreground mb-2">Amor</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Cada peça é feita com carinho e dedicação
-                  </p>
-                </div>
-                <div className="bg-card rounded-xl p-6 text-center border border-border/50">
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Award className="h-6 w-6 text-primary" />
-                  </div>
-                  <h3 className="font-semibold text-foreground mb-2">Qualidade</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Materiais premium e acabamento impecável
-                  </p>
-                </div>
-                <div className="bg-card rounded-xl p-6 text-center border border-border/50">
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Leaf className="h-6 w-6 text-primary" />
-                  </div>
-                  <h3 className="font-semibold text-foreground mb-2">Sustentável</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Ingredientes naturais e embalagens eco-friendly
-                  </p>
-                </div>
-                <div className="bg-card rounded-xl p-6 text-center border border-border/50">
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Users className="h-6 w-6 text-primary" />
-                  </div>
-                  <h3 className="font-semibold text-foreground mb-2">Atendimento</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Suporte personalizado do início ao fim
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Differentials */}
-        <section className="container mx-auto px-4 py-16">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="font-display text-3xl text-foreground text-center mb-12">
-              Por que escolher o Empório LeleCute?
+        {/* Processo */}
+        <section className="container mx-auto px-4 py-16 md:py-20">
+          <div className="max-w-2xl mx-auto">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground/70 mb-6">
+              Processo
+            </p>
+            <h2 className="font-display text-2xl md:text-3xl font-light text-foreground mb-8">
+              Bancada, fragrância, embalagem.
             </h2>
-            <div className="space-y-4">
-              {[
-                "100% artesanal - cada peça é única",
-                "Produtos hipoalergênicos e seguros",
-                "Personalização completa com nome e data",
-                "Envio para todo o Brasil com embalagem especial",
-                "Mais de 50 mil clientes satisfeitos",
-                "Atendimento humanizado via WhatsApp",
-                "Prazo de produção transparente",
-              ].map((item, index) => (
-                <div key={index} className="flex items-center gap-3 p-4 bg-card rounded-lg border border-border/50">
-                  <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                  <span className="text-foreground">{item}</span>
-                </div>
-              ))}
+            <div className="space-y-5 text-muted-foreground leading-relaxed font-light">
+              <p>
+                Cada coleção começa pela escolha das fragrâncias. Algumas
+                permanecem o ano inteiro; outras passam por períodos curtos,
+                conforme a composição.
+              </p>
+              <p>
+                A montagem é manual, peça a peça. As tiragens são pequenas — o
+                que limita o estoque e mantém a atenção em cada unidade.
+              </p>
+              <p>
+                A embalagem é feita na mesma bancada, no mesmo dia. Nada sai do
+                ateliê antes de uma última revisão.
+              </p>
             </div>
+          </div>
+        </section>
+
+        {/* Quem faz */}
+        <section className="container mx-auto px-4 py-16 md:py-20">
+          <div className="max-w-2xl mx-auto">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground/70 mb-6">
+              Quem faz
+            </p>
+            <h2 className="font-display text-2xl md:text-3xl font-light text-foreground mb-8">
+              Um ateliê em Curitiba.
+            </h2>
+            <p className="text-muted-foreground leading-relaxed font-light">
+              A produção acontece em pequena escala, em Curitiba. O contato com
+              quem encomenda é direto — geralmente pelo WhatsApp, antes mesmo
+              do pedido fechar. É assim que conseguimos ajustar uma fragrância,
+              um detalhe da embalagem, um prazo.
+            </p>
+          </div>
+        </section>
+
+        {/* Filosofia */}
+        <section className="container mx-auto px-4 py-16 md:py-20">
+          <div className="max-w-2xl mx-auto">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground/70 mb-6">
+              Como pensamos
+            </p>
+            <ul className="space-y-5 font-display text-xl md:text-2xl font-light text-foreground leading-snug">
+              <li>Fazer pouco. Fazer bem.</li>
+              <li className="text-muted-foreground">Pequena escala, atenção grande.</li>
+              <li>Perfumaria artesanal para casas e encontros.</li>
+              <li className="text-muted-foreground">O detalhe é o conteúdo.</li>
+            </ul>
+          </div>
+        </section>
+
+        {/* Encerramento */}
+        <section className="container mx-auto px-4 pt-20 pb-8">
+          <div className="max-w-2xl mx-auto text-center">
+            <p className="font-display text-lg md:text-xl font-light text-muted-foreground italic">
+              Do ateliê para a sua mesa.
+            </p>
           </div>
         </section>
       </main>
-      
+
       <Footer />
       <WhatsAppButton />
     </div>
