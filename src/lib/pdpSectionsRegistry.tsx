@@ -23,9 +23,12 @@ type Renderer = (ctx: PdpSectionContext) => ReactNode;
 
 export const pdpSectionRegistry: Record<string, Renderer> = {
   description: ({ product }) => (
-    <div className="mb-12" key="description">
-      <h2 className="font-display text-2xl text-foreground mb-6">Descrição do produto</h2>
-      <div className="bg-card rounded-xl border border-border p-6">
+    <section className="mb-14 md:mb-16" key="description" aria-labelledby="pdp-description-title">
+      <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 mb-2">Sobre o produto</p>
+      <h2 id="pdp-description-title" className="font-display text-2xl md:text-3xl font-light text-foreground mb-5">
+        Descrição
+      </h2>
+      <div className="prose prose-sm md:prose-base max-w-none">
         <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
           {product.longDescription || product.description || `${product.name} artesanal da LeleCute.
 
@@ -34,7 +37,7 @@ Cada peça é feita à mão com ingredientes hipoalergênicos de alta qualidade.
 Personalizamos conforme o tema do seu evento com cores, aromas e papelaria exclusivos.`}
         </p>
       </div>
-    </div>
+    </section>
   ),
 
   cross_sell_complete: ({ dbProduct, product }) =>
