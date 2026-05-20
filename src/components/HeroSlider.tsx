@@ -388,8 +388,7 @@ const HeroSlider = () => {
         {previous && (
           <div
             key={`prev-${previous.id}-${prevSlide}`}
-            className="absolute inset-0 w-full motion-safe:animate-fade-out motion-reduce:hidden pointer-events-none"
-            style={{ animationFillMode: "forwards", animationDuration: "500ms" }}
+            className="absolute inset-0 w-full motion-safe:transition-opacity motion-safe:duration-700 motion-safe:ease-in-out opacity-0 motion-reduce:hidden pointer-events-none"
             aria-hidden="true"
           >
             <SlideRenderer slide={previous} isPriority={false} />
@@ -401,9 +400,8 @@ const HeroSlider = () => {
           className={
             reducedMotion
               ? "relative w-full"
-              : "relative w-full opacity-0 motion-safe:animate-fade-in motion-reduce:opacity-100"
+              : "relative w-full opacity-0 animate-[fade-opacity_700ms_ease-in-out_forwards] motion-reduce:opacity-100"
           }
-          style={reducedMotion ? undefined : { animationFillMode: "forwards" }}
         >
           <SlideRenderer slide={slide} isPriority={isPriority} />
         </div>
