@@ -5974,6 +5974,7 @@ export type Database = {
           product_id: string
         }[]
       }
+      search_products: { Args: { _limit?: number; _q: string }; Returns: Json }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       unaccent: { Args: { "": string }; Returns: string }
