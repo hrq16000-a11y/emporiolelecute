@@ -171,6 +171,20 @@ const AnalyticsWrapper = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Scroll-to-top em toda navegação SPA. Ignora quando há hash (#ancora) para
+// permitir scroll para âncoras específicas. Usa "auto" para evitar flash.
+const ScrollToTop = () => {
+  const { pathname, hash } = useLocation();
+  useEffect(() => {
+    if (hash) return;
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [pathname, hash]);
+  return null;
+};
+
 // Mount the reduced-motion controller once. Toggles the `motion-reduced` class
 // on <html> based on user preference (localStorage) or system setting.
 const ReducedMotionMount = () => {
