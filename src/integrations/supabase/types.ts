@@ -220,6 +220,7 @@ export type Database = {
           created_at: string
           description: string | null
           description_seo: string | null
+          external_ref: string
           faqs: Json
           h1_override: string | null
           icon: string | null
@@ -237,6 +238,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           description_seo?: string | null
+          external_ref: string
           faqs?: Json
           h1_override?: string | null
           icon?: string | null
@@ -254,6 +256,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           description_seo?: string | null
+          external_ref?: string
           faqs?: Json
           h1_override?: string | null
           icon?: string | null
@@ -997,6 +1000,7 @@ export type Database = {
           created_at: string
           description: string | null
           estimated_savings: number | null
+          external_ref: string
           home_position: number
           id: string
           image_url: string | null
@@ -1014,6 +1018,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           estimated_savings?: number | null
+          external_ref: string
           home_position?: number
           id?: string
           image_url?: string | null
@@ -1031,6 +1036,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           estimated_savings?: number | null
+          external_ref?: string
           home_position?: number
           id?: string
           image_url?: string | null
@@ -1179,6 +1185,7 @@ export type Database = {
           created_at: string
           description: string | null
           description_seo: string | null
+          external_ref: string
           faqs: Json
           h1_override: string | null
           id: string
@@ -1195,6 +1202,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           description_seo?: string | null
+          external_ref: string
           faqs?: Json
           h1_override?: string | null
           id?: string
@@ -1211,6 +1219,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           description_seo?: string | null
+          external_ref?: string
           faqs?: Json
           h1_override?: string | null
           id?: string
@@ -1880,6 +1889,7 @@ export type Database = {
           created_at: string
           description: string | null
           editorial_content: string | null
+          external_ref: string
           featured_weight: number
           features: string[] | null
           google_product_category: string | null
@@ -1912,6 +1922,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           editorial_content?: string | null
+          external_ref: string
           featured_weight?: number
           features?: string[] | null
           google_product_category?: string | null
@@ -1944,6 +1955,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           editorial_content?: string | null
+          external_ref?: string
           featured_weight?: number
           features?: string[] | null
           google_product_category?: string | null
@@ -5702,6 +5714,7 @@ export type Database = {
       tags: {
         Row: {
           created_at: string | null
+          external_ref: string
           id: string
           name: string
           position: number
@@ -5709,6 +5722,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          external_ref: string
           id?: string
           name: string
           position?: number
@@ -5716,6 +5730,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          external_ref?: string
           id?: string
           name?: string
           position?: number
@@ -6024,6 +6039,10 @@ export type Database = {
       create_order_with_items: {
         Args: { _items: Json; _order: Json }
         Returns: Json
+      }
+      gen_external_ref: {
+        Args: { _fallback?: string; _prefix: string; _slug: string }
+        Returns: string
       }
       has_role: {
         Args: {
