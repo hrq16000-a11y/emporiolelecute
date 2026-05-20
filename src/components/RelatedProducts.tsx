@@ -69,21 +69,18 @@ const RelatedProducts = ({ currentProduct, maxProducts = 4 }: RelatedProductsPro
   if (displayProducts.length === 0) return null;
 
   return (
-    <section className="mt-16 pt-12 border-t border-border">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="font-display text-2xl md:text-3xl text-foreground">
-            Produtos Relacionados
-          </h2>
-          <p className="text-muted-foreground mt-1">
-            Você também pode gostar
-          </p>
-        </div>
-        <Link 
-          to="/produtos" 
-          className="text-primary hover:text-primary-dark font-medium text-sm transition-colors"
+    <section className="mt-16 pt-12 border-t border-border/60">
+      {/* Sprint 2 — header alinhado à PDP editorial: peso leve, sem subtítulo
+          redundante, sem CTA cromático. */}
+      <div className="flex items-end justify-between gap-4 mb-8">
+        <h2 className="font-display text-xl md:text-2xl font-light text-foreground">
+          Mais nesta categoria
+        </h2>
+        <Link
+          to="/produtos"
+          className="text-xs md:text-sm text-muted-foreground hover:text-foreground border-b border-border/60 hover:border-foreground/60 pb-0.5 transition-colors shrink-0"
         >
-          Ver todos →
+          Ver todos
         </Link>
       </div>
 

@@ -26,26 +26,10 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
   });
   const { toast } = useToast();
 
-  const getBadgeStyles = (badge?: string) => {
-    switch (badge) {
-      case "Mais Vendido":
-        return "bg-primary text-primary-foreground";
-      case "Promoção":
-        return "bg-green-500 text-white";
-      case "Personalizável":
-        return "bg-coral-dark text-white";
-      case "Novidade":
-        return "bg-blue-500 text-white";
-      case "Premium":
-        return "bg-amber-500 text-white";
-      case "Especial":
-        return "bg-purple-500 text-white";
-      case "Corporativo":
-        return "bg-slate-700 text-white";
-      default:
-        return "bg-muted text-foreground";
-    }
-  };
+  // Sprint 2 — Badge neutra e silenciosa (editorial). Mantém apenas tipografia,
+  // sem competir cromaticamente com a PDP refinada.
+  const getBadgeStyles = (_badge?: string) =>
+    "bg-background/90 backdrop-blur-sm text-foreground border border-border/50";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,8 +65,8 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
   };
 
   return (
-    <article 
-      className="min-w-0 max-w-full bg-card rounded-xl sm:rounded-2xl overflow-hidden shadow-card border border-border/50 product-card group transition-all duration-300 hover:shadow-elegant sm:hover:-translate-y-1 active:translate-y-0 active:scale-[0.99]"
+    <article
+      className="min-w-0 max-w-full bg-card rounded-xl sm:rounded-2xl overflow-hidden border border-border/40 product-card group transition-colors duration-300 hover:border-border"
       itemScope
       itemType="https://schema.org/Product"
     >
@@ -109,57 +93,47 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
           style={{ transition: 'opacity 400ms ease' }}
         />
         
-        {/* Badge */}
+        {/* Badge — pílula neutra, sem cor saturada */}
         {product.badge && (
-          <span className={`absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold ${getBadgeStyles(product.badge)}`}>
+          <span className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-medium ${getBadgeStyles(product.badge)}`}>
             {product.badge}
           </span>
         )}
-        
-        {/* Favorite Button */}
-        <button 
+
+        {/* Favorite Button — sem shadow, sem hover coral agressivo */}
+        <button
           onClick={(e) => e.preventDefault()}
-          className="absolute top-2 right-2 sm:top-4 sm:right-4 w-10 h-10 bg-background/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-soft opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          className="absolute top-2 right-2 sm:top-3 sm:right-3 w-9 h-9 bg-background/80 backdrop-blur-sm rounded-full flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           aria-label="Adicionar aos favoritos"
         >
-          <Heart className="h-5 w-5" />
+          <Heart className="h-4 w-4 text-foreground/70" strokeWidth={1.5} />
         </button>
-        
-        {/* Quick View Overlay */}
-        <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden sm:flex items-center justify-center">
-          <span className="bg-primary-foreground text-foreground px-6 py-3 rounded-full font-semibold flex items-center gap-2">
-            Ver Detalhes
-            <ArrowRight className="h-4 w-4" />
-          </span>
-        </div>
       </Link>
       
       {/* Product Info */}
       <div className="p-3 md:p-5">
-        {/* Rating */}
-        <div className="flex items-center gap-1 mb-2" itemProp="aggregateRating" itemScope itemType="https://schema.org/AggregateRating">
+        {/* Rating — inline discreto, sem amarelo marketplace */}
+        <div className="flex items-center gap-1 mb-2 text-muted-foreground" itemProp="aggregateRating" itemScope itemType="https://schema.org/AggregateRating">
           <meta itemProp="ratingValue" content={String(product.rating)} />
           <meta itemProp="ratingCount" content="1" />
           <meta itemProp="reviewCount" content="1" />
           <meta itemProp="bestRating" content="5" />
-          {[...Array(product.rating)].map((_, i) => (
-            <Star key={i} className="h-3 w-3 md:h-4 md:w-4 text-amber-400 fill-amber-400" />
-          ))}
-          <span className="text-[10px] md:text-xs text-muted-foreground ml-1">{product.rating}.0</span>
+          <Star className="h-3 w-3 fill-current" strokeWidth={0} />
+          <span className="text-[10px] md:text-xs">{product.rating.toFixed(1)}</span>
         </div>
 
-        {/* Name */}
+        {/* Name — peso leve, sem hover coral */}
         <Link to={urls.product(product.slug)}>
-          <h3 className="font-display text-sm md:text-lg text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors" itemProp="name">
+          <h3 className="font-display text-sm md:text-lg font-normal text-foreground mb-2 line-clamp-2 leading-snug" itemProp="name">
             {product.name}
           </h3>
         </Link>
 
-        {/* Price */}
+        {/* Price — foreground calmo, sem coral saturado */}
         <div className="flex flex-wrap items-baseline gap-2 mb-1" itemProp="offers" itemScope itemType="https://schema.org/Offer">
-          <span className="text-lg md:text-2xl font-display font-semibold text-primary">{product.price}</span>
+          <span className="text-base md:text-xl font-display font-normal text-foreground">{product.price}</span>
           {product.originalPrice && (
-            <span className="text-xs md:text-sm text-muted-foreground line-through">{product.originalPrice}</span>
+            <span className="text-xs text-muted-foreground line-through">{product.originalPrice}</span>
           )}
           {typeof product.priceValue === "number" && (
             <meta itemProp="price" content={Number(product.priceValue).toFixed(2)} />
@@ -190,7 +164,7 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
                 </li>
               )}
               {personalizable && (
-                <li className="inline-flex items-center gap-1 text-primary/90">
+                <li className="inline-flex items-center gap-1">
                   <Sparkles className="h-3 w-3" aria-hidden /> Personalizável
                 </li>
               )}
@@ -198,16 +172,13 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
           );
         })()}
 
-        {/* CTA */}
-        <Link to={urls.product(product.slug)} className="block mt-3">
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground rounded-full transition-all duration-300 text-xs md:text-sm h-9 md:h-10"
-          >
-            Ver Detalhes
-            <ArrowRight className="h-3 w-3 md:h-4 md:w-4 ml-1" />
-          </Button>
+        {/* CTA — link editorial, sem affordance ecommerce */}
+        <Link
+          to={urls.product(product.slug)}
+          className="inline-flex items-center gap-1 mt-3 text-xs md:text-sm text-foreground/80 hover:text-foreground border-b border-border/60 hover:border-foreground/60 pb-0.5 transition-colors"
+        >
+          Ver detalhes
+          <ArrowRight className="h-3 w-3 md:h-3.5 md:w-3.5" strokeWidth={1.5} />
         </Link>
 
         {/* Hidden order dialog (kept for backward compat, triggered elsewhere) */}
