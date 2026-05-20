@@ -229,34 +229,48 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
 
       {/* Tablet Thumbnails - Left Side (horizontal PDP layout only) */}
       {layout === 'horizontal' && images.length > 1 && (
-        <div className="hidden sm:max-lg:flex flex-col gap-2 w-14 shrink-0">
-          {images.slice(0, 5).map((image, index) => {
-            const isActive = index === currentIndex;
-            return (
-              <button
-                key={index}
-                onClick={() => goToSlide(index)}
-                aria-label={`Ver imagem ${index + 1} de ${images.length}`}
-                aria-current={isActive ? "true" : undefined}
-                className={cn(
-                  "w-14 h-14 rounded-sm overflow-hidden transition-opacity duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                  isActive ? "opacity-100" : "opacity-45 hover:opacity-75"
-                )}
-              >
-                <img
-                  src={optimizeImage(image, { width: 128, resize: "contain" })}
-                  alt=""
-                  className="w-full h-full object-contain bg-muted/30 pointer-events-none"
-                  loading="lazy"
-                  decoding="async"
-                  draggable={false}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/placeholder.svg';
-                  }}
+        <div className="hidden sm:max-lg:flex items-start gap-2 shrink-0">
+          <div className="flex flex-col gap-2 w-14 shrink-0">
+            {images.slice(0, 5).map((image, index) => {
+              const isActive = index === currentIndex;
+              return (
+                <button
+                  key={index}
+                  onClick={() => goToSlide(index)}
+                  aria-label={`Ver imagem ${index + 1} de ${images.length}`}
+                  aria-current={isActive ? "true" : undefined}
+                  className={cn(
+                    "w-14 h-14 rounded-sm overflow-hidden transition-opacity duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                    isActive ? "opacity-100" : "opacity-45 hover:opacity-75"
+                  )}
+                >
+                  <img
+                    src={optimizeImage(image, { width: 128, resize: "contain" })}
+                    alt=""
+                    className="w-full h-full object-contain bg-muted/30 pointer-events-none"
+                    loading="lazy"
+                    decoding="async"
+                    draggable={false}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/placeholder.svg';
+                    }}
+                  />
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex w-5 flex-col gap-2" aria-hidden="true">
+            {images.slice(0, 5).map((_, index) => (
+              <div key={index} className="flex h-14 items-center justify-center">
+                <span
+                  className={cn(
+                    "h-px rounded-full transition-all duration-300 ease-out",
+                    index === currentIndex ? "w-5 bg-primary/80" : "w-0 bg-transparent"
+                  )}
                 />
-              </button>
-            );
-          })}
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -389,18 +403,15 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
 
         </div>
 
-        {/* Progresso discreto abaixo da galeria (mobile) — barra fina + contador editorial */}
+        {/* Progresso discreto abaixo da galeria (mobile only) */}
         {images.length > 1 && (
-          <div className="md:hidden mt-3 px-1 flex items-center gap-3" aria-hidden="true">
+          <div className="sm:hidden mt-3 px-1" aria-hidden="true">
             <div className="relative flex-1 h-px bg-foreground/10 overflow-hidden rounded-full">
               <div
                 className="absolute inset-y-0 left-0 bg-primary/70 rounded-full transition-[width] duration-500 ease-out"
                 style={{ width: `${((currentIndex + 1) / images.length) * 100}%` }}
               />
             </div>
-            <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-light tabular-nums">
-              {String(currentIndex + 1).padStart(2, '0')} <span className="opacity-50">/</span> {String(images.length).padStart(2, '0')}
-            </span>
           </div>
         )}
 
