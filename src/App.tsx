@@ -490,6 +490,11 @@ const App = () => {
                       <AdminPdpSections />
                     </Suspense>
                   } />
+                  <Route path="busca" element={
+                    <Suspense fallback={<AdminSkeleton />}>
+                      <AdminSearch />
+                    </Suspense>
+                  } />
                   <Route path="configuracoes" element={
                     <Suspense fallback={<AdminSkeleton />}>
                       <AdminSettings />
