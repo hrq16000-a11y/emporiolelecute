@@ -5,4 +5,13 @@ Disallow: /admin/*
 Disallow: /carrinho
 Disallow: /rastrear
 
+# Crawl budget: bloqueia ordenação, filtros de preço, paginação e busca interna.
+# Rotas base (/produtos, /categoria/*, /ocasiao/*, /segmento/*, /tag/*) seguem indexáveis.
+Disallow: /*?ordem=*
+Disallow: /*?preco_min=*
+Disallow: /*?preco_max=*
+Disallow: /*?pagina=*
+Disallow: /*?busca=*
+Disallow: /*?search=*
+
 Sitemap: https://emporiolelecute.com.br/sitemap.xml

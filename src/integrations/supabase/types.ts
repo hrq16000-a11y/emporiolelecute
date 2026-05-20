@@ -225,6 +225,7 @@ export type Database = {
           icon: string | null
           id: string
           image_url: string | null
+          is_draft: boolean
           is_indexed: boolean
           meta_description: string | null
           meta_title: string | null
@@ -241,6 +242,7 @@ export type Database = {
           icon?: string | null
           id?: string
           image_url?: string | null
+          is_draft?: boolean
           is_indexed?: boolean
           meta_description?: string | null
           meta_title?: string | null
@@ -257,6 +259,7 @@ export type Database = {
           icon?: string | null
           id?: string
           image_url?: string | null
+          is_draft?: boolean
           is_indexed?: boolean
           meta_description?: string | null
           meta_title?: string | null
@@ -1180,6 +1183,7 @@ export type Database = {
           h1_override: string | null
           id: string
           image_url: string | null
+          is_draft: boolean
           is_indexed: boolean
           meta_description: string | null
           meta_title: string | null
@@ -1195,6 +1199,7 @@ export type Database = {
           h1_override?: string | null
           id?: string
           image_url?: string | null
+          is_draft?: boolean
           is_indexed?: boolean
           meta_description?: string | null
           meta_title?: string | null
@@ -1210,6 +1215,7 @@ export type Database = {
           h1_override?: string | null
           id?: string
           image_url?: string | null
+          is_draft?: boolean
           is_indexed?: boolean
           meta_description?: string | null
           meta_title?: string | null
@@ -2143,6 +2149,7 @@ export type Database = {
           h1_override: string | null
           id: string
           image_url: string | null
+          is_draft: boolean
           is_indexed: boolean
           meta_description: string | null
           meta_title: string | null
@@ -2159,6 +2166,7 @@ export type Database = {
           h1_override?: string | null
           id?: string
           image_url?: string | null
+          is_draft?: boolean
           is_indexed?: boolean
           meta_description?: string | null
           meta_title?: string | null
@@ -2175,6 +2183,7 @@ export type Database = {
           h1_override?: string | null
           id?: string
           image_url?: string | null
+          is_draft?: boolean
           is_indexed?: boolean
           meta_description?: string | null
           meta_title?: string | null
