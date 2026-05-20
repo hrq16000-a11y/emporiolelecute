@@ -874,8 +874,8 @@ const ProductPage = () => {
 
 
 
-              {/* Tags Section */}
-              {product.keywords && product.keywords.length > 0 && (
+              {/* Tags Section — oculto quando dbProduct.tags já renderizou chips acima (zero redundância) */}
+              {product.keywords && product.keywords.length > 0 && !(dbProduct?.tags && dbProduct.tags.length > 0) && (
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-3">
                     <Tag className="h-4 w-4 text-muted-foreground" />
@@ -896,8 +896,13 @@ const ProductPage = () => {
                 </div>
               )}
 
-              {/* WhatsApp — CTA inteligente (mensagem enriquecida via buildWhatsAppMessage) */}
+              {/* WhatsApp CTA final — oculto quando QuickSummary (CTA WA editorial) já está ativo,
+                  evitando sensação de mini-checkout repetido. */}
               {(() => {
+                const quickSummaryActive =
+                  resolvePrimaryAction(dbProduct).primary !== "cart" &&
+                  ctaConfig?.quickSummary?.enabled !== false;
+                if (quickSummaryActive) return null;
                 const { url } = buildWhatsAppMessage();
                 return (
                   <div ref={ctaAnchorRef}>
