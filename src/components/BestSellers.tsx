@@ -133,7 +133,7 @@ const BestSellers = ({ eyebrow }: BestSellersProps = {}) => {
   return (
     <section
       id="mais-vendidos"
-      className="py-14 md:py-24 bg-background relative overflow-hidden"
+      className="py-12 md:py-20 bg-background relative overflow-hidden"
       aria-labelledby="mais-vendidos-heading"
     >
       {/* Mobile hairline divider — cadência visual entre seções */}
