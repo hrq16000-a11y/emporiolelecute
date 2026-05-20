@@ -404,7 +404,9 @@ const HeroSlider = () => {
       {/* Cross-fade stage: previous + current slide stacked, opacity transition */}
       <div
         ref={stageRef}
-        className="relative w-full motion-safe:transition-[height] motion-safe:duration-500 motion-safe:ease-out"
+        className="relative w-full touch-pan-y motion-safe:transition-[height] motion-safe:duration-700 motion-safe:ease-in-out"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
         style={{
           height: stageHeight === "auto" ? undefined : stageHeight,
           minHeight: hasAnyBanner ? undefined : 280,
@@ -413,7 +415,7 @@ const HeroSlider = () => {
         {previous && (
           <div
             key={`prev-${previous.id}-${prevSlide}`}
-            className="absolute inset-0 w-full motion-safe:transition-opacity motion-safe:duration-700 motion-safe:ease-in-out opacity-0 motion-reduce:hidden pointer-events-none"
+            className="absolute inset-0 w-full motion-safe:animate-[fade-opacity-out_720ms_ease-in-out_forwards] motion-reduce:hidden pointer-events-none"
             aria-hidden="true"
           >
             <SlideRenderer slide={previous} isPriority={false} />
@@ -425,7 +427,7 @@ const HeroSlider = () => {
           className={
             reducedMotion
               ? "relative w-full"
-              : "relative w-full opacity-0 animate-[fade-opacity_700ms_ease-in-out_forwards] motion-reduce:opacity-100"
+              : "relative w-full opacity-0 animate-[fade-opacity_720ms_ease-in-out_forwards] motion-reduce:opacity-100"
           }
         >
           <SlideRenderer slide={slide} isPriority={isPriority} />
@@ -437,43 +439,55 @@ const HeroSlider = () => {
         <>
           {/* Dots */}
           <div
-            className={`flex items-center justify-center gap-3 ${
-              isBanner ? "pt-2 pb-1 md:pt-3 md:pb-2" : "pb-3"
+            className={`flex items-center justify-center gap-2 md:gap-3 ${
+              isBanner ? "pt-1.5 pb-0 md:pt-3 md:pb-2" : "pb-3"
             } relative z-10`}
           >
             {slides.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goTo(index)}
-                className={`h-3 rounded-full transition-all duration-500 ease-out ${
+                className={`h-8 min-w-8 rounded-full transition-all duration-500 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                   index === currentSlide
-                    ? "bg-primary w-10"
-                    : "bg-primary/30 w-3 hover:bg-primary/50"
+                    ? "before:bg-primary before:w-8 md:before:w-10"
+                    : "before:bg-primary/30 before:w-2.5 md:before:w-3 hover:before:bg-primary/50"
                 }`}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
                 aria-label={`Slide ${index + 1}`}
-              />
+              >
+                <span className="sr-only">Slide {index + 1}</span>
+                <span className="block h-2.5 rounded-full transition-all duration-500 ease-in-out" />
+              </button>
             ))}
           </div>
 
           {/* Prev / Next arrows */}
           <button
             onClick={prevSlideFn}
-            className="absolute left-2 md:left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 md:w-12 md:h-12 bg-background/80 backdrop-blur-sm rounded-full shadow-md flex items-center justify-center hover:bg-primary hover:text-primary-foreground active:scale-95 transition-all"
+            className="absolute left-2 md:left-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 md:w-12 md:h-12 bg-transparent md:bg-background/80 md:backdrop-blur-sm md:shadow-md rounded-full flex items-center justify-center hover:bg-primary/10 md:hover:bg-primary hover:text-primary md:hover:text-primary-foreground active:scale-95 transition-all"
             aria-label="Slide anterior"
           >
-            <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
+            <span className="flex h-8 w-8 md:h-auto md:w-auto items-center justify-center rounded-full bg-background/85 shadow-sm md:bg-transparent md:shadow-none">
+              <ChevronLeft className="h-4 w-4 md:h-6 md:w-6" />
+            </span>
           </button>
           <button
             onClick={nextSlideFn}
-            className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 md:w-12 md:h-12 bg-background/80 backdrop-blur-sm rounded-full shadow-md flex items-center justify-center hover:bg-primary hover:text-primary-foreground active:scale-95 transition-all"
+            className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 md:w-12 md:h-12 bg-transparent md:bg-background/80 md:backdrop-blur-sm md:shadow-md rounded-full flex items-center justify-center hover:bg-primary/10 md:hover:bg-primary hover:text-primary md:hover:text-primary-foreground active:scale-95 transition-all"
             aria-label="Próximo slide"
           >
-            <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
+            <span className="flex h-8 w-8 md:h-auto md:w-auto items-center justify-center rounded-full bg-background/85 shadow-sm md:bg-transparent md:shadow-none">
+              <ChevronRight className="h-4 w-4 md:h-6 md:w-6" />
+            </span>
           </button>
         </>
       )}
 
-      <TrustBadges className="mt-2 md:mt-4" />
+      <TrustBadges className="mt-1 md:mt-4" />
     </section>
   );
 };
