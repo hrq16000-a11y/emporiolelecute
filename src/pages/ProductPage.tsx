@@ -566,33 +566,34 @@ const ProductPage = () => {
                 );
               })()}
 
-              {/* Reviews under the gallery thumbnails — compact, 3 shown + "Ver mais" */}
-              {dbProduct?.id && (
+              {/* Reviews under the gallery thumbnails — exibido apenas quando há avaliações reais */}
+              {dbProduct?.id && reviewStats?.review_count ? (
                 <div className="hidden lg:block">
                   <ProductReviews productId={dbProduct.id} variant="compact" initialLimit={3} />
                 </div>
-              )}
+              ) : null}
             </div>
 
             {/* Info Section - Reference Style */}
             <div className="flex min-w-0 max-w-full flex-col overflow-hidden">
-              {/* Product Name & Rating + Social Proof (Q2) */}
+              {/* Product Name + Social Proof (estrelas só quando há avaliações reais) */}
               <div className="flex items-start justify-between gap-3 sm:gap-4 mb-3">
                 <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-light text-foreground leading-tight tracking-tight min-w-0 break-words">
                   {product.name}
                 </h1>
-                <div className="flex items-center gap-1.5 flex-shrink-0 pt-1.5 text-muted-foreground">
-                  <Star className="h-3.5 w-3.5 text-foreground" strokeWidth={1.5} />
-                  <span className="text-sm tabular-nums text-foreground">
-                    {reviewStats?.avg_rating ? Number(reviewStats.avg_rating).toFixed(1) : product.rating.toFixed(1)}
-                  </span>
-                  {reviewStats?.review_count ? (
+                {reviewStats?.review_count && reviewStats?.avg_rating ? (
+                  <div className="flex items-center gap-1.5 flex-shrink-0 pt-1.5 text-muted-foreground">
+                    <Star className="h-3.5 w-3.5 text-foreground" strokeWidth={1.5} />
+                    <span className="text-sm tabular-nums text-foreground">
+                      {Number(reviewStats.avg_rating).toFixed(1)}
+                    </span>
                     <span className="text-xs text-muted-foreground/80">
                       ({reviewStats.review_count})
                     </span>
-                  ) : null}
-                </div>
+                  </div>
+                ) : null}
               </div>
+
 
 
               {/* Trust row consolidado — linha editorial sutil, sem pílulas cromáticas */}
