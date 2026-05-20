@@ -856,13 +856,13 @@ const ProductPage = () => {
               })()}
 
 
-              {/* Payment Methods — microcopy discreto, sem pílulas coloridas */}
-              <div className="mb-6">
-                <p className="text-xs text-muted-foreground">
+              {/* Payment Methods — discreto: oculto no mobile, micro no desktop */}
+              <div className="hidden md:block mb-6">
+                <p className="text-[11px] text-muted-foreground/70">
                   Aceitamos
-                  {paymentConfig?.accepted_methods?.pix ? <span className="text-foreground"> PIX</span> : null}
-                  {paymentConfig?.accepted_methods?.credit_card ? <><span className="text-muted-foreground/50">,</span><span className="text-foreground"> Cartão de Crédito</span></> : null}
-                  {paymentConfig?.accepted_methods?.boleto ? <><span className="text-muted-foreground/50">,</span><span className="text-foreground"> Boleto Bancário</span></> : null}
+                  {paymentConfig?.accepted_methods?.pix ? <span className="text-muted-foreground"> PIX</span> : null}
+                  {paymentConfig?.accepted_methods?.credit_card ? <><span className="text-muted-foreground/40">,</span><span className="text-muted-foreground"> Cartão de Crédito</span></> : null}
+                  {paymentConfig?.accepted_methods?.boleto ? <><span className="text-muted-foreground/40">,</span><span className="text-muted-foreground"> Boleto Bancário</span></> : null}
                   .
                 </p>
               </div>
