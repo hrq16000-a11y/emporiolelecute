@@ -1,4 +1,4 @@
-import { Heart, Instagram, Facebook, MapPin, Phone, ExternalLink, Package } from "lucide-react";
+import { Heart, Instagram, Facebook, MapPin, Phone, ExternalLink, Package } from "lucide-react"; // Heart/Package mantidos por uso em getIcon()
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.webp";
 import { useFooterConfig, defaultFooterConfig } from "@/hooks/useStoreSettings";
