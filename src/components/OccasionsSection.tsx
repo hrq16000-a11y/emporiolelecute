@@ -67,7 +67,7 @@ const OccasionsSection = ({ eyebrow }: OccasionsSectionProps = {}) => {
   return (
     <section 
       id="ocasioes" 
-      className="py-14 md:py-24 bg-cream/30 relative overflow-hidden"
+      className="py-16 md:py-28 bg-cream/30 relative overflow-hidden"
       aria-labelledby="ocasioes-heading"
     >
       {/* Mobile hairline divider — cadência visual entre seções */}
