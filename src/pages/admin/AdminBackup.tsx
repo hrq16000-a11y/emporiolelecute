@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Download, Upload, Database, Image as ImageIcon, ShoppingBag, FileCode2, AlertTriangle, Loader2, Package } from "lucide-react";
+import { Download, Upload, Database, Image as ImageIcon, ShoppingBag, FileCode2, AlertTriangle, Loader2, Package, ShieldCheck } from "lucide-react";
 
 type ExportManifest = {
   version: number;
