@@ -55,7 +55,7 @@ const OccasionsThumbs = () => {
   const total = list.length;
 
   return (
-    <section ref={sectionRef} className="pb-8 md:pb-10 bg-background" aria-label="Ocasiões especiais">
+    <section ref={sectionRef} className="pt-10 md:pt-14 pb-10 md:pb-12 bg-background" aria-label="Ocasiões especiais">
       <div className="container mx-auto px-4">
         <div className="flex items-end justify-between mb-3 md:mb-4">
           <h2 className="font-display text-base md:text-xl text-foreground">
