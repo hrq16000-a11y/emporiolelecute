@@ -80,7 +80,15 @@ export async function resolveProductSlug(rawSlug: string): Promise<ResolveResult
 export function recordProductSlugHit(rawSlug: string): void {
   const normalized = normalizeSlug(rawSlug);
   if (!normalized) return;
-  void supabase.rpc("record_product_slug_hit", { _slug: normalized }).then(() => {
-    /* noop */
-  });
+  if (typeof window === "undefined") return;
+  // Defer para idle — métrica nunca deve bloquear LCP/INP.
+  const run = () => {
+    void supabase.rpc("record_product_slug_hit", { _slug: normalized }).then(() => { /* noop */ });
+  };
+  const ric = (window as any).requestIdleCallback as
+    | ((cb: () => void, opts?: { timeout?: number }) => number)
+    | undefined;
+  if (ric) ric(run, { timeout: 4000 });
+  else setTimeout(run, 2000);
 }
+
