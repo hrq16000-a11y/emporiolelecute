@@ -90,6 +90,21 @@ const Buscar = () => {
     setSearchParams(next, { replace: true });
   }, [debouncedQuery, selectedCategory, selectedPrice, setSearchParams]);
 
+  // Fase 2 — registra a busca para alimentar o cockpit administrativo (insights).
+  // Fire-and-forget; nunca bloqueia a UI.
+  useEffect(() => {
+    const q = debouncedQuery.trim();
+    if (q.length < 2 || !searchResult) return;
+    supabase
+      .rpc("log_search" as never, {
+        _q: q,
+        _result_count: searchResult.ids.length,
+        _suggestion: searchResult.suggestion,
+      } as never)
+      .then(() => undefined, () => undefined);
+  }, [debouncedQuery, searchResult]);
+
+
   const products: Product[] = useMemo(() => {
     return (dbProducts || [])
       .filter((p) => p.is_active)
