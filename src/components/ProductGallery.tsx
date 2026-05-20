@@ -235,9 +235,9 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
             </span>
           )}
 
-          {/* Dots Navigation (mobile) — visual mantido, tap target ≥44px via wrapper invisível */}
+          {/* Dots Navigation (mobile) — minimal, sem pill, tap target ≥44px via wrapper invisível */}
           {images.length > 1 && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1 px-2 py-1 bg-background/80 backdrop-blur-sm rounded-full md:hidden" role="tablist" aria-label="Selecionar imagem">
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 md:hidden" role="tablist" aria-label="Selecionar imagem">
               {images.map((_, index) => (
                 <button
                   key={index}
@@ -248,15 +248,15 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
                   role="tab"
                   aria-selected={index === currentIndex}
                   aria-label={`Ver imagem ${index + 1} de ${images.length}`}
-                  className="inline-flex items-center justify-center min-h-11 min-w-11 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className="inline-flex items-center justify-center min-h-11 min-w-11 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
                   <span
                     aria-hidden="true"
                     className={cn(
-                      "block h-2 rounded-full transition-all duration-300",
+                      "block h-1.5 rounded-full transition-all duration-500 ease-out",
                       index === currentIndex
-                        ? "bg-primary w-6"
-                        : "bg-muted-foreground/40 w-2 hover:bg-muted-foreground/60"
+                        ? "bg-foreground/70 w-4"
+                        : "bg-foreground/25 w-1.5"
                     )}
                   />
                 </button>
