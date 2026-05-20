@@ -3,6 +3,7 @@ import { Heart, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDbOccasions } from "@/hooks/useProducts";
 import { BlurImage } from "@/components/BlurImage";
+import SectionEyebrow from "@/components/SectionEyebrow";
 import sabonetesImg from "@/assets/category-sabonetes.webp";
 import velasImg from "@/assets/category-velas.webp";
 import kitsImg from "@/assets/category-kits.webp";
@@ -38,7 +39,11 @@ const occasionDefaults: Record<string, { description: string; image: string }> =
 
 const defaultImage = sabonetesImg;
 
-const OccasionsSection = () => {
+interface OccasionsSectionProps {
+  eyebrow?: string;
+}
+
+const OccasionsSection = ({ eyebrow }: OccasionsSectionProps = {}) => {
   const { data: dbOccasions } = useDbOccasions();
 
   // Build occasions from database, with fallback defaults for description and image
@@ -62,13 +67,16 @@ const OccasionsSection = () => {
   return (
     <section 
       id="ocasioes" 
-      className="py-16 md:py-24 bg-cream/30 relative overflow-hidden"
+      className="py-14 md:py-24 bg-cream/30 relative overflow-hidden"
       aria-labelledby="ocasioes-heading"
     >
+      {/* Mobile hairline divider — cadência visual entre seções */}
+      <div aria-hidden className="md:hidden h-px bg-border/40 mx-6 mb-10" />
       <div className="container mx-auto px-4">
         <div className="max-w-7xl mx-auto">
           {/* Section Header */}
           <div className="text-center mb-12 md:mb-16">
+            <SectionEyebrow align="center">{eyebrow}</SectionEyebrow>
             <h2 id="ocasioes-heading" className="font-display text-3xl md:text-5xl text-foreground mb-4">
               Ocasiões <span className="font-script text-primary italic">Especiais</span>
             </h2>
