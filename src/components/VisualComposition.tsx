@@ -94,7 +94,7 @@ export default function VisualComposition({ currentProductId, occasions, limit =
             title={p.name}
           >
             <img
-              src={optimizeImage(p.images[0], { width: 400 })}
+              src={optimizeImage(p.images[0], { width: 400, resize: "contain" })}
               alt={p.name}
               width={400}
               height={400}
