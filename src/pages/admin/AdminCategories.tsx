@@ -409,7 +409,6 @@ const AdminCategories = () => {
       if (error) throw error;
       invalidatePublicTaxonomy(queryClient, 'categories');
       void markPublicTaxonomyDirty('categories');
-      trackAdminEvent('toggle_publish', `category_${field}_${value ? 'on' : 'off'}`);
       toast({ title: field === 'is_draft' ? (value ? 'Marcado como rascunho' : 'Publicado') : (value ? 'Indexável ativado' : 'Removido do índice') });
     } catch {
       toast({ title: 'Erro ao atualizar', variant: 'destructive' });
