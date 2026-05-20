@@ -467,9 +467,9 @@ const ProductPage = () => {
       />
       <Header />
       
-      <main className="pt-28 md:pt-32 pb-16 max-w-full overflow-x-hidden">
+      <main className="pt-20 md:pt-32 pb-16 max-w-full overflow-x-hidden">
         {/* Breadcrumb */}
-        <div className="container mx-auto max-w-full px-4 py-3 overflow-hidden">
+        <div className="container mx-auto max-w-full px-4 py-1.5 md:py-3 overflow-hidden">
           <nav className="flex max-w-full items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 text-xs sm:text-sm text-muted-foreground scrollbar-hide" aria-label="Breadcrumb">
             <Link to="/" className="shrink-0 hover:text-primary transition-colors">Início</Link>
 
