@@ -61,6 +61,7 @@ interface TaxonomyEntity {
   h1_override: string | null;
   description_seo: string | null;
   is_indexed: boolean;
+  is_draft: boolean | null;
   faqs: unknown;
 }
 
