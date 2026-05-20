@@ -81,8 +81,8 @@ export const defaultTrustBadgesConfig: TrustBadgesConfig = {
     { icon: 'Headset', title: 'Atendimento', subtitle: 'Personalizado' },
     { icon: 'CreditCard', title: 'Pague com Cartão', subtitle: 'Até 3x sem juros' },
   ],
-  whatsapp_label: 'Atendimento no WhatsApp',
-  whatsapp_message: 'Olá! Gostaria de um atendimento personalizado do Empório LeleCute.',
+  whatsapp_label: 'Conversar no WhatsApp',
+  whatsapp_message: 'Oi, aqui é da LeleCute. Vim do site e gostaria de conversar sobre as lembrancinhas.',
   show_whatsapp: true,
 };
 
