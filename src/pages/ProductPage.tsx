@@ -978,6 +978,9 @@ const ProductPage = () => {
       <FAQSection />
 
       <Footer />
+      {/* Spacer mobile para o sticky CTA não cobrir o final do rodapé */}
+      <div aria-hidden className="md:hidden h-[88px]" />
+
       {/* WhatsAppButton removido da PDP — sticky CTA + CTAs inline já cobrem a ação principal e evitam conflito de FABs */}
       <Chatbot />
 
