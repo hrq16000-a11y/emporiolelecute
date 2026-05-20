@@ -11,10 +11,39 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import ProductCard from "@/components/ProductCard";
 import { useDbProducts, useDbCategories } from "@/hooks/useProducts";
 import { useDebounce } from "@/hooks/useDebounce";
-import { useSearchSynonyms, expandWithSynonyms } from "@/hooks/useSearchSynonyms";
-import { normalizeSearch, suggestClosest } from "@/lib/searchNormalize";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import SearchEmptyState from "@/components/SearchEmptyState";
 import type { Product } from "@/data/products";
+
+// Fase 2 (refactor server-side) — Toda a busca tolerante (acento, typo,
+// sinônimos) acontece no Postgres via RPC `search_products`. O frontend
+// apenas envia o termo e recebe IDs ordenados por relevância + sugestão.
+interface SearchRpcResult {
+  ids: string[];
+  suggestion: string | null;
+}
+
+function useServerSearch(term: string) {
+  const q = term.trim();
+  return useQuery({
+    queryKey: ["search_products", q],
+    enabled: q.length >= 2,
+    staleTime: 30_000,
+    queryFn: async (): Promise<SearchRpcResult> => {
+      const { data, error } = await supabase.rpc("search_products" as never, {
+        _q: q,
+        _limit: 60,
+      } as never);
+      if (error) return { ids: [], suggestion: null };
+      const payload = (data ?? {}) as { ids?: string[]; suggestion?: string | null };
+      return {
+        ids: Array.isArray(payload.ids) ? payload.ids : [],
+        suggestion: payload.suggestion ?? null,
+      };
+    },
+  });
+}
 
 const PRICE_RANGES: { id: string; label: string; min: number; max: number }[] = [
   { id: "lt50", label: "Até R$ 50", min: 0, max: 50 },
