@@ -1035,4 +1035,24 @@ const ProductPage = () => {
   );
 };
 
+function ProductPdpFaq({
+  productId,
+  productName,
+  productionDays,
+  personalizationEnabled,
+  categoryName,
+}: {
+  productId: string;
+  productName: string;
+  productionDays?: number | null;
+  personalizationEnabled?: boolean | null;
+  categoryName?: string | null;
+}) {
+  const { data: pf = [] } = useProductFaqs(productId);
+  const items = pf.length > 0
+    ? pf.map((f) => ({ question: f.question, answer: f.answer }))
+    : buildAutoFaq({ productName, productionDays, personalizationEnabled, categoryName });
+  return <ProductFAQ productName={productName} items={items} />;
+}
+
 export default ProductPage;
