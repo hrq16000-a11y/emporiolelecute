@@ -615,42 +615,42 @@ const ProductPage = () => {
 
 
 
-              {/* Category, Occasions & Tags */}
+              {/* Category, Occasions & Tags — hierarquia suave: categoria com leve destaque, resto neutro */}
               <div className="flex flex-wrap gap-2 mb-4">
-                {/* Category Badge - using SLUG for friendly URLs */}
+                {/* Category Badge — leve destaque editorial */}
                 {dbProduct?.category && (
                   <Link
                     to={`/produtos?categoria=${dbProduct.category.slug}`}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 rounded-full text-sm font-medium text-primary transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/15 rounded-full text-sm font-medium text-primary transition-colors"
                   >
-                    <Layers className="h-3.5 w-3.5" />
+                    <Layers className="h-3.5 w-3.5" strokeWidth={1.5} />
                     {dbProduct.category.name}
                   </Link>
                 )}
-                
-                {/* Occasion Badges - using SLUG for friendly URLs */}
+
+                {/* Occasion Badges — neutras, sem cromia competitiva */}
                 {dbProduct?.occasions && dbProduct.occasions.length > 0 && (
                   dbProduct.occasions.map((occasion) => (
                     <Link
                       key={occasion.id}
                       to={`/produtos?ocasiao=${occasion.slug}`}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent hover:bg-accent/80 rounded-full text-sm font-medium text-accent-foreground transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted hover:bg-muted/70 rounded-full text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      <Calendar className="h-3.5 w-3.5" />
+                      <Calendar className="h-3.5 w-3.5" strokeWidth={1.5} />
                       {occasion.name}
                     </Link>
                   ))
                 )}
 
-                {/* Tags */}
+                {/* Tags — neutras, ainda mais discretas */}
                 {dbProduct?.tags && dbProduct.tags.length > 0 && (
                   dbProduct.tags.slice(0, 3).map((tag) => (
                     <Link
                       key={tag.id}
                       to={`/produtos?search=${encodeURIComponent(tag.name)}`}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted hover:bg-muted/80 rounded-full text-xs font-medium text-muted-foreground transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted/60 hover:bg-muted rounded-full text-xs text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      <Tag className="h-3 w-3" />
+                      <Tag className="h-3 w-3" strokeWidth={1.5} />
                       {tag.name}
                     </Link>
                   ))
@@ -856,13 +856,13 @@ const ProductPage = () => {
               })()}
 
 
-              {/* Payment Methods — microcopy discreto, sem pílulas coloridas */}
-              <div className="mb-6">
-                <p className="text-xs text-muted-foreground">
+              {/* Payment Methods — discreto: oculto no mobile, micro no desktop */}
+              <div className="hidden md:block mb-6">
+                <p className="text-[11px] text-muted-foreground/70">
                   Aceitamos
-                  {paymentConfig?.accepted_methods?.pix ? <span className="text-foreground"> PIX</span> : null}
-                  {paymentConfig?.accepted_methods?.credit_card ? <><span className="text-muted-foreground/50">,</span><span className="text-foreground"> Cartão de Crédito</span></> : null}
-                  {paymentConfig?.accepted_methods?.boleto ? <><span className="text-muted-foreground/50">,</span><span className="text-foreground"> Boleto Bancário</span></> : null}
+                  {paymentConfig?.accepted_methods?.pix ? <span className="text-muted-foreground"> PIX</span> : null}
+                  {paymentConfig?.accepted_methods?.credit_card ? <><span className="text-muted-foreground/40">,</span><span className="text-muted-foreground"> Cartão de Crédito</span></> : null}
+                  {paymentConfig?.accepted_methods?.boleto ? <><span className="text-muted-foreground/40">,</span><span className="text-muted-foreground"> Boleto Bancário</span></> : null}
                   .
                 </p>
               </div>
@@ -874,8 +874,8 @@ const ProductPage = () => {
 
 
 
-              {/* Tags Section */}
-              {product.keywords && product.keywords.length > 0 && (
+              {/* Tags Section — oculto quando dbProduct.tags já renderizou chips acima (zero redundância) */}
+              {product.keywords && product.keywords.length > 0 && !(dbProduct?.tags && dbProduct.tags.length > 0) && (
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-3">
                     <Tag className="h-4 w-4 text-muted-foreground" />
@@ -896,8 +896,13 @@ const ProductPage = () => {
                 </div>
               )}
 
-              {/* WhatsApp — CTA inteligente (mensagem enriquecida via buildWhatsAppMessage) */}
+              {/* WhatsApp CTA final — oculto quando QuickSummary (CTA WA editorial) já está ativo,
+                  evitando sensação de mini-checkout repetido. */}
               {(() => {
+                const quickSummaryActive =
+                  resolvePrimaryAction(dbProduct).primary !== "cart" &&
+                  ctaConfig?.quickSummary?.enabled !== false;
+                if (quickSummaryActive) return null;
                 const { url } = buildWhatsAppMessage();
                 return (
                   <div ref={ctaAnchorRef}>
