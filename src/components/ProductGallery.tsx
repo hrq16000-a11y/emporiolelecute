@@ -313,20 +313,87 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
         {/* Horizontal Thumbnails - Below (for horizontal layout) */}
         {layout === 'horizontal' && images.length > 1 && (
           <div className="relative mt-3 sm:mt-4">
-            {/* Edge fade masks for editorial look */}
-            <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-r from-background to-transparent" aria-hidden="true" />
-            <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-l from-background to-transparent" aria-hidden="true" />
+            {/* Edge fade masks (somem suavemente quando não há mais conteúdo no lado) */}
+            <div
+              className={cn(
+                "pointer-events-none absolute left-0 top-0 bottom-0 w-10 z-10 bg-gradient-to-r from-background to-transparent transition-opacity duration-300",
+                canScrollLeft ? "opacity-100" : "opacity-0"
+              )}
+              aria-hidden="true"
+            />
+            <div
+              className={cn(
+                "pointer-events-none absolute right-0 top-0 bottom-0 w-10 z-10 bg-gradient-to-l from-background to-transparent transition-opacity duration-300",
+                canScrollRight ? "opacity-100" : "opacity-0"
+              )}
+              aria-hidden="true"
+            />
 
-            <div className="flex w-full max-w-full gap-4 sm:gap-5 overflow-x-auto overscroll-x-contain pb-3 px-6 scrollbar-hide snap-x snap-mandatory">
+            {/* Mini-seta esquerda — só aparece se houver conteúdo à esquerda */}
+            {canScrollLeft && (
+              <button
+                type="button"
+                onClick={() => scrollThumbs(-1)}
+                aria-label="Rolar miniaturas para a esquerda"
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-20 inline-flex items-center justify-center h-8 w-8 rounded-full bg-background/85 backdrop-blur-sm text-foreground/70 shadow-sm hover:text-foreground hover:bg-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+            )}
+
+            {/* Mini-seta direita — só aparece se houver conteúdo à direita */}
+            {canScrollRight && (
+              <button
+                type="button"
+                onClick={() => scrollThumbs(1)}
+                aria-label="Rolar miniaturas para a direita"
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-20 inline-flex items-center justify-center h-8 w-8 rounded-full bg-background/85 backdrop-blur-sm text-foreground/70 shadow-sm hover:text-foreground hover:bg-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            )}
+
+            <div
+              ref={thumbsRef}
+              role="tablist"
+              aria-label="Miniaturas do produto"
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowRight') {
+                  e.preventDefault();
+                  const next = Math.min(currentIndex + 1, images.length - 1);
+                  goToSlide(next);
+                  thumbItemsRef.current[next]?.focus({ preventScroll: true });
+                } else if (e.key === 'ArrowLeft') {
+                  e.preventDefault();
+                  const prev = Math.max(currentIndex - 1, 0);
+                  goToSlide(prev);
+                  thumbItemsRef.current[prev]?.focus({ preventScroll: true });
+                } else if (e.key === 'Home') {
+                  e.preventDefault();
+                  goToSlide(0);
+                  thumbItemsRef.current[0]?.focus({ preventScroll: true });
+                } else if (e.key === 'End') {
+                  e.preventDefault();
+                  goToSlide(images.length - 1);
+                  thumbItemsRef.current[images.length - 1]?.focus({ preventScroll: true });
+                }
+              }}
+              className="flex w-full max-w-full gap-4 sm:gap-5 overflow-x-auto overscroll-x-contain pb-3 px-8 scrollbar-hide snap-x snap-mandatory scroll-px-8 touch-pan-x"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
               {images.map((image, index) => {
                 const isActive = index === currentIndex;
                 return (
                   <button
                     key={index}
+                    ref={(el) => { thumbItemsRef.current[index] = el; }}
                     onClick={() => goToSlide(index)}
                     aria-label={`Ver imagem ${index + 1} de ${images.length}`}
                     aria-current={isActive ? "true" : undefined}
-                    className="group flex-shrink-0 flex flex-col items-center snap-center focus-visible:outline-none"
+                    role="tab"
+                    aria-selected={isActive}
+                    tabIndex={isActive ? 0 : -1}
+                    className="group flex-shrink-0 flex flex-col items-center snap-center rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-4 focus-visible:ring-offset-background"
                   >
                     <div
                       className={cn(
@@ -336,10 +403,11 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
                     >
                       <img
                         src={optimizeImage(image, { width: 160, resize: "contain" })}
-                        alt={`${productName} - Miniatura ${index + 1}`}
-                        className="w-full h-full object-contain bg-muted/30"
+                        alt=""
+                        className="w-full h-full object-contain bg-muted/30 pointer-events-none"
                         loading="lazy"
                         decoding="async"
+                        draggable={false}
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = '/placeholder.svg';
                         }}
