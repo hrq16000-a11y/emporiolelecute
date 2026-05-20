@@ -99,8 +99,8 @@ const Header = () => {
     <header 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled 
-          ? "bg-background/80 backdrop-blur-lg border-b border-border/50 shadow-medium py-1" 
-          : "bg-background/95 backdrop-blur-md border-b border-border/30 py-3"
+          ? "bg-background/80 backdrop-blur-lg border-b border-border/50 shadow-medium py-1 md:py-1" 
+          : "bg-background/95 backdrop-blur-md border-b border-border/30 py-2 md:py-3"
       }`}
     >
       <nav ref={navRef} className="container mx-auto px-4" aria-label="Navegação principal">
