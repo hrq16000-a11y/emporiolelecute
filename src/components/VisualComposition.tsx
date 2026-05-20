@@ -91,7 +91,7 @@ export default function VisualComposition({ currentProductId, occasions, limit =
             key={p.id}
             to={urls.product(p.slug)}
             className={`group relative block aspect-square rounded-xl overflow-hidden bg-muted ${
-              i === 0 ? "col-span-2 row-span-2 w-36 sm:w-40 md:w-44" : "w-[68px] sm:w-19 md:w-20"
+              i === 0 ? "col-span-2 row-span-2 w-36 sm:w-40 md:w-44" : "w-[68px] sm:w-[76px] md:w-20"
             }`}
             title={p.name}
           >
