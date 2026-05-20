@@ -9,7 +9,7 @@ interface Props {
 }
 
 const DEFAULT_MESSAGE =
-  "Olá! Vim pelo site e gostaria de saber mais sobre as lembrancinhas personalizadas.";
+  "Oi, aqui é da LeleCute. Vim do site e gostaria de conversar sobre as lembrancinhas.";
 
 const WhatsAppButton = ({ message, ariaLabel }: Props = {}) => {
   const { buildWhatsappUrl } = useContactInfo();

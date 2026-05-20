@@ -82,18 +82,18 @@ export const DEFAULT_CONVERSION_CTA: ConversionCtaConfig = {
   },
   quickSummary: {
     enabled: true,
-    title: "Resumo rápido do pedido",
+    title: "Resumo do pedido",
     minLabel: "Mínimo",
     prazoLabel: "Prazo",
     shippingLabel: "Envio",
     shippingValue: "Brasil",
-    ctaLabel: "Pedir orçamento no WhatsApp",
+    ctaLabel: "Conversar no WhatsApp",
   },
   exitPopup: {
     enabled: true,
-    title: "Espera! Posso te ajudar?",
+    title: "Antes de sair",
     description:
-      "Antes de sair, fale com a gente no WhatsApp — respondemos rapidinho com valor, prazo e personalização.",
+      "Posso te orientar pelo WhatsApp — sobre prazos, personalização e o que faz sentido para a sua ocasião.",
     ctaLabel: "Falar no WhatsApp",
     dismissLabel: "Continuar navegando",
     maxPerSession: 1,
@@ -102,11 +102,11 @@ export const DEFAULT_CONVERSION_CTA: ConversionCtaConfig = {
   },
   whatsappTemplate: {
     template:
-      "Olá! Tenho interesse no produto *{produto}*.{contexto}\n\n📝 *Detalhes:*\n- Quantidade: {qtd} unidades\n{personalizacao_linha}- Link: {link}{imagem_linha}\n\nPoderia me ajudar com o valor do frete e prazos?",
+      "Oi, aqui é da LeleCute. Vi seu interesse em *{produto}*.{contexto}\n\nQuantidade pensada: {qtd} unidades.\n{personalizacao_linha}Link: {link}{imagem_linha}\n\nMe conta um pouco da ocasião para eu te orientar melhor.",
   },
   toast: {
     enabled: true,
-    message: "Abrindo o WhatsApp… se não abrir automaticamente, verifique o popup do navegador.",
+    message: "Abrindo a conversa no WhatsApp.",
     durationMs: 4000,
   },
   pdpBadge: {
