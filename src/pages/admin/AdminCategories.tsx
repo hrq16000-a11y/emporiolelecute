@@ -395,6 +395,22 @@ const AdminCategories = () => {
     setEditImageUrl('');
   };
 
+  // Bloco 3 SAFE — toggle inline de is_draft / is_indexed direto na lista
+  const handleToggleField = async (
+    id: string,
+    field: 'is_draft' | 'is_indexed',
+    value: boolean,
+  ) => {
+    try {
+      const { error } = await supabase.from('categories').update({ [field]: value }).eq('id', id);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast({ title: field === 'is_draft' ? (value ? 'Marcado como rascunho' : 'Publicado') : (value ? 'Indexável ativado' : 'Removido do índice') });
+    } catch {
+      toast({ title: 'Erro ao atualizar', variant: 'destructive' });
+    }
+  };
+
   const handleSaveEdit = async () => {
     if (!editingId || !editName.trim() || !editSlug.trim()) return;
     if (editSlugCheck.status === 'taken' || editSlugCheck.status === 'invalid') {
