@@ -160,7 +160,9 @@ export const usePaymentConfig = () => {
 
       return defaultPaymentConfig;
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    placeholderData: defaultPaymentConfig,
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 60,
   });
 };
 
