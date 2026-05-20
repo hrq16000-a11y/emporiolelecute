@@ -229,10 +229,11 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
       {/* Main Image Container */}
       <div className="flex-1 min-w-0 max-w-full">
         <div
-          className="relative aspect-square w-full max-w-full rounded-xl sm:rounded-2xl overflow-hidden bg-muted shadow-card sm:shadow-lg group cursor-pointer"
+          className="relative aspect-square w-full max-w-full rounded-xl sm:rounded-2xl overflow-hidden bg-muted shadow-card sm:shadow-lg group cursor-pointer touch-pan-y select-none"
           data-testid="pdp-gallery-main"
           onClick={() => setIsZoomed(true)}
           onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
