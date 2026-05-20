@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, type TouchEvent } from "react";
 import { Heart, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 
 import TrustBadges from "@/components/TrustBadges";
@@ -270,6 +270,7 @@ const HeroSlider = () => {
   const [reducedMotion, setReducedMotion] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef<HTMLDivElement>(null);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const [stageHeight, setStageHeight] = useState<number | "auto">("auto");
 
   // Detect prefers-reduced-motion
@@ -309,9 +310,11 @@ const HeroSlider = () => {
 
   useEffect(() => {
     if (prevSlide === null) return;
-    const t = setTimeout(() => setPrevSlide(null), 600);
+    const t = setTimeout(() => setPrevSlide(null), 720);
     return () => clearTimeout(t);
   }, [prevSlide, currentSlide]);
+
+  const activeSlideId = slides[currentSlide]?.id;
 
   // Animate stage height to match the active slide.
   // Stable observer (deps []), rAF-coalesced, no-op when value unchanged.
@@ -328,6 +331,7 @@ const HeroSlider = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
         const h = Math.round(el.offsetHeight);
+        if (h < 1) return;
         setStageHeight((prev) => (typeof prev === "number" && Math.abs(prev - h) < 1 ? prev : h));
       });
     };
@@ -338,7 +342,7 @@ const HeroSlider = () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
     };
-  }, [currentSlide, reducedMotion]);
+  }, [currentSlide, reducedMotion, activeSlideId]);
 
   const slide = slides[currentSlide] ?? slides[0];
   if (!slide) return null;
@@ -352,6 +356,29 @@ const HeroSlider = () => {
     () => goTo((currentSlide - 1 + slides.length) % slides.length),
     [goTo, currentSlide, slides.length]
   );
+
+  const handleTouchStart = useCallback((event: TouchEvent<HTMLDivElement>) => {
+    if (typeof window !== "undefined" && window.innerWidth >= 768) return;
+    const touch = event.touches[0];
+    if (!touch) return;
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+  }, []);
+
+  const handleTouchEnd = useCallback((event: TouchEvent<HTMLDivElement>) => {
+    const start = touchStartRef.current;
+    touchStartRef.current = null;
+    if (!start || (typeof window !== "undefined" && window.innerWidth >= 768)) return;
+
+    const touch = event.changedTouches[0];
+    if (!touch) return;
+
+    const deltaX = touch.clientX - start.x;
+    const deltaY = touch.clientY - start.y;
+    if (Math.abs(deltaX) < 44 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25) return;
+
+    if (deltaX < 0) nextSlideFn();
+    else prevSlideFn();
+  }, [nextSlideFn, prevSlideFn]);
 
   const isPriority = currentSlide === 0;
   const hasAnyBanner = Boolean(
@@ -379,7 +406,9 @@ const HeroSlider = () => {
       {/* Cross-fade stage: previous + current slide stacked, opacity transition */}
       <div
         ref={stageRef}
-        className="relative w-full motion-safe:transition-[height] motion-safe:duration-500 motion-safe:ease-out"
+        className="relative w-full touch-pan-y motion-safe:transition-[height] motion-safe:duration-700 motion-safe:ease-in-out"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
         style={{
           height: stageHeight === "auto" ? undefined : stageHeight,
           minHeight: hasAnyBanner ? undefined : 280,
@@ -388,7 +417,7 @@ const HeroSlider = () => {
         {previous && (
           <div
             key={`prev-${previous.id}-${prevSlide}`}
-            className="absolute inset-0 w-full motion-safe:transition-opacity motion-safe:duration-700 motion-safe:ease-in-out opacity-0 motion-reduce:hidden pointer-events-none"
+            className="absolute inset-0 w-full hero-fade-out motion-reduce:hidden pointer-events-none"
             aria-hidden="true"
           >
             <SlideRenderer slide={previous} isPriority={false} />
@@ -400,11 +429,34 @@ const HeroSlider = () => {
           className={
             reducedMotion
               ? "relative w-full"
-              : "relative w-full opacity-0 animate-[fade-opacity_700ms_ease-in-out_forwards] motion-reduce:opacity-100"
+              : "relative w-full opacity-0 hero-fade-in motion-reduce:opacity-100"
           }
         >
           <SlideRenderer slide={slide} isPriority={isPriority} />
         </div>
+
+        {slides.length > 1 && (
+          <>
+            <button
+              onClick={prevSlideFn}
+              className="absolute left-2 md:left-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 md:w-12 md:h-12 bg-transparent md:bg-background/80 md:backdrop-blur-sm md:shadow-md rounded-full flex items-center justify-center hover:bg-primary/10 md:hover:bg-primary hover:text-primary md:hover:text-primary-foreground active:scale-95 transition-all"
+              aria-label="Slide anterior"
+            >
+              <span className="flex h-8 w-8 md:h-auto md:w-auto items-center justify-center rounded-full bg-background/85 shadow-sm md:bg-transparent md:shadow-none">
+                <ChevronLeft className="h-4 w-4 md:h-6 md:w-6" />
+              </span>
+            </button>
+            <button
+              onClick={nextSlideFn}
+              className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 md:w-12 md:h-12 bg-transparent md:bg-background/80 md:backdrop-blur-sm md:shadow-md rounded-full flex items-center justify-center hover:bg-primary/10 md:hover:bg-primary hover:text-primary md:hover:text-primary-foreground active:scale-95 transition-all"
+              aria-label="Próximo slide"
+            >
+              <span className="flex h-8 w-8 md:h-auto md:w-auto items-center justify-center rounded-full bg-background/85 shadow-sm md:bg-transparent md:shadow-none">
+                <ChevronRight className="h-4 w-4 md:h-6 md:w-6" />
+              </span>
+            </button>
+          </>
+        )}
       </div>
 
       {/* Navigation dots + arrows — shown when there are multiple slides */}
@@ -412,43 +464,33 @@ const HeroSlider = () => {
         <>
           {/* Dots */}
           <div
-            className={`flex items-center justify-center gap-3 ${
-              isBanner ? "pt-2 pb-1 md:pt-3 md:pb-2" : "pb-3"
+            className={`flex items-center justify-center gap-2 md:gap-3 ${
+              isBanner ? "pt-1.5 pb-0 md:pt-3 md:pb-2" : "pb-3"
             } relative z-10`}
           >
             {slides.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goTo(index)}
-                className={`h-3 rounded-full transition-all duration-500 ease-out ${
-                  index === currentSlide
-                    ? "bg-primary w-10"
-                    : "bg-primary/30 w-3 hover:bg-primary/50"
-                }`}
+                className="inline-flex h-8 min-w-8 items-center justify-center rounded-full transition-all duration-500 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 aria-label={`Slide ${index + 1}`}
-              />
+              >
+                <span className="sr-only">Slide {index + 1}</span>
+                <span
+                  className={`block h-2.5 rounded-full transition-all duration-500 ease-in-out ${
+                    index === currentSlide
+                      ? "w-8 bg-primary md:w-10"
+                      : "w-2.5 bg-primary/30 hover:bg-primary/50 md:w-3"
+                  }`}
+                />
+              </button>
             ))}
           </div>
 
-          {/* Prev / Next arrows */}
-          <button
-            onClick={prevSlideFn}
-            className="absolute left-2 md:left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 md:w-12 md:h-12 bg-background/80 backdrop-blur-sm rounded-full shadow-md flex items-center justify-center hover:bg-primary hover:text-primary-foreground active:scale-95 transition-all"
-            aria-label="Slide anterior"
-          >
-            <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
-          </button>
-          <button
-            onClick={nextSlideFn}
-            className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 md:w-12 md:h-12 bg-background/80 backdrop-blur-sm rounded-full shadow-md flex items-center justify-center hover:bg-primary hover:text-primary-foreground active:scale-95 transition-all"
-            aria-label="Próximo slide"
-          >
-            <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
-          </button>
         </>
       )}
 
-      <TrustBadges className="mt-2 md:mt-4" />
+      <TrustBadges className="mt-1 md:mt-4" />
     </section>
   );
 };
