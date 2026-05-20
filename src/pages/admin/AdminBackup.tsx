@@ -1,17 +1,19 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Download, Upload, Database, Image as ImageIcon, ShoppingBag, FileCode2, AlertTriangle, Loader2 } from "lucide-react";
+import { Download, Upload, Database, Image as ImageIcon, ShoppingBag, FileCode2, AlertTriangle, Loader2, Package } from "lucide-react";
 
 type ExportManifest = {
   version: number;
@@ -35,12 +37,50 @@ export default function AdminBackup() {
   const [importPreview, setImportPreview] = useState<{ products: number; cats: number; occs: number; tags: number; kits: number; images: number; orders: number } | null>(null);
   const [importReport, setImportReport] = useState<unknown>(null);
 
+  // Per-product selection
+  const [productList, setProductList] = useState<{ external_ref: string; name: string; slug: string; is_active: boolean }[]>([]);
+  const [selectedRefs, setSelectedRefs] = useState<Set<string>>(new Set());
+  const [filterQ, setFilterQ] = useState("");
+  const [exportMode, setExportMode] = useState<"all" | "selected">("all");
+
+  useEffect(() => {
+    (async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("external_ref, name, slug, is_active")
+        .order("name");
+      if (error) { console.warn(error); return; }
+      setProductList((data ?? []).filter((p) => p.external_ref));
+    })();
+  }, []);
+
+  const filteredProducts = useMemo(() => {
+    const q = filterQ.trim().toLowerCase();
+    if (!q) return productList;
+    return productList.filter((p) => p.name.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q) || p.external_ref.toLowerCase().includes(q));
+  }, [productList, filterQ]);
+
+  function toggleRef(ref: string) {
+    setSelectedRefs((s) => {
+      const n = new Set(s);
+      if (n.has(ref)) n.delete(ref); else n.add(ref);
+      return n;
+    });
+  }
+  function selectAllVisible() { setSelectedRefs(new Set(filteredProducts.map((p) => p.external_ref))); }
+  function clearSelection() { setSelectedRefs(new Set()); }
+
   async function handleExport() {
     setExporting(true);
     setProgress(2);
     setProgressLabel("Coletando dados do servidor...");
     try {
-      const { data, error } = await supabase.functions.invoke<ExportManifest>("admin-backup-export", { body: { scope } });
+      const productRefs = exportMode === "selected" ? Array.from(selectedRefs) : undefined;
+      if (exportMode === "selected" && (!productRefs || productRefs.length === 0)) {
+        toast.error("Selecione ao menos um produto");
+        setExporting(false); setProgress(0); return;
+      }
+      const { data, error } = await supabase.functions.invoke<ExportManifest>("admin-backup-export", { body: { scope, productRefs } });
       if (error || !data) throw new Error(error?.message ?? "Falha ao exportar");
       setProgress(25);
 
@@ -81,7 +121,8 @@ export default function AdminBackup() {
       setProgressLabel("Compactando ZIP...");
       const blob = await zip.generateAsync({ type: "blob", compression: "DEFLATE", compressionOptions: { level: 6 } });
       const stamp = new Date().toISOString().slice(0, 10);
-      saveAs(blob, `backup-emporio-${stamp}.zip`);
+      const suffix = exportMode === "selected" ? `-${selectedRefs.size}produtos` : "";
+      saveAs(blob, `backup-emporio${suffix}-${stamp}.zip`);
       setProgress(100);
       setProgressLabel("Pronto.");
       toast.success("Backup gerado com sucesso");
@@ -221,6 +262,53 @@ export default function AdminBackup() {
                   <AlertDescription>O arquivo conterá nomes, e-mails, telefones e endereços de clientes. Armazene em local seguro.</AlertDescription>
                 </Alert>
               )}
+
+              <div className="space-y-3 pt-2 border-t">
+                <div>
+                  <Label className="text-sm font-medium flex items-center gap-2"><Package className="w-4 h-4" />Escopo dos produtos</Label>
+                  <div className="mt-2 space-y-2">
+                    <Label className="flex items-start gap-3 cursor-pointer">
+                      <input type="radio" checked={exportMode === "all"} onChange={() => setExportMode("all")} className="mt-1" />
+                      <div>
+                        <p className="text-sm font-medium">Todos os produtos</p>
+                        <p className="text-xs text-muted-foreground">Catálogo completo ({productList.length} produtos)</p>
+                      </div>
+                    </Label>
+                    <Label className="flex items-start gap-3 cursor-pointer">
+                      <input type="radio" checked={exportMode === "selected"} onChange={() => setExportMode("selected")} className="mt-1" />
+                      <div>
+                        <p className="text-sm font-medium">Apenas produtos selecionados ({selectedRefs.size})</p>
+                        <p className="text-xs text-muted-foreground">Exporta SQL + imagens só dos produtos marcados. Categorias e kits relacionados são incluídos automaticamente.</p>
+                      </div>
+                    </Label>
+                  </div>
+                </div>
+
+                {exportMode === "selected" && (
+                  <div className="rounded-lg border p-3 space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Input placeholder="Filtrar por nome, slug ou ref..." value={filterQ} onChange={(e) => setFilterQ(e.target.value)} className="flex-1 min-w-[200px] h-9" />
+                      <Button type="button" variant="outline" size="sm" onClick={selectAllVisible}>Selecionar visíveis</Button>
+                      <Button type="button" variant="ghost" size="sm" onClick={clearSelection}>Limpar</Button>
+                    </div>
+                    <ScrollArea className="h-64 rounded border">
+                      <div className="p-2 space-y-1">
+                        {filteredProducts.length === 0 && <p className="text-sm text-muted-foreground p-2">Nenhum produto encontrado.</p>}
+                        {filteredProducts.map((p) => (
+                          <Label key={p.external_ref} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer">
+                            <Checkbox checked={selectedRefs.has(p.external_ref)} onCheckedChange={() => toggleRef(p.external_ref)} />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm truncate">{p.name} {!p.is_active && <Badge variant="outline" className="ml-1 text-[10px]">inativo</Badge>}</p>
+                              <p className="text-[11px] text-muted-foreground truncate">{p.external_ref}</p>
+                            </div>
+                          </Label>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                )}
+              </div>
+
               {exporting && (
                 <div className="space-y-1">
                   <Progress value={progress} />
