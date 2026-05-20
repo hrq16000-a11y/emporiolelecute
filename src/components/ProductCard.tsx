@@ -112,14 +112,21 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
       
       {/* Product Info */}
       <div className="p-3 md:p-5">
-        {/* Rating — inline discreto, sem amarelo marketplace */}
-        <div className="flex items-center gap-1 mb-2 text-muted-foreground" itemProp="aggregateRating" itemScope itemType="https://schema.org/AggregateRating">
+        {/* Rating — meta sempre presente para SEO; visual oculto em mobile (ruído marketplace) */}
+        <div className="hidden md:flex items-center gap-1 mb-2 text-muted-foreground/80" itemProp="aggregateRating" itemScope itemType="https://schema.org/AggregateRating">
           <meta itemProp="ratingValue" content={String(product.rating)} />
           <meta itemProp="ratingCount" content="1" />
           <meta itemProp="reviewCount" content="1" />
           <meta itemProp="bestRating" content="5" />
           <Star className="h-3 w-3 fill-current" strokeWidth={0} />
           <span className="text-[10px] md:text-xs">{product.rating.toFixed(1)}</span>
+        </div>
+        {/* Schema-only mirror para mobile (mantém rich snippets sem ruído visual) */}
+        <div className="md:hidden sr-only" itemProp="aggregateRating" itemScope itemType="https://schema.org/AggregateRating">
+          <meta itemProp="ratingValue" content={String(product.rating)} />
+          <meta itemProp="ratingCount" content="1" />
+          <meta itemProp="reviewCount" content="1" />
+          <meta itemProp="bestRating" content="5" />
         </div>
 
         {/* Name — peso leve, sem hover coral */}
@@ -152,7 +159,7 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
           const personalizable = !!product.personalization_enabled;
           if (!speed && !minQty && !personalizable) return null;
           return (
-            <ul className="mt-2 mb-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] md:text-xs text-muted-foreground">
+            <ul className="mt-2 mb-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] md:text-xs text-muted-foreground/70">
               {minQty && (
                 <li className="inline-flex items-center gap-1">
                   <span aria-hidden>•</span> Mín. {minQty} un.
@@ -172,10 +179,10 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
           );
         })()}
 
-        {/* CTA — link editorial, sem affordance ecommerce */}
+        {/* CTA — link editorial; sem border em mobile (card inteiro já é clicável) */}
         <Link
           to={urls.product(product.slug)}
-          className="inline-flex items-center gap-1 mt-3 text-xs md:text-sm text-foreground/80 hover:text-foreground border-b border-border/60 hover:border-foreground/60 pb-0.5 transition-colors"
+          className="inline-flex items-center gap-1 mt-3 text-xs md:text-sm text-foreground/70 md:text-foreground/80 hover:text-foreground border-b-0 md:border-b md:border-border/60 md:hover:border-foreground/60 pb-0.5 transition-colors"
         >
           Ver detalhes
           <ArrowRight className="h-3 w-3 md:h-3.5 md:w-3.5" strokeWidth={1.5} />
