@@ -85,7 +85,7 @@ export default function VisualComposition({ currentProductId, occasions, limit =
       <p className="text-sm text-muted-foreground mb-4">
         Composição visual sugerida para a mesma ocasião.
       </p>
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 md:gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 md:gap-3">
         {items.map((p, i) => (
           <Link
             key={p.id}
