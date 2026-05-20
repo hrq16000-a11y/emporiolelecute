@@ -163,11 +163,12 @@ const RelatedSmart = ({ currentProductId, occasions, tags, category, limit = 8 }
     : null;
 
   return (
-    <section className="mb-12 max-w-full overflow-hidden">
+    <section className="mb-10 md:mb-12 max-w-full overflow-hidden">
       <div className="flex items-end justify-between gap-4 mb-5 flex-wrap">
         <div className="space-y-1">
-          <h2 className="font-display text-2xl text-foreground">
-            {primary?.label ?? "Você também pode gostar"}
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70">Você também pode gostar</p>
+          <h2 className="font-display text-lg md:text-xl font-light text-foreground">
+            {primary?.label ?? "Seleção para você"}
           </h2>
           {primary && (
             <p className="text-sm text-muted-foreground">
@@ -181,7 +182,7 @@ const RelatedSmart = ({ currentProductId, occasions, tags, category, limit = 8 }
         {primary && (
           <Link
             to={`${primary.prefix}/${primary.t.slug}`}
-            className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground border-b border-border/60 hover:border-foreground/60 pb-0.5"
           >
             Ver todos <ArrowRight className="h-3.5 w-3.5" />
           </Link>
