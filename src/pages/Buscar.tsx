@@ -37,6 +37,7 @@ const Buscar = () => {
   const debouncedQuery = useDebounce(query, 300);
   const { data: dbProducts, isLoading } = useDbProducts();
   const { data: dbCategories } = useDbCategories({ publicOnly: true });
+  const { data: synonyms } = useSearchSynonyms();
 
   // Autofoco no campo ao abrir a página (UX mobile)
   useEffect(() => {
