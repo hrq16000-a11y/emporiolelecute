@@ -383,23 +383,33 @@ const HeroSlider = () => {
     const touch = event.touches[0];
     if (!touch) return;
     touchStartRef.current = { x: touch.clientX, y: touch.clientY };
-  }, []);
+    pauseAutoplay();
+  }, [pauseAutoplay]);
 
   const handleTouchEnd = useCallback((event: TouchEvent<HTMLDivElement>) => {
     const start = touchStartRef.current;
     touchStartRef.current = null;
-    if (!start || (typeof window !== "undefined" && window.innerWidth >= 768)) return;
+    if (!start || (typeof window !== "undefined" && window.innerWidth >= 768)) {
+      scheduleResume();
+      return;
+    }
 
     const touch = event.changedTouches[0];
-    if (!touch) return;
+    if (touch) {
+      const deltaX = touch.clientX - start.x;
+      const deltaY = touch.clientY - start.y;
+      if (Math.abs(deltaX) >= 44 && Math.abs(deltaX) >= Math.abs(deltaY) * 1.25) {
+        if (deltaX < 0) nextSlideFn();
+        else prevSlideFn();
+      }
+    }
+    scheduleResume();
+  }, [nextSlideFn, prevSlideFn, scheduleResume]);
 
-    const deltaX = touch.clientX - start.x;
-    const deltaY = touch.clientY - start.y;
-    if (Math.abs(deltaX) < 44 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25) return;
-
-    if (deltaX < 0) nextSlideFn();
-    else prevSlideFn();
-  }, [nextSlideFn, prevSlideFn]);
+  const handleTouchCancel = useCallback(() => {
+    touchStartRef.current = null;
+    scheduleResume();
+  }, [scheduleResume]);
 
   const isPriority = currentSlide === 0;
   const hasAnyBanner = Boolean(
