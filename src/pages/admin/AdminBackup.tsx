@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Download, Upload, Database, Image as ImageIcon, ShoppingBag, FileCode2, AlertTriangle, Loader2, Package } from "lucide-react";
+import { Download, Upload, Database, Image as ImageIcon, ShoppingBag, FileCode2, AlertTriangle, Loader2, Package, ShieldCheck } from "lucide-react";
 
 type ExportManifest = {
   version: number;
@@ -231,6 +231,7 @@ export default function AdminBackup() {
         <TabsList>
           <TabsTrigger value="export"><Download className="w-4 h-4 mr-2" />Exportar</TabsTrigger>
           <TabsTrigger value="import"><Upload className="w-4 h-4 mr-2" />Importar</TabsTrigger>
+          <TabsTrigger value="audit"><ShieldCheck className="w-4 h-4 mr-2" />Auditoria do sistema</TabsTrigger>
         </TabsList>
 
         <TabsContent value="export" className="space-y-4">
@@ -395,7 +396,159 @@ export default function AdminBackup() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="audit" className="space-y-4">
+          <AuditTab />
+        </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+type AuditPayload = {
+  generated_at: string;
+  report: string;
+  schema: Record<string, unknown[]>;
+  config: Record<string, unknown[]>;
+  users: unknown[];
+  secrets_inventory: string[];
+  edge_functions: string[];
+};
+
+function AuditTab() {
+  const [running, setRunning] = useState(false);
+  const [payload, setPayload] = useState<AuditPayload | null>(null);
+
+  async function runAudit() {
+    setRunning(true);
+    setPayload(null);
+    try {
+      const { data, error } = await supabase.functions.invoke<AuditPayload>("admin-system-audit", { body: {} });
+      if (error || !data) throw new Error(error?.message ?? "Falha");
+      setPayload(data);
+      toast.success("Auditoria coletada");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  async function downloadZip() {
+    if (!payload) return;
+    const zip = new JSZip();
+    zip.file("report.md", payload.report);
+    zip.file("generated_at.txt", payload.generated_at);
+
+    const schema = zip.folder("schema")!;
+    for (const [k, v] of Object.entries(payload.schema ?? {})) {
+      schema.file(`${k}.json`, JSON.stringify(v, null, 2));
+    }
+
+    const cfg = zip.folder("config")!;
+    for (const [k, v] of Object.entries(payload.config ?? {})) {
+      cfg.file(`${k}.json`, JSON.stringify(v, null, 2));
+    }
+
+    const users = zip.folder("users")!;
+    users.file("auth_users.json", JSON.stringify(payload.users, null, 2));
+    users.file("user_roles.json", JSON.stringify(payload.schema.user_roles ?? [], null, 2));
+    users.file("profiles.json", JSON.stringify(payload.schema.profiles ?? [], null, 2));
+
+    zip.file("secrets_inventory.json", JSON.stringify(payload.secrets_inventory, null, 2));
+    zip.file("edge_functions.json", JSON.stringify(payload.edge_functions, null, 2));
+
+    // SQL legível das policies
+    const policies = (payload.schema.policies as Array<Record<string, unknown>>) ?? [];
+    let sql = "-- RLS POLICIES SNAPSHOT\n-- " + payload.generated_at + "\n\n";
+    for (const p of policies) {
+      sql += `-- ${p.table} :: ${p.name} (${p.cmd})\n`;
+      sql += `CREATE POLICY "${p.name}" ON public."${p.table}" `;
+      sql += `AS ${p.permissive === "PERMISSIVE" || p.permissive === true ? "PERMISSIVE" : "RESTRICTIVE"} `;
+      sql += `FOR ${p.cmd} `;
+      if (Array.isArray(p.roles)) sql += `TO ${(p.roles as string[]).join(", ")} `;
+      if (p.using) sql += `\n  USING (${p.using}) `;
+      if (p.with_check) sql += `\n  WITH CHECK (${p.with_check}) `;
+      sql += ";\n\n";
+    }
+    zip.file("schema/rls_policies.sql", sql);
+
+    const blob = await zip.generateAsync({ type: "blob", compression: "DEFLATE" });
+    const stamp = new Date().toISOString().slice(0, 10);
+    saveAs(blob, `auditoria-sistema-${stamp}.zip`);
+  }
+
+  const counts = payload ? {
+    tables: payload.schema.tables?.length ?? 0,
+    policies: payload.schema.policies?.length ?? 0,
+    functions: payload.schema.functions?.length ?? 0,
+    triggers: payload.schema.triggers?.length ?? 0,
+    users: payload.users?.length ?? 0,
+    secrets: payload.secrets_inventory?.length ?? 0,
+    config: Object.keys(payload.config ?? {}).length,
+  } : null;
+
+  const rlsDisabled = payload
+    ? ((payload.schema.tables as Array<{ name: string; rls_enabled: boolean }>) ?? []).filter((t) => !t.rls_enabled)
+    : [];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Auditoria completa do sistema</CardTitle>
+        <CardDescription>
+          Coleta schema do banco, políticas RLS, triggers, funções, índices, buckets, tarefas agendadas,
+          configurações administrativas, contas de usuário, papéis, inventário de segredos e edge functions.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Alert variant="destructive">
+          <AlertTriangle className="w-4 h-4" />
+          <AlertTitle>Contém dados sensíveis (LGPD)</AlertTitle>
+          <AlertDescription>
+            O ZIP inclui emails e IDs de todos os usuários. Armazene em local seguro com acesso restrito
+            e descarte quando não for mais necessário.
+          </AlertDescription>
+        </Alert>
+
+        <Button onClick={runAudit} disabled={running}>
+          {running ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Coletando...</> : <><ShieldCheck className="w-4 h-4 mr-2" />Executar auditoria</>}
+        </Button>
+
+        {payload && counts && (
+          <div className="space-y-4">
+            <div className="rounded-lg border p-4 space-y-3">
+              <p className="text-sm font-medium">Resumo coletado</p>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="secondary">{counts.tables} tabelas</Badge>
+                <Badge variant={rlsDisabled.length ? "destructive" : "secondary"}>
+                  {rlsDisabled.length} sem RLS
+                </Badge>
+                <Badge variant="secondary">{counts.policies} políticas RLS</Badge>
+                <Badge variant="secondary">{counts.functions} funções</Badge>
+                <Badge variant="secondary">{counts.triggers} triggers</Badge>
+                <Badge variant="secondary">{counts.users} usuários</Badge>
+                <Badge variant="secondary">{counts.config} tabelas de config</Badge>
+                <Badge variant="secondary">{counts.secrets} segredos</Badge>
+              </div>
+              {rlsDisabled.length > 0 && (
+                <div className="text-xs text-destructive">
+                  <strong>⚠️ Tabelas sem RLS:</strong> {rlsDisabled.map((t) => t.name).join(", ")}
+                </div>
+              )}
+            </div>
+
+            <Button onClick={downloadZip} variant="default">
+              <Download className="w-4 h-4 mr-2" />Baixar pacote ZIP completo
+            </Button>
+
+            <details className="rounded-lg border p-3">
+              <summary className="text-sm font-medium cursor-pointer">Pré-visualização do relatório</summary>
+              <pre className="text-xs bg-muted p-3 rounded overflow-x-auto mt-2 whitespace-pre-wrap">{payload.report}</pre>
+            </details>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
