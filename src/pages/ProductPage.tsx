@@ -47,6 +47,8 @@ import BreadcrumbStructuredData from "@/components/BreadcrumbStructuredData";
 import TrustBadges from "@/components/TrustBadges";
 import { PdpBadge, resolveEffectiveBadge } from "@/components/PdpBadge";
 import FAQSection from "@/components/FAQSection";
+import { ProductFAQ } from "@/components/ProductFAQ";
+import { useProductFaqs, buildAutoFaq } from "@/hooks/useProductFaqs";
 import { useDbProduct, useDbProducts } from "@/hooks/useProducts";
 import { useProductReviews, useProductReviewStats } from "@/hooks/useProductReviews";
 import ProductReviews from "@/components/ProductReviews";
@@ -765,6 +767,8 @@ const ProductPage = () => {
                 personalization={personalization}
                 onWhatsApp={() => openWhatsApp("quick_summary")}
                 productSlug={product.slug}
+                productName={product.name}
+                occasionName={dbProduct?.occasions?.[0]?.name}
                 enabled={
                   resolvePrimaryAction(dbProduct).primary !== "cart" &&
                   ctaConfig?.quickSummary?.enabled !== false
@@ -975,6 +979,20 @@ const ProductPage = () => {
       </main>
 
       <TrustBadges />
+
+      {/* FAQ editorial por PDP — overrides do admin (product_faqs) ou fallback automático */}
+      {dbProduct?.id && (
+        <section className="container mx-auto px-4">
+          <ProductPdpFaq
+            productId={dbProduct.id}
+            productName={product.name}
+            productionDays={dbProduct.production_days}
+            personalizationEnabled={dbProduct.personalization_enabled}
+            categoryName={dbProduct.category?.name ?? null}
+          />
+        </section>
+      )}
+
       <FAQSection />
 
       <Footer />
@@ -1018,5 +1036,25 @@ const ProductPage = () => {
     </div>
   );
 };
+
+function ProductPdpFaq({
+  productId,
+  productName,
+  productionDays,
+  personalizationEnabled,
+  categoryName,
+}: {
+  productId: string;
+  productName: string;
+  productionDays?: number | null;
+  personalizationEnabled?: boolean | null;
+  categoryName?: string | null;
+}) {
+  const { data: pf = [] } = useProductFaqs(productId);
+  const items = pf.length > 0
+    ? pf.map((f) => ({ question: f.question, answer: f.answer }))
+    : buildAutoFaq({ productName, productionDays, personalizationEnabled, categoryName });
+  return <ProductFAQ productName={productName} items={items} />;
+}
 
 export default ProductPage;

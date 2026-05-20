@@ -11,6 +11,8 @@ interface QuickQuoteSummaryProps {
   personalization?: string;
   onWhatsApp: () => void;
   productSlug?: string;
+  productName?: string;
+  occasionName?: string;
   enabled?: boolean;
   title?: string;
   minLabel?: string;
@@ -27,6 +29,8 @@ export const QuickQuoteSummary = ({
   personalization,
   onWhatsApp,
   productSlug,
+  productName,
+  occasionName,
   enabled = true,
   title = "Resumo rápido do pedido",
   minLabel = "Mínimo",
@@ -47,6 +51,13 @@ export const QuickQuoteSummary = ({
   const safeQty = normalizeQuantity(quantity);
   const hasPerson = Boolean(normalizePersonalization(personalization));
 
+  // Refinamento: CTA cita produto/ocasião quando disponíveis, sem alterar a lógica de envio.
+  const contextualCta = (() => {
+    if (productName && occasionName) return `Falar sobre ${productName} para ${occasionName}`;
+    if (productName) return `Falar sobre ${productName} no WhatsApp`;
+    return ctaLabel;
+  })();
+
   return (
     <section
       aria-label={title}
@@ -60,6 +71,16 @@ export const QuickQuoteSummary = ({
         <span className="font-semibold text-foreground">
           {safeQty} unidade{safeQty > 1 ? "s" : ""}
         </span>
+        {productName ? (
+          <>
+            {" "}de <span className="font-semibold text-foreground">{productName}</span>
+          </>
+        ) : null}
+        {occasionName ? (
+          <>
+            {" "}para <span className="font-semibold text-foreground">{occasionName}</span>
+          </>
+        ) : null}
         {hasPerson ? " com personalização" : ""}.
       </div>
 
@@ -69,7 +90,7 @@ export const QuickQuoteSummary = ({
         className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white font-bold rounded-lg"
       >
         <MessageCircle className="h-4 w-4 mr-2" />
-        {ctaLabel}
+        {contextualCta}
       </Button>
     </section>
   );
