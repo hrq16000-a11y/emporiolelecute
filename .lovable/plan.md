@@ -1,95 +1,70 @@
-# Disable "Complete o kit" + expand PDP Badge
+# Exportar/Importar admin com chave global
 
-## 1. Desabilitar "Complete o kit" agora (já gerenciável)
+## Objetivo
+Permitir backup e migração completa do catálogo + pedidos via painel admin, **independente de UUIDs**. A relação produto ↔ imagem ↔ taxonomias é preservada por um identificador estável chamado `external_ref`.
 
-A seção `cross_sell_complete` já é controlada por `pdp_sections` (admin → **/admin/pdp-sections**). Basta marcá-la como invisível. Admin já edita label/posição/visibilidade — nada a construir.
+## 1. Chave global `external_ref`
 
-**Execução:** `UPDATE pdp_sections SET is_visible=false WHERE section_key='cross_sell_complete'`.
+Migração que adiciona coluna `external_ref TEXT UNIQUE NOT NULL` nas tabelas:
+- `products`, `categories`, `occasions`, `tags`, `segments`, `kits`
 
-## 2. Live preview do Badge no admin
+Formato: `{tipo}_{slug-normalizado}` (ex: `prd_lembrancinha-sabonete-pezinho-coracao`, `cat_casamentos`). Humano-legível, estável, único.
 
-Na aba **Configuração** do `/admin/conversao`, dentro do card "Badge da PDP", renderizar um mock de imagem do produto (placeholder) 320×320 com o Badge sobreposto usando o mesmo componente/tons da PDP real. Atualiza em tempo real conforme o admin edita (label / tone / showIcon / position / offsets).
+Trigger `BEFORE INSERT`: se `external_ref` for nulo, gera automaticamente a partir do slug. Backfill imediato para todas as linhas existentes.
 
-## 3. Override por produto
+## 2. Página admin `/admin/exportar-importar`
 
-**DB:** nova coluna `products.pdp_badge_override jsonb` (nullable = usa configuração global). Estrutura:
+UI com 2 abas:
 
-```json
-{ "enabled": true, "label": "Promo de inverno", "tone": "coral",
-  "showIcon": false, "position": "top-right", "offsetX": 16, "offsetY": 16 }
-```
+**Exportar** — checkboxes:
+- Catálogo (produtos + taxonomias + kits + relacionamentos)
+- Imagens (do bucket `product-images`)
+- Pedidos e clientes (com aviso de LGPD)
+- SQL dump (INSERTs prontos)
 
-RLS já existente em `products` cobre.
-
-**Admin (form de produto):** novo card colapsável "Badge personalizado da PDP" com toggle "Sobrescrever configuração global" + mesmos campos do badge global + mini-preview.
-
-**Resolução em runtime:** `effectiveBadge = product.pdp_badge_override?.enabled ? product.pdp_badge_override : ctaConfig.pdpBadge`.
-
-## 4. Posição + offsets
-
-Expandir `PdpBadgeConfig` (global e override):
-
-- `position`: `top-left | top-right | bottom-left | bottom-right` (default `top-left`).
-- `offsetX`: int 0–80 (default 16).
-- `offsetY`: int 0–80 (default 16).
-
-Schema Zod + UI de admin (select de posição + 2 inputs numéricos).
-Render na PDP usa `style={{ top/left/right/bottom: offsetY/offsetX }}` conforme posição.
-
-## 5. Tracking (impressões + cliques)
-
-**DB:** nova tabela `pdp_badge_events`:
+Botão "Gerar backup" → chama edge function → recebe manifest JSON + URLs assinadas → monta `.zip` no navegador (JSZip) com:
 
 ```
-id, event_name ('impression' | 'click'),
-product_id (nullable), badge_label, tone, position,
-source ('global' | 'product_override'),
-session_id, user_agent, created_at
+backup-YYYY-MM-DD.zip
+├── manifest.json         # versão, data, escopo
+├── catalog.json          # produtos + taxonomias + relacionamentos por external_ref
+├── orders.json           # opcional
+├── catalog.sql           # INSERTs prontos (opcional)
+└── images/
+    ├── prd_pezinho-coracao__01.jpg
+    ├── prd_pezinho-coracao__02.jpg
+    └── ...
 ```
 
-- RLS: `INSERT` aberto a anônimos (igual `pdp_funnel_events`), `SELECT` só admin.
-- Índices em `(event_name, created_at)` e `(product_id, created_at)`.
+**Importar** — upload do ZIP:
+- Lê manifest e mostra preview (X produtos, Y imagens, Z pedidos)
+- Modo: "merge" (atualiza por external_ref, cria novos) ou "replace" (apaga tudo antes — com confirmação dupla)
+- Faz upload das imagens primeiro, depois envia manifest para edge function que recria registros casando por external_ref
 
-**Função `pdp_badge_stats(_from, _to)**` (SECURITY DEFINER, admin-only) retornando:
+## 3. Edge functions
 
-- total de impressões / cliques
-- CTR global
-- top 10 produtos por cliques
-- breakdown por `tone` e `position`
+- `admin-backup-export` (POST, requer role admin)
+  - Recebe `{ scope: { catalog, images, orders, sql } }`
+  - Retorna JSON com `catalog`, `orders`, `sqlDump`, e `images: [{ external_ref, idx, signed_url, filename }]`
+  - Usa service-role internamente
 
-**Frontend:**
+- `admin-backup-import` (POST, requer role admin)
+  - Recebe `{ manifest, mode: 'merge'|'replace' }`
+  - Resolve external_ref → UUID local existente ou cria novo
+  - Mantém relacionamentos product↔category↔tag↔occasion↔segment
+  - Atualiza array `products.images[]` com URLs públicas das imagens já uploadadas
+  - Retorna relatório `{ created, updated, skipped, errors[] }`
 
-- `useBadgeTracker(product, effectiveBadge)`: dispara `impression` 1× por sessão+produto quando o badge fica visível (IntersectionObserver), e `click` quando clicado (badge vira `<button>` que abre o WhatsApp/CTA padrão da PDP).
-- Wrappers usam `navigator.sendBeacon` + fallback fetch.
+## 4. Detalhes técnicos
+- JSZip já costuma estar disponível; instalo se faltar
+- Imagens trafegam direto cliente↔storage (signed upload URLs) para evitar limite de payload das edge functions
+- Pedidos exportados omitem nada — mas UI mostra aviso LGPD claro antes do download
+- Trigger automático: novo produto/categoria sem `external_ref` recebe um gerado a partir do slug
 
-**Admin:** nova aba **"Badge da PDP"** dentro de `/admin/conversao` com 4 KPI cards (impressões, cliques, CTR, top produtos) consumindo `pdp_badge_stats`.
+## Fora do escopo desta versão
+- Versionamento de backups armazenados no Cloud (export é download direto)
+- Diff visual antes do import (apenas contagens)
+- Import incremental por arquivo individual
 
-## Arquivos
-
-**Migration** (1): coluna `pdp_badge_override`, tabela `pdp_badge_events` + RLS + função `pdp_badge_stats` + índices.
-
-**Hooks/lib (3):**
-
-- `src/hooks/useConversionCtaConfig.ts` — adicionar `position`/`offsetX`/`offsetY` ao schema.
-- `src/hooks/useBadgeTracker.ts` (novo) — impressões + cliques.
-- `src/hooks/useBadgeStats.ts` (novo) — admin metrics.
-
-**Componentes (1):**
-
-- `src/components/PdpBadge.tsx` (novo) — extrai render do badge (já usado direto na PDP) com tracking embutido; aceita `effectiveBadge` + `productId` + `onClick`.
-
-**Páginas (3):**
-
-- `src/pages/ProductPage.tsx` — substituir bloco do badge por `<PdpBadge ... />`, resolver override.
-- `src/pages/admin/AdminConversionCTA.tsx` — preview ao vivo no card, novos campos (position/offsets), nova aba "Badge".
-- `src/pages/admin/AdminProductForm.tsx` (ou equivalente) — card de override por produto.
-
-## Fora de escopo
-
-- A/B de badges (pode vir depois).
-- Badge animado/SVG custom (mantemos só ícone caminhão opcional).
-- Edição inline na PDP pública.
-
-Confirma para executar tudo (item 1 + 2 + 3 + 4 + 5)? 1 por 1, 1 por vez. sem quebrar nada.
-
-&nbsp;
+## Entrega
+1 migração + 2 edge functions + 1 página admin + link no menu lateral admin.
