@@ -489,9 +489,10 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
             </div>
 
             {/* Main Zoomed Image */}
-            <div 
-              className="flex-1 flex items-center justify-center p-3 sm:p-8 overflow-hidden"
+            <div
+              className="flex-1 flex items-center justify-center p-3 sm:p-8 overflow-hidden touch-pan-y"
               onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
               <img
