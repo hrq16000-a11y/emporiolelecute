@@ -36,42 +36,83 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
     setIsLoaded(true);
   }, []);
 
+  // Vibração tátil sutil ao trocar de slide (mobile, quando disponível)
+  const hapticTick = useCallback(() => {
+    if (typeof navigator === 'undefined' || !('vibrate' in navigator)) return;
+    if (typeof window !== 'undefined') {
+      const reduced = window.matchMedia?.('(prevers-reduced-motion: reduce)').matches;
+      if (reduced) return;
+    }
+    try { navigator.vibrate?.(8); } catch { /* noop */ }
+  }, []);
+
   const goToPrevious = () => {
+    hapticTick();
     setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
 
   const goToNext = () => {
+    hapticTick();
     setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
   const goToSlide = (index: number) => {
-    setCurrentIndex(index);
+    setCurrentIndex((prev) => {
+      if (prev !== index) hapticTick();
+      return index;
+    });
   };
 
-  // Touch handlers for swipe — também pausam o autoplay momentaneamente
+  // Touch handlers para swipe — discriminam intenção horizontal vs scroll vertical,
+  // sem bloquear a rolagem da página.
+  const touchAxisRef = useRef<'undecided' | 'horizontal' | 'vertical'>('undecided');
+  const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
+
   const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0].clientX;
+    touchStartYRef.current = e.touches[0].clientY;
+    touchAxisRef.current = 'undecided';
     setTouchStart(e.touches[0].clientX);
     setIsPaused(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
+    if (touchAxisRef.current !== 'undecided') {
+      if (touchAxisRef.current === 'horizontal' && e.cancelable) {
+        e.preventDefault(); // mantém o swipe sem permitir scroll horizontal acidental
+      }
+      return;
+    }
+    const dx = Math.abs(e.touches[0].clientX - touchStartXRef.current);
+    const dy = Math.abs(e.touches[0].clientY - touchStartYRef.current);
+    if (dx < 8 && dy < 8) return;
+    touchAxisRef.current = dx > dy ? 'horizontal' : 'vertical';
+    if (touchAxisRef.current === 'horizontal' && e.cancelable) {
+      e.preventDefault();
+    }
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStart === null) {
       setIsPaused(false);
+      touchAxisRef.current = 'undecided';
       return;
     }
 
+    const wasHorizontal = touchAxisRef.current === 'horizontal';
     const touchEnd = e.changedTouches[0].clientX;
     const diff = touchStart - touchEnd;
 
-    if (Math.abs(diff) > 50) {
-      if (diff > 0) {
-        goToNext();
-      } else {
-        goToPrevious();
-      }
+    if (wasHorizontal && Math.abs(diff) > 40) {
+      if (diff > 0) goToNext();
+      else goToPrevious();
     }
     setTouchStart(null);
-    // Retoma autoplay após pequeno delay para não disparar logo após o swipe
+    touchAxisRef.current = 'undecided';
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
     window.setTimeout(() => setIsPaused(false), 1500);
   };
 
