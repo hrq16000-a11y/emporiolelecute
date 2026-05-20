@@ -268,9 +268,11 @@ const HeroSlider = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [prevSlide, setPrevSlide] = useState<number | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef<HTMLDivElement>(null);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [stageHeight, setStageHeight] = useState<number | "auto">("auto");
 
   // Detect prefers-reduced-motion
@@ -283,13 +285,32 @@ const HeroSlider = () => {
     return () => mq.removeEventListener?.("change", update);
   }, []);
 
+  // Autoplay — pausado durante interação (touch/drag) e em reduced-motion
   useEffect(() => {
-    if (slides.length <= 1) return;
+    if (slides.length <= 1 || isPaused || reducedMotion) return;
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 6000);
     return () => clearInterval(timer);
-  }, [slides.length]);
+  }, [slides.length, isPaused, reducedMotion]);
+
+  // Limpa timer de resume ao desmontar
+  useEffect(() => () => {
+    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+  }, []);
+
+  const pauseAutoplay = useCallback(() => {
+    if (resumeTimerRef.current) {
+      clearTimeout(resumeTimerRef.current);
+      resumeTimerRef.current = null;
+    }
+    setIsPaused(true);
+  }, []);
+
+  const scheduleResume = useCallback((delay = 2500) => {
+    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+    resumeTimerRef.current = setTimeout(() => setIsPaused(false), delay);
+  }, []);
 
   useEffect(() => {
     if (currentSlide >= slides.length) setCurrentSlide(0);
