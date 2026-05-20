@@ -101,8 +101,9 @@ Personalizamos conforme o tema do seu evento com cores, aromas e papelaria exclu
 
   related_themes: ({ dbProduct }) =>
     dbProduct?.tags && dbProduct.tags.length > 0 ? (
-      <section key="related_themes" className="mb-12" aria-labelledby="themes-title">
-        <h2 id="themes-title" className="font-display text-xl text-foreground mb-4">
+      <section key="related_themes" className="mb-10 md:mb-12" aria-labelledby="themes-title">
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 mb-2">Explore</p>
+        <h2 id="themes-title" className="font-display text-lg md:text-xl font-light text-foreground mb-4">
           Temas relacionados
         </h2>
         <div className="flex flex-wrap gap-2">
@@ -110,9 +111,9 @@ Personalizamos conforme o tema do seu evento com cores, aromas e papelaria exclu
             <Link
               key={t.id}
               to={`/produtos?tag=${t.slug}`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted hover:bg-primary/10 hover:text-primary rounded-full text-sm text-muted-foreground transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted/60 hover:bg-muted rounded-full text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              <Tag className="h-3 w-3" />
+              <Tag className="h-3 w-3" strokeWidth={1.5} />
               {t.name}
             </Link>
           ))}
