@@ -85,13 +85,13 @@ export default function VisualComposition({ currentProductId, occasions, limit =
       <p className="text-sm text-muted-foreground mb-4">
         Composição visual sugerida para a mesma ocasião.
       </p>
-      <div className="grid w-fit max-w-full grid-cols-4 gap-2 [grid-auto-rows:minmax(0,1fr)]">
+      <div className="grid w-fit max-w-full grid-cols-[repeat(4,64px)] auto-rows-[64px] sm:grid-cols-[repeat(4,70px)] sm:auto-rows-[70px] md:grid-cols-[repeat(4,78px)] md:auto-rows-[78px] lg:grid-cols-[repeat(4,84px)] lg:auto-rows-[84px] gap-2">
         {items.slice(0, 5).map((p, i) => (
           <Link
             key={p.id}
             to={urls.product(p.slug)}
             className={`group relative block aspect-square rounded-xl overflow-hidden bg-muted ${
-              i === 0 ? "col-span-2 row-span-2 w-36 sm:w-40 md:w-44" : "w-[68px] sm:w-[76px] md:w-20"
+              i === 0 ? "col-span-2 row-span-2" : ""
             }`}
             title={p.name}
           >
