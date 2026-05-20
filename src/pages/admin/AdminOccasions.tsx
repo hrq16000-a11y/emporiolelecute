@@ -397,6 +397,8 @@ const AdminOccasions = () => {
                             onCheckedChange={async (checked) => {
                               try {
                                 await updateOccasion.mutateAsync({ id: occasion.id, is_draft: !checked } as any);
+                                invalidatePublicTaxonomy(queryClient, 'occasions');
+                                void markPublicTaxonomyDirty('occasions');
                                 toast({ title: checked ? 'Publicado' : 'Marcado como rascunho' });
                               } catch { toast({ title: 'Erro ao atualizar', variant: 'destructive' }); }
                             }}
