@@ -237,6 +237,7 @@ const App = () => {
           <PwaInstallPrompt />
           <BrowserRouter>
             <AnalyticsWrapper>
+              <ScrollToTop />
               <RedirectHandler />
               <CanonicalNormalizer />
               <TrackingScripts />
