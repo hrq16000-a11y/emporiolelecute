@@ -227,9 +227,9 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
       )}
 
       {/* Main Image Container */}
-      <div className="flex-1 min-w-0 max-w-full md:max-w-[260px] lg:max-w-[420px] md:mx-auto">
+      <div className="flex-1 min-w-0 max-w-full sm:max-w-[300px] md:max-w-[320px] lg:max-w-[420px] sm:max-h-[300px] md:max-h-[320px] lg:max-h-none sm:mx-auto">
         <div
-          className="relative aspect-square w-full max-w-full rounded-xl sm:rounded-2xl overflow-hidden bg-muted shadow-card sm:shadow-lg group cursor-pointer touch-pan-y select-none"
+          className="relative aspect-square w-full max-w-full max-h-[inherit] rounded-xl sm:rounded-2xl overflow-hidden bg-muted shadow-card sm:shadow-lg group cursor-pointer touch-pan-y select-none"
           data-testid="pdp-gallery-main"
           onClick={() => setIsZoomed(true)}
           onTouchStart={handleTouchStart}
