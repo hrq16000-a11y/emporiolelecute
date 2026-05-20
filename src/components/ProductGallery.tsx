@@ -278,11 +278,11 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
 
       {/* Main Image Container */}
       <div className={cn(
-        "flex-1 min-w-0 max-w-full sm:max-w-[360px] md:max-w-[420px] lg:max-w-[420px]",
-        layout === 'horizontal' && "sm:max-lg:w-[420px] sm:max-lg:flex-none sm:max-lg:max-w-[calc(100vw-7rem)]"
+        "flex-1 min-w-0 max-w-full sm:max-w-[360px] md:max-w-[420px] lg:max-w-[440px]",
+        layout === 'horizontal' && "sm:max-lg:w-[360px] md:max-lg:w-[400px] sm:max-lg:flex-none sm:max-lg:max-w-[calc(100vw-7rem)]"
       )}>
         <div
-          className="relative aspect-square w-full max-w-full rounded-xl sm:rounded-2xl overflow-hidden bg-transparent group cursor-pointer touch-pan-y select-none"
+          className="relative aspect-square sm:aspect-[4/5] w-full max-w-full rounded-xl sm:rounded-2xl overflow-hidden bg-muted/20 group cursor-pointer touch-pan-y select-none"
           data-testid="pdp-gallery-main"
           onClick={() => setIsZoomed(true)}
           onTouchStart={handleTouchStart}
@@ -313,13 +313,14 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
                   resize="contain"
                   responsiveWidths={[400, 600, 800, 1200]}
                   priority={index === 0}
-                  sizes="(max-width: 767px) calc(100vw - 2rem), (max-width: 1024px) 100vw, 600px"
+                  sizes="(max-width: 767px) calc(100vw - 2rem), (max-width: 1024px) 400px, 440px"
                   wrapperClassName="w-full h-full"
-                  className="object-contain transition-transform duration-700 ease-out sm:group-hover:scale-105"
+                  className="object-cover object-center transition-transform duration-700 ease-out sm:group-hover:scale-105"
                 />
               </div>
             ))}
           </div>
+
 
           {/* Zoom Button */}
           <button
