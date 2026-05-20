@@ -6028,6 +6028,7 @@ export type Database = {
         Returns: Json
       }
       apply_default_weight: { Args: { _default_kg?: number }; Returns: Json }
+      audit_system_dump: { Args: never; Returns: Json }
       check_resend_email_cooldown: {
         Args: { _order_id: string }
         Returns: Json
