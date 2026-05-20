@@ -11,6 +11,9 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import ProductCard from "@/components/ProductCard";
 import { useDbProducts, useDbCategories } from "@/hooks/useProducts";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useSearchSynonyms, expandWithSynonyms } from "@/hooks/useSearchSynonyms";
+import { normalizeSearch, suggestClosest } from "@/lib/searchNormalize";
+import SearchEmptyState from "@/components/SearchEmptyState";
 import type { Product } from "@/data/products";
 
 const PRICE_RANGES: { id: string; label: string; min: number; max: number }[] = [
