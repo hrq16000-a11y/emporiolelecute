@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, type TouchEvent } from "react";
 import { Heart, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 
 import TrustBadges from "@/components/TrustBadges";
@@ -270,6 +270,7 @@ const HeroSlider = () => {
   const [reducedMotion, setReducedMotion] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef<HTMLDivElement>(null);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const [stageHeight, setStageHeight] = useState<number | "auto">("auto");
 
   // Detect prefers-reduced-motion
@@ -309,7 +310,7 @@ const HeroSlider = () => {
 
   useEffect(() => {
     if (prevSlide === null) return;
-    const t = setTimeout(() => setPrevSlide(null), 600);
+    const t = setTimeout(() => setPrevSlide(null), 720);
     return () => clearTimeout(t);
   }, [prevSlide, currentSlide]);
 
@@ -328,6 +329,7 @@ const HeroSlider = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
         const h = Math.round(el.offsetHeight);
+        if (h < 1) return;
         setStageHeight((prev) => (typeof prev === "number" && Math.abs(prev - h) < 1 ? prev : h));
       });
     };
@@ -352,6 +354,29 @@ const HeroSlider = () => {
     () => goTo((currentSlide - 1 + slides.length) % slides.length),
     [goTo, currentSlide, slides.length]
   );
+
+  const handleTouchStart = useCallback((event: TouchEvent<HTMLDivElement>) => {
+    if (typeof window !== "undefined" && window.innerWidth >= 768) return;
+    const touch = event.touches[0];
+    if (!touch) return;
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+  }, []);
+
+  const handleTouchEnd = useCallback((event: TouchEvent<HTMLDivElement>) => {
+    const start = touchStartRef.current;
+    touchStartRef.current = null;
+    if (!start || (typeof window !== "undefined" && window.innerWidth >= 768)) return;
+
+    const touch = event.changedTouches[0];
+    if (!touch) return;
+
+    const deltaX = touch.clientX - start.x;
+    const deltaY = touch.clientY - start.y;
+    if (Math.abs(deltaX) < 44 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25) return;
+
+    if (deltaX < 0) nextSlideFn();
+    else prevSlideFn();
+  }, [nextSlideFn, prevSlideFn]);
 
   const isPriority = currentSlide === 0;
   const hasAnyBanner = Boolean(
