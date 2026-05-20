@@ -268,30 +268,50 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
 
         {/* Horizontal Thumbnails - Below (for horizontal layout) */}
         {layout === 'horizontal' && images.length > 1 && (
-          <div className="flex w-full max-w-full gap-3 mt-3 sm:mt-4 overflow-x-auto overscroll-x-contain pb-2 px-0.5 scrollbar-hide snap-x snap-mandatory">
-            {images.map((image, index) => (
-              <button
-                key={index}
-                onClick={() => goToSlide(index)}
-                className={cn(
-                  "flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg sm:rounded-xl overflow-hidden transition-all duration-300 relative border-2 snap-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                  index === currentIndex
-                    ? "border-primary shadow-md"
-                    : "border-transparent opacity-70 hover:opacity-100"
-                )}
-              >
-                <img
-                  src={optimizeImage(image, { width: 160, resize: "contain" })}
-                  alt={`${productName} - Miniatura ${index + 1}`}
-                  className="w-full h-full object-contain bg-muted p-1"
-                  loading="lazy"
-                  decoding="async"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/placeholder.svg';
-                  }}
-                />
-              </button>
-            ))}
+          <div className="relative mt-3 sm:mt-4">
+            {/* Edge fade masks for editorial look */}
+            <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-r from-background to-transparent" aria-hidden="true" />
+            <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-l from-background to-transparent" aria-hidden="true" />
+
+            <div className="flex w-full max-w-full gap-4 sm:gap-5 overflow-x-auto overscroll-x-contain pb-3 px-6 scrollbar-hide snap-x snap-mandatory">
+              {images.map((image, index) => {
+                const isActive = index === currentIndex;
+                return (
+                  <button
+                    key={index}
+                    onClick={() => goToSlide(index)}
+                    aria-label={`Ver imagem ${index + 1} de ${images.length}`}
+                    aria-current={isActive ? "true" : undefined}
+                    className="group flex-shrink-0 flex flex-col items-center snap-center focus-visible:outline-none"
+                  >
+                    <div
+                      className={cn(
+                        "w-14 h-14 sm:w-16 sm:h-16 overflow-hidden rounded-sm transition-opacity duration-500 ease-out",
+                        isActive ? "opacity-100" : "opacity-40 group-hover:opacity-70"
+                      )}
+                    >
+                      <img
+                        src={optimizeImage(image, { width: 160, resize: "contain" })}
+                        alt={`${productName} - Miniatura ${index + 1}`}
+                        className="w-full h-full object-contain bg-muted/30"
+                        loading="lazy"
+                        decoding="async"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/placeholder.svg';
+                        }}
+                      />
+                    </div>
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "mt-2 h-px rounded-full transition-all duration-500 ease-out",
+                        isActive ? "w-5 bg-primary/80" : "w-5 bg-transparent"
+                      )}
+                    />
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
