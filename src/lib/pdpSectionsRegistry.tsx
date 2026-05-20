@@ -68,11 +68,12 @@ Personalizamos conforme o tema do seu evento com cores, aromas e papelaria exclu
 
   editorial: ({ dbProduct, product, canonicalUrl }) =>
     dbProduct?.editorial_content ? (
-      <section key="editorial" className="mb-12" aria-labelledby="editorial-title">
-        <h2 id="editorial-title" className="font-display text-2xl text-foreground mb-6">
+      <section key="editorial" className="mb-14 md:mb-16" aria-labelledby="editorial-title">
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 mb-2">Inspire-se</p>
+        <h2 id="editorial-title" className="font-display text-2xl md:text-3xl font-light text-foreground mb-5">
           Sobre esta lembrancinha
         </h2>
-        <div className="bg-primary/5 rounded-xl border border-primary/10 p-6 prose prose-sm md:prose-base max-w-none text-muted-foreground">
+        <div className="prose prose-sm md:prose-base max-w-none text-muted-foreground border-l-2 border-primary/20 pl-5 md:pl-6">
           <div className="whitespace-pre-line leading-relaxed">{dbProduct.editorial_content}</div>
         </div>
         <script
