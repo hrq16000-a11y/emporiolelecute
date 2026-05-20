@@ -188,7 +188,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
       "relative w-full max-w-full min-w-0 overflow-hidden transition-all duration-500",
       isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
       layout === 'vertical' && "flex gap-4",
-      layout === 'horizontal' && "sm:max-lg:flex sm:max-lg:w-fit sm:max-lg:mx-auto sm:max-lg:items-start sm:max-lg:justify-center sm:max-lg:gap-3"
+      layout === 'horizontal' && "sm:max-lg:flex sm:max-lg:w-fit sm:max-lg:mx-auto sm:max-lg:items-start sm:max-lg:justify-center sm:max-lg:gap-4"
     )}>
       {/* Vertical Thumbnails - Left Side */}
       {layout === 'vertical' && images.length > 1 && (
@@ -230,7 +230,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
       {/* Tablet Thumbnails - Left Side (horizontal PDP layout only) */}
       {layout === 'horizontal' && images.length > 1 && (
         <div className="hidden sm:max-lg:flex items-start gap-2 shrink-0">
-          <div className="flex flex-col gap-2 w-14 shrink-0">
+          <div className="flex max-h-[336px] w-12 shrink-0 flex-col gap-2 overflow-y-auto overscroll-contain scrollbar-hide">
             {images.slice(0, 5).map((image, index) => {
               const isActive = index === currentIndex;
               return (
@@ -240,7 +240,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
                   aria-label={`Ver imagem ${index + 1} de ${images.length}`}
                   aria-current={isActive ? "true" : undefined}
                   className={cn(
-                    "w-14 h-14 rounded-sm overflow-hidden transition-opacity duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                    "h-12 w-12 rounded-sm overflow-hidden transition-opacity duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                     isActive ? "opacity-100" : "opacity-45 hover:opacity-75"
                   )}
                 >
@@ -261,7 +261,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
           </div>
           <div className="flex w-5 flex-col gap-2" aria-hidden="true">
             {images.slice(0, 5).map((_, index) => (
-              <div key={index} className="flex h-14 items-center justify-center">
+              <div key={index} className="flex h-12 items-center justify-center">
                 <span
                   className={cn(
                     "w-px rounded-full transition-all duration-300 ease-out",
@@ -277,7 +277,7 @@ const ProductGallery = ({ images, productName, badge, layout = 'vertical' }: Pro
       {/* Main Image Container */}
       <div className={cn(
         "flex-1 min-w-0 max-w-full sm:max-w-[360px] md:max-w-[420px] lg:max-w-[420px]",
-        layout === 'horizontal' && "sm:max-lg:w-[288px] sm:max-lg:flex-none sm:max-lg:max-w-[calc(100vw-7rem)]"
+        layout === 'horizontal' && "sm:max-lg:w-[336px] sm:max-lg:flex-none sm:max-lg:max-w-[calc(100vw-7rem)]"
       )}>
         <div
           className="relative aspect-square w-full max-w-full rounded-xl sm:rounded-2xl overflow-hidden bg-muted shadow-card sm:shadow-lg group cursor-pointer touch-pan-y select-none"
