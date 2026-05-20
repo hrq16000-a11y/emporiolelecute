@@ -1,7 +1,6 @@
 // Sprint 3 Fase B — Bloco editorial de kits na home
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
 import { useKits, type KitBundleType } from "@/hooks/useKits";
 import { optimizeImage } from "@/lib/image";
 import { event as gaEvent } from "@/lib/analytics";
