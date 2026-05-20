@@ -43,6 +43,7 @@ import { useFormUsageTracking } from '@/hooks/useFormUsageTracking';
 import { trackAdminEvent } from '@/lib/adminUsage';
 import { PdpBadge } from '@/components/PdpBadge';
 import type { PdpBadgeConfig } from '@/hooks/useConversionCtaConfig';
+import ProductFaqEditor from '@/components/admin/ProductFaqEditor';
 
 const DEFAULT_BADGE_OVERRIDE: PdpBadgeConfig = {
   enabled: true,
@@ -1106,6 +1107,17 @@ const AdminProductForm = () => {
             </CardContent>
           )}
         </Card>
+
+        {/* FAQ por produto (apenas ao editar — precisa do ID) */}
+        {isEditing && id && (
+          <ProductFaqEditor
+            productId={id}
+            productName={formData.name || 'produto'}
+            productionDays={formData.production_days ? Number(formData.production_days) : null}
+            personalizationEnabled={formData.personalization_enabled}
+            categoryName={categories?.find((c) => c.id === formData.category_id)?.name ?? null}
+          />
+        )}
 
         {/* Save Button at bottom */}
         <div className="flex justify-end gap-4 sticky bottom-4 bg-background/95 backdrop-blur-sm p-4 rounded-lg border shadow-lg">
