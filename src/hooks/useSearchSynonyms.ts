@@ -1,10 +1,9 @@
-// Fase 2 SAFE — Hook leve para sinônimos de busca cadastrados pelo lojista.
-// Lê apenas os ativos (RLS pública já filtra). Cache de 5 min é suficiente,
-// pois o admin pode editar quando quiser sem impactar a vitrine pesadamente.
+// Fase 2 (refactor server-side) — A busca passou a rodar via RPC `search_products`
+// no Postgres, que já expande sinônimos internamente. Este hook permanece
+// apenas para telas administrativas futuras que queiram listar os sinônimos.
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { normalizeSearch } from '@/lib/searchNormalize';
 
 export interface SearchSynonym {
   id: string;
@@ -23,28 +22,8 @@ export function useSearchSynonyms() {
         .from('search_synonyms' as never)
         .select('id, canonical_term, aliases, boost_score, active')
         .eq('active', true);
-      if (error) {
-        // Retrocompatível: tabela pode não existir ainda em ambientes velhos.
-        return [];
-      }
+      if (error) return [];
       return (data ?? []) as unknown as SearchSynonym[];
     },
   });
-}
-
-// Dado um termo digitado, expande para o conjunto de termos equivalentes
-// (o próprio termo + canônico + apelidos), normalizados.
-export function expandWithSynonyms(query: string, synonyms: SearchSynonym[] | undefined): string[] {
-  const base = normalizeSearch(query);
-  if (!base) return [];
-  const out = new Set<string>([base]);
-  for (const s of synonyms ?? []) {
-    const canon = normalizeSearch(s.canonical_term);
-    const aliases = (s.aliases ?? []).map(normalizeSearch);
-    const pool = [canon, ...aliases].filter(Boolean);
-    if (pool.includes(base)) {
-      for (const term of pool) out.add(term);
-    }
-  }
-  return Array.from(out);
 }

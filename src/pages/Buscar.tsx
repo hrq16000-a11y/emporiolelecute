@@ -11,10 +11,39 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import ProductCard from "@/components/ProductCard";
 import { useDbProducts, useDbCategories } from "@/hooks/useProducts";
 import { useDebounce } from "@/hooks/useDebounce";
-import { useSearchSynonyms, expandWithSynonyms } from "@/hooks/useSearchSynonyms";
-import { normalizeSearch, suggestClosest } from "@/lib/searchNormalize";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import SearchEmptyState from "@/components/SearchEmptyState";
 import type { Product } from "@/data/products";
+
+// Fase 2 (refactor server-side) — Toda a busca tolerante (acento, typo,
+// sinônimos) acontece no Postgres via RPC `search_products`. O frontend
+// apenas envia o termo e recebe IDs ordenados por relevância + sugestão.
+interface SearchRpcResult {
+  ids: string[];
+  suggestion: string | null;
+}
+
+function useServerSearch(term: string) {
+  const q = term.trim();
+  return useQuery({
+    queryKey: ["search_products", q],
+    enabled: q.length >= 2,
+    staleTime: 30_000,
+    queryFn: async (): Promise<SearchRpcResult> => {
+      const { data, error } = await supabase.rpc("search_products" as never, {
+        _q: q,
+        _limit: 60,
+      } as never);
+      if (error) return { ids: [], suggestion: null };
+      const payload = (data ?? {}) as { ids?: string[]; suggestion?: string | null };
+      return {
+        ids: Array.isArray(payload.ids) ? payload.ids : [],
+        suggestion: payload.suggestion ?? null,
+      };
+    },
+  });
+}
 
 const PRICE_RANGES: { id: string; label: string; min: number; max: number }[] = [
   { id: "lt50", label: "Até R$ 50", min: 0, max: 50 },
@@ -37,7 +66,7 @@ const Buscar = () => {
   const debouncedQuery = useDebounce(query, 300);
   const { data: dbProducts, isLoading } = useDbProducts();
   const { data: dbCategories } = useDbCategories({ publicOnly: true });
-  const { data: synonyms } = useSearchSynonyms();
+  const { data: searchResult, isFetching: isSearching } = useServerSearch(debouncedQuery);
 
   // Autofoco no campo ao abrir a página (UX mobile)
   useEffect(() => {
@@ -94,48 +123,34 @@ const Buscar = () => {
   }, [dbProducts]);
 
   const filtered = useMemo(() => {
-    // Fase 2 SAFE — busca tolerante: normaliza acento/caixa e expande sinônimos.
-    // Mantém o comportamento de substring atual (zero regressão lógica).
+    // Fase 2 (refactor server-side) — busca textual feita pela RPC `search_products`.
+    // O frontend só aplica filtros de categoria/preço sobre o resultado já ranqueado.
     const rawQuery = debouncedQuery.trim();
-    const terms = rawQuery ? expandWithSynonyms(rawQuery, synonyms) : [];
     const range = PRICE_RANGES.find((r) => r.id === selectedPrice);
-    const matches = (haystack: string) => {
-      if (!terms.length) return true;
-      const norm = normalizeSearch(haystack);
-      return terms.some((t) => norm.includes(t));
-    };
-    return products.filter((p: any) => {
-      const matchesQ =
-        !terms.length ||
-        matches(p.name) ||
-        matches(p.description) ||
-        matches(p._categoryName) ||
-        p._occasionNames.some((n: string) => matches(n)) ||
-        p._tagNames.some((n: string) => matches(n)) ||
-        p.keywords.some((k: string) => matches(k));
+
+    let base: any[] = products;
+    if (rawQuery.length >= 2) {
+      const ids = searchResult?.ids ?? [];
+      const order = new Map(ids.map((id, idx) => [id, idx]));
+      base = products
+        .filter((p: any) => order.has(p.id))
+        .sort((a: any, b: any) => (order.get(a.id)! - order.get(b.id)!));
+    }
+
+    return base.filter((p: any) => {
       const matchesCat = !selectedCategory || p._categoryId === selectedCategory;
       const matchesPrice =
         !range || (p._priceNum >= range.min && p._priceNum < range.max);
-      return matchesQ && matchesCat && matchesPrice;
+      return matchesCat && matchesPrice;
     });
-  }, [products, debouncedQuery, selectedCategory, selectedPrice, synonyms]);
+  }, [products, debouncedQuery, selectedCategory, selectedPrice, searchResult]);
 
-  // Sugestão "Você quis dizer..." — gerada quando há termo mas nenhum resultado.
+  // "Você quis dizer..." vem direto da RPC (similaridade trigram no servidor).
   const suggestion = useMemo(() => {
     const q = debouncedQuery.trim();
     if (!q || filtered.length > 0) return null;
-    const pool: string[] = [];
-    for (const p of products as any[]) {
-      pool.push(p.name);
-      if (p._categoryName) pool.push(p._categoryName);
-      pool.push(...(p._tagNames || []));
-      pool.push(...(p._occasionNames || []));
-    }
-    for (const s of synonyms ?? []) {
-      pool.push(s.canonical_term, ...(s.aliases ?? []));
-    }
-    return suggestClosest(q, pool);
-  }, [debouncedQuery, filtered.length, products, synonyms]);
+    return searchResult?.suggestion ?? null;
+  }, [debouncedQuery, filtered.length, searchResult]);
 
   const activeCount =
     (debouncedQuery ? 1 : 0) + (selectedCategory ? 1 : 0) + (selectedPrice ? 1 : 0);
@@ -272,8 +287,8 @@ const Buscar = () => {
           {/* Resultados */}
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm text-muted-foreground">
-              {isLoading
-                ? "Carregando…"
+              {isLoading || isSearching
+                ? "Buscando…"
                 : `${filtered.length} ${filtered.length === 1 ? "resultado" : "resultados"}`}
             </p>
             <Link to="/produtos" className="text-xs text-primary hover:underline">
@@ -281,7 +296,7 @@ const Buscar = () => {
             </Link>
           </div>
 
-          {isLoading ? (
+          {isLoading || isSearching ? (
             <div className="flex items-center justify-center py-16">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
