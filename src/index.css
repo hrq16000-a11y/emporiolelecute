@@ -247,6 +247,14 @@
     from { opacity: 1; }
     to   { opacity: 0; }
   }
+
+  .hero-fade-in {
+    animation: fade-opacity 720ms ease-in-out forwards;
+  }
+
+  .hero-fade-out {
+    animation: fade-opacity-out 720ms ease-in-out forwards;
+  }
   
   /* Stagger animations */
   .stagger-1 { animation-delay: 0.1s; }
