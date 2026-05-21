@@ -508,8 +508,78 @@ const AdminProductForm = () => {
             </CardContent>
           </Card>
 
+          {/* Tags + Segmentos (desktop: abaixo da descrição detalhada) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle className="text-lg font-display flex items-center gap-2">
+                  <Tag className="w-4 h-4" />
+                  Tags
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1 max-h-56 overflow-y-auto">
+                  {tags?.map((tag) => (
+                    <label key={tag.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-1.5 rounded-md transition-colors">
+                      <Checkbox
+                        checked={selectedTags.includes(tag.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedTags((prev) => [...prev, tag.id]);
+                          } else {
+                            setSelectedTags((prev) => prev.filter((id) => id !== tag.id));
+                          }
+                        }}
+                      />
+                      <span className="text-sm">{tag.name}</span>
+                    </label>
+                  ))}
+                  {!tags?.length && (
+                    <p className="text-sm text-muted-foreground">
+                      Nenhuma tag cadastrada.{' '}
+                      <a href="/admin/tags" className="underline text-primary">Criar agora</a>
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle className="text-lg font-display">Segmentos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1 max-h-56 overflow-y-auto">
+                  {segments?.map((seg) => (
+                    <label key={seg.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-1.5 rounded-md transition-colors">
+                      <Checkbox
+                        checked={selectedSegments.includes(seg.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedSegments((prev) => [...prev, seg.id]);
+                          } else {
+                            setSelectedSegments((prev) => prev.filter((id) => id !== seg.id));
+                          }
+                        }}
+                      />
+                      <span className="text-sm">{seg.name}</span>
+                    </label>
+                  ))}
+                  {!segments?.length && (
+                    <p className="text-sm text-muted-foreground">
+                      Nenhum segmento cadastrado.{' '}
+                      <a href="/admin/segmentos" className="underline text-primary">Criar agora</a>
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          </div>
+
           {/* Sidebar */}
           <div className="space-y-6">
+
             <Card className="shadow-card">
               <CardHeader>
                 <CardTitle className="text-lg font-display">Status</CardTitle>
