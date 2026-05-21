@@ -289,21 +289,20 @@ const AdminProducts = () => {
                 {filteredProducts.map((product) => (
                   <li
                     key={product.id}
-                    className={`rounded-xl border ${selected.has(product.id) ? 'border-primary bg-primary/5' : 'border-border bg-card'} p-3 flex gap-3`}
+                    className={`rounded-lg border ${selected.has(product.id) ? 'border-primary bg-primary/5' : 'border-border bg-card'} p-2.5 flex gap-2.5`}
                   >
-                    <div className="pt-1">
-                      <Checkbox
-                        checked={selected.has(product.id)}
-                        onCheckedChange={() => toggleSelected(product.id)}
-                        aria-label={`Selecionar ${product.name}`}
-                      />
-                    </div>
-                    <div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-muted">
+                    <Checkbox
+                      checked={selected.has(product.id)}
+                      onCheckedChange={() => toggleSelected(product.id)}
+                      aria-label={`Selecionar ${product.name}`}
+                      className="mt-1 shrink-0"
+                    />
+                    <div className="w-12 h-12 shrink-0 rounded-md overflow-hidden bg-muted">
                       {product.images[0] && (
                         <img
                           src={product.images[0]}
                           alt={product.name}
-                          className="w-full h-full object-contain p-1"
+                          className="w-full h-full object-contain p-0.5"
                           loading="lazy"
                         />
                       )}
@@ -312,12 +311,12 @@ const AdminProducts = () => {
                       <div className="flex items-start justify-between gap-2">
                         <Link
                           to={`/admin/produtos/${product.id}`}
-                          className="font-medium text-sm leading-snug line-clamp-2 hover:text-primary"
+                          className="font-medium text-[13px] leading-tight line-clamp-1 hover:text-primary"
                         >
                           {product.name}
                         </Link>
                         <span
-                          className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                          className={`shrink-0 px-1.5 py-0.5 rounded-full text-[9px] font-medium ${
                             product.is_active
                               ? 'bg-green-100 text-green-700'
                               : 'bg-muted text-muted-foreground'
@@ -326,34 +325,33 @@ const AdminProducts = () => {
                           {product.is_active ? 'Ativo' : 'Inativo'}
                         </span>
                       </div>
-                      <p className="text-sm text-foreground/80 mt-0.5">
-                        R$ {product.price.toFixed(2).replace('.', ',')}
-                      </p>
-                      {product.keywords && product.keywords.length > 0 && (
-                        <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">
-                          {product.keywords.slice(0, 3).join(' · ')}
-                          {product.keywords.length > 3 && ` +${product.keywords.length - 3}`}
+                      <div className="flex items-baseline gap-2 mt-0.5">
+                        <p className="text-[13px] font-medium text-foreground/90">
+                          R$ {product.price.toFixed(2).replace('.', ',')}
                         </p>
-                      )}
-                      <div className="flex items-center flex-wrap gap-1 mt-2">
+                        {product.keywords && product.keywords.length > 0 && (
+                          <p className="text-[10px] text-muted-foreground truncate">
+                            {product.keywords.slice(0, 2).join(' · ')}
+                            {product.keywords.length > 2 && ` +${product.keywords.length - 2}`}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between gap-1 mt-1.5">
                         <Button
                           variant="ghost"
-                          size="sm"
-                          className="h-9 px-2 text-xs"
+                          size="icon"
+                          className="h-8 w-8"
                           onClick={() => handleToggleActive(product.id, product.is_active)}
+                          aria-label={product.is_active ? 'Ocultar' : 'Ativar'}
                         >
-                          {product.is_active ? (
-                            <><EyeOff className="w-4 h-4 mr-1" /> Ocultar</>
-                          ) : (
-                            <><Eye className="w-4 h-4 mr-1" /> Ativar</>
-                          )}
+                          {product.is_active ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </Button>
-                        <Button variant="ghost" size="sm" className="h-9 px-2 text-xs" asChild>
-                          <Link to={`/admin/produtos/${product.id}`}>
-                            <Pencil className="w-4 h-4 mr-1" /> Editar
+                        <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                          <Link to={`/admin/produtos/${product.id}`} aria-label="Editar">
+                            <Pencil className="w-4 h-4" />
                           </Link>
                         </Button>
-                        <Button variant="ghost" size="sm" className="h-9 px-2" asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
                           <a
                             href={urls.product(product.slug)}
                             target="_blank"
@@ -365,8 +363,8 @@ const AdminProducts = () => {
                         </Button>
                         <Button
                           variant="ghost"
-                          size="sm"
-                          className="h-9 px-2 text-destructive hover:text-destructive"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
                           onClick={() => setDeleteId(product.id)}
                           aria-label="Excluir"
                         >
