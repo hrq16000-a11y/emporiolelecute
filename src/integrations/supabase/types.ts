@@ -6126,6 +6126,7 @@ export type Database = {
           product_id: string
         }[]
       }
+      save_product_full: { Args: { _payload: Json }; Returns: Json }
       search_products: { Args: { _limit?: number; _q: string }; Returns: Json }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
