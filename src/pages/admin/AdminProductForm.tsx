@@ -1042,6 +1042,24 @@ const AdminProductForm = () => {
           </CardHeader>
         </Card>
 
+        {/* Exibir quantidade mínima na PDP */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <CardTitle className="text-base">Exibir "Mínimo X un." na PDP</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Quando ativado, mostra o selo de quantidade mínima ("Mínimo {formData.minQuantity || 'X'} un.") na linha de informações da página deste produto. Padrão: desativado.
+                </p>
+              </div>
+              <Switch
+                checked={showMinQuantity}
+                onCheckedChange={setShowMinQuantity}
+                aria-label="Exibir quantidade mínima na PDP"
+              />
+            </div>
+          </CardHeader>
+
         {/* Badge personalizado da PDP (override por produto) */}
         <Card>
           <CardHeader>
