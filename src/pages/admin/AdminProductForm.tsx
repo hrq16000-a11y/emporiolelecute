@@ -121,81 +121,86 @@ const AdminProductForm = () => {
   }, [existingProduct?.slug, routeParam, navigate]);
 
 
+  // ===========================================================================
+  // Hidratação do form a partir do produto carregado.
+  // BUG P0 corrigido: hidrata APENAS UMA VEZ por id.
+  // Antes: useEffect rehidratava em todo refetch (após save / invalidate),
+  // sobrescrevendo edições locais em andamento silenciosamente.
+  // Agora: hydratedForIdRef guarda o id já hidratado. Refetch não pisa no form.
+  // Quando o usuário navega para outro produto, o id muda e re-hidrata.
+  // ===========================================================================
+  const hydratedForIdRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (existingProduct && isEditing) {
-      const keywords = existingProduct.keywords || [];
-      setFormData({
-        name: existingProduct.name,
-        slug: existingProduct.slug,
-        description: existingProduct.description || '',
-        long_description: existingProduct.long_description || '',
-        price: existingProduct.price.toString(),
-        min_quantity: existingProduct.min_quantity.toString(),
-        pix_discount: existingProduct.pix_discount.toString(),
-        production_days: existingProduct.production_days.toString(),
-        weight: existingProduct.weight?.toString() || '',
-        category_id: existingProduct.category_id || '',
-        badge: existingProduct.badge || '',
-        rating: existingProduct.rating.toString(),
-        images: existingProduct.images.length > 0 ? existingProduct.images : [''],
-        features: existingProduct.features.length > 0 ? existingProduct.features : [''],
-        keywords: keywords,
-        
-        is_active: existingProduct.is_active,
-        personalization_enabled: existingProduct.personalization_enabled ?? true,
-        personalization_label: existingProduct.personalization_label || 'Personalização',
-        personalization_placeholder: existingProduct.personalization_placeholder || 'Digite o nome, data ou mensagem para personalização...',
-        google_product_category: (existingProduct as any).google_product_category || '',
-        editorial_content: (existingProduct as any).editorial_content || '',
-        featured_weight: String((existingProduct as any).featured_weight ?? 0),
-        production_speed: ((existingProduct as any).production_speed || '') as '' | 'rapido' | 'normal' | 'longo',
+    if (!isEditing) return;
+    if (!existingProduct) return;
+    if (hydratedForIdRef.current === existingProduct.id) return; // já hidratou esse produto
+    hydratedForIdRef.current = existingProduct.id;
+
+    const keywords = existingProduct.keywords || [];
+    setFormData({
+      name: existingProduct.name,
+      slug: existingProduct.slug,
+      description: existingProduct.description || '',
+      long_description: existingProduct.long_description || '',
+      price: existingProduct.price.toString(),
+      min_quantity: existingProduct.min_quantity.toString(),
+      pix_discount: existingProduct.pix_discount.toString(),
+      production_days: existingProduct.production_days.toString(),
+      weight: existingProduct.weight?.toString() || '',
+      category_id: existingProduct.category_id || '',
+      badge: existingProduct.badge || '',
+      rating: existingProduct.rating.toString(),
+      images: existingProduct.images.length > 0 ? existingProduct.images : [''],
+      features: existingProduct.features.length > 0 ? existingProduct.features : [''],
+      keywords: keywords,
+      is_active: existingProduct.is_active,
+      personalization_enabled: existingProduct.personalization_enabled ?? true,
+      personalization_label: existingProduct.personalization_label || 'Personalização',
+      personalization_placeholder: existingProduct.personalization_placeholder || 'Digite o nome, data ou mensagem para personalização...',
+      google_product_category: (existingProduct as any).google_product_category || '',
+      editorial_content: (existingProduct as any).editorial_content || '',
+      featured_weight: String((existingProduct as any).featured_weight ?? 0),
+      production_speed: ((existingProduct as any).production_speed || '') as '' | 'rapido' | 'normal' | 'longo',
+    });
+    setKeywordsInput(keywords.join(', '));
+
+    // Pivôs — só carregam na hidratação inicial.
+    supabase
+      .from('product_occasions')
+      .select('occasion_id')
+      .eq('product_id', existingProduct.id)
+      .then(({ data }) => {
+        if (data) setSelectedOccasions(data.map((o) => o.occasion_id));
       });
-      setKeywordsInput(keywords.join(', '));
 
-      // Load product occasions
-      supabase
-        .from('product_occasions')
-        .select('occasion_id')
-        .eq('product_id', existingProduct.id)
-        .then(({ data }) => {
-          if (data) {
-            setSelectedOccasions(data.map((o) => o.occasion_id));
-          }
-        });
+    supabase
+      .from('product_tags')
+      .select('tag_id')
+      .eq('product_id', existingProduct.id)
+      .then(({ data }) => {
+        if (data) setSelectedTags(data.map((t) => t.tag_id));
+      });
 
-      // Load product tags
-      supabase
-        .from('product_tags')
-        .select('tag_id')
-        .eq('product_id', existingProduct.id)
-        .then(({ data }) => {
-          if (data) {
-            setSelectedTags(data.map((t) => t.tag_id));
-          }
-        });
+    supabase
+      .from('product_segments')
+      .select('segment_id')
+      .eq('product_id', existingProduct.id)
+      .then(({ data }) => {
+        if (data) setSelectedSegments(data.map((s) => s.segment_id));
+      });
 
-      // Load product segments
-      supabase
-        .from('product_segments')
-        .select('segment_id')
-        .eq('product_id', existingProduct.id)
-        .then(({ data }) => {
-          if (data) {
-            setSelectedSegments(data.map((s) => s.segment_id));
-          }
-        });
-
-      // Load badge override
-      const ov = (existingProduct as any).pdp_badge_override;
-      if (ov && typeof ov === 'object') {
-        setBadgeOverride({ ...DEFAULT_BADGE_OVERRIDE, ...ov });
-      } else {
-        setBadgeOverride(null);
-      }
-      setShowQuickSummary((existingProduct as any).show_quick_summary === true);
-      setShowMinQuantity((existingProduct as any).show_min_quantity === true);
+    const ov = (existingProduct as any).pdp_badge_override;
+    if (ov && typeof ov === 'object') {
+      setBadgeOverride({ ...DEFAULT_BADGE_OVERRIDE, ...ov });
+    } else {
+      setBadgeOverride(null);
     }
+    setShowQuickSummary((existingProduct as any).show_quick_summary === true);
+    setShowMinQuantity((existingProduct as any).show_min_quantity === true);
   }, [existingProduct, isEditing]);
+
+
 
   // Fase 4.1: gerador token-aware. Nunca corta no meio de palavra,
   // remove stopwords antes de cortar tokens semânticos, jamais emite hash.
