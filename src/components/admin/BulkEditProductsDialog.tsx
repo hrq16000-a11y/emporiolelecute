@@ -158,7 +158,40 @@ const BulkEditProductsDialog = ({ open, onOpenChange, selectedIds, onDone }: Pro
         }
       }
 
+      // 4) Tags (vínculo via product_tags) — add / remove / replace
+      if (useTagsField && selectedTagIds.length > 0) {
+        if (tagMode === 'replace') {
+          // Apaga vínculos atuais e insere os selecionados
+          const { error: dErr } = await supabase
+            .from('product_tags').delete().in('product_id', selectedIds);
+          if (dErr) fail += selectedIds.length;
+          const rows = selectedIds.flatMap((pid) =>
+            selectedTagIds.map((tid) => ({ product_id: pid, tag_id: tid }))
+          );
+          const { error: iErr } = await supabase.from('product_tags').insert(rows);
+          if (iErr) fail += rows.length;
+        } else if (tagMode === 'add') {
+          const rows = selectedIds.flatMap((pid) =>
+            selectedTagIds.map((tid) => ({ product_id: pid, tag_id: tid }))
+          );
+          // upsert evita conflito de chave única (product_id, tag_id)
+          const { error: uErr } = await supabase
+            .from('product_tags')
+            .upsert(rows, { onConflict: 'product_id,tag_id', ignoreDuplicates: true });
+          if (uErr) fail += rows.length;
+        } else if (tagMode === 'remove') {
+          const { error: rErr } = await supabase
+            .from('product_tags')
+            .delete()
+            .in('product_id', selectedIds)
+            .in('tag_id', selectedTagIds);
+          if (rErr) fail += selectedIds.length;
+        }
+      }
+
       await queryClient.invalidateQueries({ queryKey: ['products'] });
+      await queryClient.invalidateQueries({ queryKey: ['product_tags'] });
+
 
       if (fail === 0) {
         toast({ title: 'Edição em massa aplicada', description: `${selectedIds.length} produto(s) atualizado(s).` });
