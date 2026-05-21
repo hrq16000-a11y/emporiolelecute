@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { ShoppingCart, MessageCircle } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { trackFunnelEvent } from "@/lib/analytics";
