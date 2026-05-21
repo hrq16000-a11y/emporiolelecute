@@ -114,6 +114,14 @@ const AdminProductForm = () => {
   const slugCheck = useSlugAvailability('products', formData.slug, id ?? null);
   const usage = useFormUsageTracking(isEditing ? 'product_form_edit' : 'product_form_create');
 
+  // Canonicaliza a URL do admin: se chegou via UUID, troca para o slug do produto.
+  useEffect(() => {
+    if (existingProduct?.slug && routeParam && routeParam !== existingProduct.slug) {
+      navigate(`/admin/produtos/${existingProduct.slug}`, { replace: true });
+    }
+  }, [existingProduct?.slug, routeParam, navigate]);
+
+
   useEffect(() => {
     if (existingProduct && isEditing) {
       const keywords = existingProduct.keywords || [];
