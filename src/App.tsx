@@ -147,6 +147,7 @@ const AdminExecutiveMode = lazyWithRetry(() => import("./pages/admin/AdminExecut
 const AdminSeoOperationalConsolidation = lazyWithRetry(() => import("./pages/admin/AdminSeoOperationalConsolidation"), "AdminSeoOperationalConsolidation");
 const AcessoRestrito = lazy(() => import("./pages/AcessoRestrito"));
 const PoliticaPrivacidade = lazyWithRetry(() => import("./pages/PoliticaPrivacidade"), "PoliticaPrivacidade");
+const AdminCookieConsent = lazyWithRetry(() => import("./pages/admin/AdminCookieConsent"), "AdminCookieConsent");
 
 import RequireAdmin from "./components/RequireAdmin";
 import AdminErrorBoundary from "./components/AdminErrorBoundary";
@@ -441,6 +442,11 @@ const App = () => {
                   <Route path="clientes" element={
                     <Suspense fallback={<AdminSkeleton />}>
                       <AdminCustomers />
+                    </Suspense>
+                  } />
+                  <Route path="lgpd/banner" element={
+                    <Suspense fallback={<AdminSkeleton />}>
+                      <AdminCookieConsent />
                     </Suspense>
                   } />
                   <Route path="produtos" element={

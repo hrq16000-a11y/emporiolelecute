@@ -42,6 +42,7 @@ export const EXECUTIVE_NAV: NavGroup[] = [
       { label: "Dashboard", path: "/admin", icon: "LayoutDashboard" },
       { label: "Pedidos", path: "/admin/pedidos", icon: "ShoppingCart" },
       { label: "Clientes", path: "/admin/clientes", icon: "Users" },
+      { label: "Banner LGPD", path: "/admin/lgpd/banner", icon: "Cookie" },
       { label: "Produtos", path: "/admin/produtos", icon: "Package" },
       { label: "Reviews", path: "/admin/reviews", icon: "Star" },
       { label: "Blog", path: "/admin/blog", icon: "BookOpen" },
