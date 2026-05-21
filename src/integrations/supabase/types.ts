@@ -638,6 +638,54 @@ export type Database = {
         }
         Relationships: []
       }
+      data_deletion_requests: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          internal_notes: string | null
+          ip: string | null
+          processed_at: string | null
+          processed_by: string | null
+          reason: string | null
+          status: string
+          updated_at: string
+          user_agent: string | null
+          visitor_id: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          internal_notes?: string | null
+          ip?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          visitor_id?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          internal_notes?: string | null
+          ip?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          visitor_id?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       faqs: {
         Row: {
           answer: string
