@@ -525,8 +525,9 @@ const ProductPage = () => {
         </div>
 
         {/* Product Detail */}
-        <div className="container mx-auto max-w-full px-4 overflow-x-hidden">
-          <div className="grid min-w-0 lg:grid-cols-2 gap-6 lg:gap-12 mb-12 lg:mb-16">
+        <div className="layout-commerce overflow-x-hidden">
+          <div className="grid min-w-0 lg:grid-cols-2 gap-6 lg:gap-10 mb-12 lg:mb-16">
+
             {/* Image Gallery - Horizontal layout with thumbnails below */}
             <div className="relative min-w-0 max-w-full overflow-hidden" data-testid="pdp-media-block">
               <ProductGallery
