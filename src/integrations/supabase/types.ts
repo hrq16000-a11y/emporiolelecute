@@ -1912,6 +1912,7 @@ export type Database = {
           rating: number | null
           search_text: string | null
           seo_noindex: boolean
+          show_quick_summary: boolean
           slug: string
           updated_at: string
           weight: number | null
@@ -1945,6 +1946,7 @@ export type Database = {
           rating?: number | null
           search_text?: string | null
           seo_noindex?: boolean
+          show_quick_summary?: boolean
           slug: string
           updated_at?: string
           weight?: number | null
@@ -1978,6 +1980,7 @@ export type Database = {
           rating?: number | null
           search_text?: string | null
           seo_noindex?: boolean
+          show_quick_summary?: boolean
           slug?: string
           updated_at?: string
           weight?: number | null

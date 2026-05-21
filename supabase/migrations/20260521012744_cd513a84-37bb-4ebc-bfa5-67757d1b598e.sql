@@ -1,0 +1,2 @@
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS show_quick_summary boolean NOT NULL DEFAULT false;
+COMMENT ON COLUMN public.products.show_quick_summary IS 'Controla a exibição da seção "Resumo rápido + CTA WhatsApp" na PDP. Padrão: desabilitado.';

@@ -788,9 +788,11 @@ const ProductPage = () => {
                 productSlug={product.slug}
                 productName={product.name}
                 occasionName={dbProduct?.occasions?.[0]?.name}
-                enabled={
-                  resolvePrimaryAction(dbProduct).primary !== "cart" && ctaConfig?.quickSummary?.enabled !== false
-                }
+                 enabled={
+                   (dbProduct as any)?.show_quick_summary === true &&
+                   resolvePrimaryAction(dbProduct).primary !== "cart" &&
+                   ctaConfig?.quickSummary?.enabled !== false
+                 }
                 title={ctaConfig?.quickSummary?.title}
                 minLabel={ctaConfig?.quickSummary?.minLabel}
                 prazoLabel={ctaConfig?.quickSummary?.prazoLabel}

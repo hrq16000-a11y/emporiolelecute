@@ -104,6 +104,7 @@ const AdminProductForm = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [keywordsInput, setKeywordsInput] = useState('');
   const [badgeOverride, setBadgeOverride] = useState<PdpBadgeConfig | null>(null);
+  const [showQuickSummary, setShowQuickSummary] = useState<boolean>(false);
 
   const slugCheck = useSlugAvailability('products', formData.slug, id ?? null);
   const usage = useFormUsageTracking(isEditing ? 'product_form_edit' : 'product_form_create');
@@ -179,6 +180,7 @@ const AdminProductForm = () => {
       } else {
         setBadgeOverride(null);
       }
+      setShowQuickSummary((existingProduct as any).show_quick_summary === true);
     }
   }, [existingProduct, isEditing]);
 
@@ -328,10 +330,13 @@ const AdminProductForm = () => {
       // Update product segments
       await updateProductSegments.mutateAsync({ productId, segmentIds: selectedSegments });
 
-      // Update PDP badge override (null clears it)
+      // Update PDP badge override (null clears it) e flag de Resumo Rápido
       await supabase
         .from('products')
-        .update({ pdp_badge_override: (badgeOverride as any) ?? null })
+        .update({
+          pdp_badge_override: (badgeOverride as any) ?? null,
+          show_quick_summary: showQuickSummary,
+        } as any)
         .eq('id', productId);
 
 
@@ -1014,6 +1019,25 @@ const AdminProductForm = () => {
             </div>
           );
         })()}
+
+        {/* Resumo rápido + CTA WhatsApp (exibição por produto) */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <CardTitle className="text-base">Resumo rápido + CTA WhatsApp</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Quando ativado, exibe a seção "Você está pedindo X unidades..." com botão de WhatsApp na página deste produto. Aplica-se apenas a produtos cujo CTA primário é o WhatsApp (personalizado ou sem estoque). Padrão: desativado.
+                </p>
+              </div>
+              <Switch
+                checked={showQuickSummary}
+                onCheckedChange={setShowQuickSummary}
+                aria-label="Exibir resumo rápido na PDP"
+              />
+            </div>
+          </CardHeader>
+        </Card>
 
         {/* Badge personalizado da PDP (override por produto) */}
         <Card>
