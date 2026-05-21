@@ -240,6 +240,51 @@ export function useDbProductById(id: string) {
   });
 }
 
+// UUID v4-ish detector. Aceita qualquer UUID padrão.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Fetch single product by ID ou slug (usado no admin para URLs amigáveis).
+export function useDbProductByIdOrSlug(idOrSlug: string | undefined | null) {
+  const key = idOrSlug || '';
+  const isUuid = UUID_RE.test(key);
+  return useQuery({
+    queryKey: ['product-by-id-or-slug', key],
+    queryFn: async () => {
+      if (!key) return null;
+      // Tenta resolver pelo campo direto (id se UUID, senão slug).
+      const primaryField = isUuid ? 'id' : 'slug';
+      const { data: primary, error: errPrimary } = await supabase
+        .from('products')
+        .select('*')
+        .eq(primaryField, key)
+        .maybeSingle();
+      if (errPrimary) throw errPrimary;
+      if (primary) return primary as DbProduct;
+
+      // Fallback: se não é UUID, tenta resolver via product_slugs (histórico de slugs).
+      if (!isUuid) {
+        const { data: alias } = await supabase
+          .from('product_slugs')
+          .select('product_id')
+          .eq('slug', key)
+          .maybeSingle();
+        if (alias?.product_id) {
+          const { data: byAlias, error: errAlias } = await supabase
+            .from('products')
+            .select('*')
+            .eq('id', alias.product_id)
+            .maybeSingle();
+          if (errAlias) throw errAlias;
+          return (byAlias as DbProduct) ?? null;
+        }
+      }
+      return null;
+    },
+    enabled: !!key,
+  });
+}
+
+
 // Fetch all categories.
 // `publicOnly` (default false) aplica a trava SAFE Bloco 3:
 //   só retorna registros com is_draft=false AND is_indexed=true.
