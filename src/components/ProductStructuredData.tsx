@@ -80,6 +80,16 @@ const ProductStructuredData = ({
       "priceCurrency": "BRL",
       "price": Number(Number(price).toFixed(2)),
       "priceValidUntil": priceValidUntilStr,
+      ...(originalPrice && originalPrice > price
+        ? {
+            priceSpecification: {
+              "@type": "UnitPriceSpecification",
+              priceType: "https://schema.org/ListPrice",
+              price: Number(Number(originalPrice).toFixed(2)),
+              priceCurrency: "BRL",
+            },
+          }
+        : {}),
       "availability": "https://schema.org/InStock",
       "itemCondition": "https://schema.org/NewCondition",
       "seller": {
