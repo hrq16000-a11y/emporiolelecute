@@ -157,7 +157,7 @@ const AdminProducts = () => {
 
       <Card className="shadow-card">
         <CardContent className="p-3 sm:p-6">
-          <div className="mb-4 sm:mb-6">
+          <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
             <div className="relative w-full sm:max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -167,7 +167,32 @@ const AdminProducts = () => {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
+            <div className="flex items-center gap-2 sm:ml-auto">
+              <span className="text-xs text-muted-foreground hidden sm:inline">Ordenar:</span>
+              <Select value={sortKey} onValueChange={(v) => { setSortKey(v as SortKey); setSortDir('asc'); }}>
+                <SelectTrigger className="h-10 w-[150px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Nome</SelectItem>
+                  <SelectItem value="price">Preço</SelectItem>
+                  <SelectItem value="tags">Tags</SelectItem>
+                  <SelectItem value="status">Status</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10"
+                onClick={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
+                title={sortLabels[sortKey][sortDir === 'asc' ? 'desc' : 'asc']}
+              >
+                {sortDir === 'asc' ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
+                <span className="ml-1 text-xs hidden sm:inline">{sortLabels[sortKey][sortDir]}</span>
+              </Button>
+            </div>
           </div>
+
 
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
