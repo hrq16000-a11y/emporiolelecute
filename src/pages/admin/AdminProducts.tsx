@@ -534,6 +534,13 @@ const AdminProducts = () => {
       </Card>
 
 
+      <BulkEditProductsDialog
+        open={bulkEditOpen}
+        onOpenChange={setBulkEditOpen}
+        selectedIds={Array.from(selected)}
+        onDone={clearSelection}
+      />
+
       <AlertDialog open={bulkDeleteOpen} onOpenChange={(o) => !bulkBusy && setBulkDeleteOpen(o)}>
         <AlertDialogContent>
           <AlertDialogHeader>
