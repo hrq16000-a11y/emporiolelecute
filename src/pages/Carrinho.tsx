@@ -587,10 +587,27 @@ const Carrinho = () => {
 
               {/* Address */}
               <div className="bg-card rounded-xl border border-border p-4 md:p-6">
-                <h2 className="font-display text-xl text-foreground mb-4 flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  Dados de entrega/envio
-                </h2>
+                <div className="flex items-start justify-between gap-3 mb-4 flex-wrap">
+                  <h2 className="font-display text-xl text-foreground flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-primary" />
+                    Dados de entrega/envio
+                  </h2>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAutoFillAddress}
+                    disabled={loadingGeo}
+                    className="gap-2"
+                  >
+                    {loadingGeo ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Crosshair className="h-4 w-4" />
+                    )}
+                    Preencher endereço preciso por GPS
+                  </Button>
+                </div>
                 <div className="grid md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="cep">CEP *</Label>
