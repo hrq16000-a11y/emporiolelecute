@@ -194,33 +194,42 @@ const ImageUploader = ({ images, onImagesChange, maxImages = 8 }: ImageUploaderP
       return;
     }
 
+    const filesToUpload = Array.from(files).slice(0, remainingSlots);
+
+    // Inicializa fila com 1 entrada por arquivo
+    const initialQueue: UploadEntry[] = filesToUpload.map((f, i) => ({
+      id: `${Date.now()}-${i}-${f.name}`,
+      name: f.name,
+      status: 'uploading',
+    }));
+    setUploadQueue(initialQueue);
     setUploading(true);
 
-    const filesToUpload = Array.from(files).slice(0, remainingSlots);
+    const updateEntry = (id: string, patch: Partial<UploadEntry>) =>
+      setUploadQueue((prev) => prev.map((e) => (e.id === id ? { ...e, ...patch } : e)));
+
     const uploadedUrls: string[] = [];
 
-    for (const file of filesToUpload) {
+    for (let i = 0; i < filesToUpload.length; i++) {
+      const file = filesToUpload[i];
+      const entryId = initialQueue[i].id;
+
       if (!file.type.startsWith('image/')) {
-        toast({
-          title: 'Arquivo inválido',
-          description: 'Apenas imagens são permitidas.',
-          variant: 'destructive',
-        });
+        updateEntry(entryId, { status: 'error', error: 'Não é uma imagem' });
         continue;
       }
 
       if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: 'Arquivo muito grande',
-          description: 'Tamanho máximo: 5MB por imagem.',
-          variant: 'destructive',
-        });
+        updateEntry(entryId, { status: 'error', error: 'Maior que 5 MB' });
         continue;
       }
 
       const url = await uploadImage(file);
       if (url) {
         uploadedUrls.push(url);
+        updateEntry(entryId, { status: 'done' });
+      } else {
+        updateEntry(entryId, { status: 'error', error: 'Falha no envio' });
       }
     }
 
@@ -233,7 +242,18 @@ const ImageUploader = ({ images, onImagesChange, maxImages = 8 }: ImageUploaderP
       });
     }
 
+    const failedCount = filesToUpload.length - uploadedUrls.length;
+    if (failedCount > 0) {
+      toast({
+        title: 'Algumas imagens falharam',
+        description: `${failedCount} arquivo(s) não foi(ram) enviado(s). Veja a lista abaixo.`,
+        variant: 'destructive',
+      });
+    }
+
     setUploading(false);
+    // Limpa a fila após 4s para dar tempo de ler o status
+    setTimeout(() => setUploadQueue([]), 4000);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
