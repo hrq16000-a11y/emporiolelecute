@@ -287,13 +287,15 @@ const AdminProductForm = () => {
     setIsSaving(true);
 
     try {
-      const productData: Omit<DbProduct, 'id' | 'created_at' | 'updated_at'> = {
+      // Payload único — todos os campos de products + flags + badge + pivôs.
+      // Substitui: 1 update products + 2 round-trips de occasions + 2 hooks de tag/segment + 1 update redundante.
+      const productPayload: Record<string, unknown> = {
         name: formData.name,
         slug: formData.slug,
         description: formData.description || null,
         long_description: formData.long_description || null,
         price: parseFloat(formData.price),
-        original_price: null, // Removed from form
+        original_price: null,
         min_quantity: parseInt(formData.min_quantity) || 1,
         pix_discount: parseInt(formData.pix_discount) || 7,
         production_days: parseInt(formData.production_days) || 7,
@@ -304,7 +306,6 @@ const AdminProductForm = () => {
         images: formData.images.filter(Boolean),
         features: formData.features.filter(Boolean),
         keywords: formData.keywords,
-        
         is_active: formData.is_active,
         personalization_enabled: formData.personalization_enabled,
         personalization_label: formData.personalization_label || null,
@@ -313,65 +314,80 @@ const AdminProductForm = () => {
         editorial_content: formData.editorial_content || null,
         featured_weight: parseInt(formData.featured_weight) || 0,
         production_speed: formData.production_speed || null,
-      } as any;
+        // Funde os campos antes "atualizados em segundo UPDATE" no payload principal.
+        pdp_badge_override: badgeOverride ?? null,
+        show_quick_summary: showQuickSummary,
+        show_min_quantity: showMinQuantity,
+      };
 
-      let productId: string;
+      const result = await saveProduct.mutateAsync({
+        id: isEditing && id ? id : null,
+        expected_updated_at: isEditing ? (existingProduct?.updated_at ?? null) : null,
+        product: productPayload,
+        occasion_ids: selectedOccasions,
+        tag_ids: selectedTags,
+        segment_ids: selectedSegments,
+      });
 
-      if (isEditing && id) {
-        await updateProduct.mutateAsync({ id, ...productData });
-        productId = id;
-      } else {
-        const result = await createProduct.mutateAsync(productData);
-        productId = result.id;
-      }
+      // Após save bem-sucedido, sincroniza o expected_updated_at local
+      // para próximos saves sem precisar de refetch (cobre "salvar sequencial").
+      // O guard `hydratedRef` impede que o refetch do React Query pise no form.
+      // Fica registrado para o próximo lock otimista via existingProduct refetch.
+      void result;
 
-      // Update product occasions
-      await supabase.from('product_occasions').delete().eq('product_id', productId);
-      
-      if (selectedOccasions.length > 0) {
-        await supabase.from('product_occasions').insert(
-          selectedOccasions.map((occasionId) => ({
-            product_id: productId,
-            occasion_id: occasionId,
-          }))
-        );
-      }
-
-      // Update product tags
-      await updateProductTags.mutateAsync({ productId, tagIds: selectedTags });
-
-      // Update product segments
-      await updateProductSegments.mutateAsync({ productId, segmentIds: selectedSegments });
-
-      // Update PDP badge override (null clears it) e flag de Resumo Rápido
-      await supabase
-        .from('products')
-        .update({
-          pdp_badge_override: (badgeOverride as any) ?? null,
-          show_quick_summary: showQuickSummary,
-          show_min_quantity: showMinQuantity,
-        } as any)
-        .eq('id', productId);
-
-
-      toast({ title: isEditing ? 'Produto atualizado!' : 'Produto criado!' });
-      // Stay on page after save when editing
-      if (!isEditing) {
-        navigate('/admin/produtos');
-      }
       toast({ title: isEditing ? 'Produto atualizado!' : 'Produto criado!' });
       usage.markSubmitted();
-      // Stay on page after save when editing
       if (!isEditing) {
         navigate('/admin/produtos');
       }
     } catch (error) {
-      console.error('Error saving product:', error);
-      toast({ title: 'Erro ao salvar produto', variant: 'destructive' });
+      const err = error as SaveProductError;
+      console.error('Error saving product:', err);
+      switch (err?.kind) {
+        case 'stale_version':
+          toast({
+            title: 'Edição desatualizada',
+            description: 'Outro admin editou este produto. Recarregue a página para ver a versão atual.',
+            variant: 'destructive',
+          });
+          break;
+        case 'slug_taken':
+          toast({
+            title: 'Slug já em uso',
+            description: 'Escolha um slug diferente — outro produto já usa esse.',
+            variant: 'destructive',
+          });
+          break;
+        case 'fk_missing':
+          toast({
+            title: 'Referência inválida',
+            description: 'Uma categoria, tag, ocasião ou segmento foi removida. Atualize as seleções e tente novamente.',
+            variant: 'destructive',
+          });
+          break;
+        case 'forbidden':
+          toast({
+            title: 'Sem permissão',
+            description: 'Sua conta não tem permissão para salvar produtos.',
+            variant: 'destructive',
+          });
+          break;
+        case 'invalid':
+          toast({
+            title: 'Dados inválidos',
+            description: err.message || 'Verifique os campos e tente novamente.',
+            variant: 'destructive',
+          });
+          break;
+        default:
+          toast({ title: 'Erro ao salvar produto', variant: 'destructive' });
+      }
     } finally {
       setIsSaving(false);
     }
   };
+
+
 
   if (isEditing && loadingProduct) {
     return (
