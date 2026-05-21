@@ -486,7 +486,16 @@ const AdminUsers = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {pagedUsers.map((u) => (
+                  {pagedUsers.map((u) => {
+                    const isAuth = u.source === "auth";
+                    const srcBadge = isAuth
+                      ? null
+                      : u.source === "customer"
+                        ? <Badge variant="outline" className="text-[10px] ml-1">CRM</Badge>
+                        : u.source === "visitor"
+                          ? <Badge variant="outline" className="text-[10px] ml-1">visitante</Badge>
+                          : <Badge variant="outline" className="text-[10px] ml-1">pedido</Badge>;
+                    return (
                     <tr key={u.user_id} className="border-b last:border-0 align-top hover:bg-muted/30">
                       <td className="py-2 pr-3">
                         <button
@@ -494,13 +503,20 @@ const AdminUsers = () => {
                           onClick={() => setSelectedUser(u)}
                           className="text-left hover:underline"
                         >
-                          <div className="font-medium break-all">{u.full_name || u.email || "—"}</div>
-                          <div className="text-xs text-muted-foreground break-all">{u.email}</div>
+                          <div className="font-medium break-all flex items-center gap-1 flex-wrap">
+                            {u.full_name || u.email || u.whatsapp || "—"}
+                            {srcBadge}
+                          </div>
+                          <div className="text-xs text-muted-foreground break-all">
+                            {u.email || u.whatsapp || "—"}
+                          </div>
                         </button>
                       </td>
                       <td className="py-2 pr-3">
                         <div className="flex flex-wrap gap-1">
-                          {u.roles.length === 0 ? (
+                          {!isAuth ? (
+                            <span className="text-xs text-muted-foreground italic">sem login</span>
+                          ) : u.roles.length === 0 ? (
                             <span className="text-xs text-muted-foreground">sem papel</span>
                           ) : (
                             u.roles.map((r) => (
@@ -517,17 +533,21 @@ const AdminUsers = () => {
                       <td className="py-2 pr-3 text-xs text-muted-foreground whitespace-nowrap">
                         {u.last_sign_in_at
                           ? format(new Date(u.last_sign_in_at), "dd/MM/yyyy HH:mm", { locale: ptBR })
-                          : "nunca"}
+                          : isAuth ? "nunca" : "—"}
                       </td>
                       <td className="py-2 pr-3 whitespace-nowrap">
-                        {u.email_confirmed_at ? (
-                          <span className="inline-flex items-center gap-1 text-emerald-600 text-xs">
-                            <CheckCircle2 className="h-3 w-3" /> confirmado
-                          </span>
+                        {isAuth ? (
+                          u.email_confirmed_at ? (
+                            <span className="inline-flex items-center gap-1 text-emerald-600 text-xs">
+                              <CheckCircle2 className="h-3 w-3" /> confirmado
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-amber-600 text-xs">
+                              <AlertCircle className="h-3 w-3" /> pendente
+                            </span>
+                          )
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-amber-600 text-xs">
-                            <AlertCircle className="h-3 w-3" /> pendente
-                          </span>
+                          <span className="text-xs text-muted-foreground">—</span>
                         )}
                       </td>
                       <td className="py-2 pr-3">
@@ -538,6 +558,13 @@ const AdminUsers = () => {
                           >
                             ver ficha <ExternalLink className="h-3 w-3" />
                           </Link>
+                        ) : !isAuth ? (
+                          <Link
+                            to={`/admin/clientes`}
+                            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                          >
+                            criar cliente <ExternalLink className="h-3 w-3" />
+                          </Link>
                         ) : (
                           <span className="text-xs text-muted-foreground">—</span>
                         )}
@@ -547,7 +574,7 @@ const AdminUsers = () => {
                           size="sm"
                           variant={u.roles.includes("admin") ? "outline" : "default"}
                           className="mr-1"
-                          disabled={setRole.isPending}
+                          disabled={setRole.isPending || !isAuth}
                           onClick={() => toggleRole(u, "admin")}
                         >
                           {u.roles.includes("admin") ? (<><UserMinus className="h-3 w-3 mr-1" /> Admin</>) : (<><UserPlus className="h-3 w-3 mr-1" /> Admin</>)}
@@ -555,14 +582,15 @@ const AdminUsers = () => {
                         <Button
                           size="sm"
                           variant={u.roles.includes("editor") ? "outline" : "secondary"}
-                          disabled={setRole.isPending}
+                          disabled={setRole.isPending || !isAuth}
                           onClick={() => toggleRole(u, "editor")}
                         >
                           {u.roles.includes("editor") ? (<><UserMinus className="h-3 w-3 mr-1" /> Editor</>) : (<><UserPlus className="h-3 w-3 mr-1" /> Editor</>)}
                         </Button>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
