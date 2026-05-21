@@ -246,6 +246,8 @@ const App = () => {
               <RedirectHandler />
               <CanonicalNormalizer />
               <TrackingScripts />
+              <VisitorTracker />
+              <CookieConsentBanner />
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={
