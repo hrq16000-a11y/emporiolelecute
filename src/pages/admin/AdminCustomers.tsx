@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -114,6 +115,7 @@ const DeviceIcon = ({ t }: { t: string | null }) => {
 // ============ Component ============
 const AdminCustomers = () => {
   const qc = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [tab, setTab] = useState<"customers" | "visitors">("customers");
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<CustomerRow | null>(null);
@@ -223,6 +225,19 @@ const AdminCustomers = () => {
     });
     setEditing(c);
   };
+
+  // Deep-link: abre a ficha quando vem /admin/clientes?customer=<id> (origem: /admin/usuarios)
+  useEffect(() => {
+    const id = searchParams.get("customer");
+    if (!id || !customersQ.data || editing) return;
+    const c = customersQ.data.find((x) => x.id === id);
+    if (c) {
+      openEdit(c);
+      const next = new URLSearchParams(searchParams);
+      next.delete("customer");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, customersQ.data]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filteredCustomers = (customersQ.data || []).filter((c) => {
     const s = search.toLowerCase();
