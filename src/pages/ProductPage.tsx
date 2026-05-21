@@ -957,8 +957,9 @@ const ProductPage = () => {
             return (
               <div
                 key={s.section_key}
-                className={idx > 0 ? "border-t border-border/40 pt-10 md:border-0 md:pt-0" : undefined}
+                className={`max-w-3xl mx-auto ${idx > 0 ? "border-t border-border/40 pt-10 md:border-0 md:pt-0" : ""}`.trim()}
               >
+
                 {node}
                 {s.section_key === "description" &&
                   (() => {
