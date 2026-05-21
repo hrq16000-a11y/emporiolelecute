@@ -1049,7 +1049,7 @@ const AdminProductForm = () => {
               <div>
                 <CardTitle className="text-base">Exibir "Mínimo X un." na PDP</CardTitle>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Quando ativado, mostra o selo de quantidade mínima ("Mínimo {formData.minQuantity || 'X'} un.") na linha de informações da página deste produto. Padrão: desativado.
+                  Quando ativado, mostra o selo de quantidade mínima ("Mínimo {formData.min_quantity || 'X'} un.") na linha de informações da página deste produto. Padrão: desativado.
                 </p>
               </div>
               <Switch
