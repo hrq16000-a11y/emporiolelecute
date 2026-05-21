@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Users, UserPlus, Search, Mail, Phone, MapPin, Calendar, Edit, Trash2,
-  Eye, Globe, Smartphone, Monitor, Tablet, Bot,
+  Eye, Globe, Smartphone, Monitor, Tablet, Bot, ShieldCheck,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -170,11 +170,20 @@ const AdminCustomers = () => {
   // ====== Mutations ======
   const saveMut = useMutation({
     mutationFn: async (input: { id?: string }) => {
+      // Prioridade de identificação: WhatsApp > Nome. Pelo menos um é obrigatório.
+      const wa = form.whatsapp.trim();
+      let name = form.name.trim();
+      if (!name && !wa) throw new Error("Informe ao menos o WhatsApp ou o Nome do cliente");
+      if (!name && wa) {
+        // Nome derivado do WhatsApp para manter ficha legível
+        const digits = wa.replace(/\D/g, "").slice(-4);
+        name = digits ? `Contato ${digits}` : "Contato sem nome";
+      }
       const payload = {
-        name: form.name.trim(),
+        name,
         email: form.email.trim() || null,
         phone: form.phone.trim() || null,
-        whatsapp: form.whatsapp.trim() || null,
+        whatsapp: wa || null,
         city: form.city.trim() || null,
         state: form.state.trim() || null,
         source: form.source.trim() || null,
@@ -182,7 +191,6 @@ const AdminCustomers = () => {
         notes: form.notes.trim() || null,
         tags: form.tags ? form.tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
       };
-      if (!payload.name) throw new Error("Nome obrigatório");
       if (input.id) {
         const { error } = await supabase.from("customers").update(payload).eq("id", input.id);
         if (error) throw error;
@@ -270,15 +278,23 @@ const AdminCustomers = () => {
             Clientes & Visitantes
           </h1>
           <p className="text-muted-foreground mt-1">
-            Cadastro manual de clientes e rastreamento anônimo de visitantes (LGPD)
+            Identificação prioritária por <strong>WhatsApp</strong> ou <strong>IP</strong>. Cadastro manual para contatos via WhatsApp/indicação; visitantes anônimos rastreados com consentimento (LGPD).
           </p>
         </div>
-        {tab === "customers" && (
-          <Button onClick={openCreate}>
-            <UserPlus className="w-4 h-4 mr-2" /> Novo cliente
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" asChild>
+            <Link to="/admin/usuarios">
+              <ShieldCheck className="w-4 h-4 mr-2" /> Gestão de usuários
+            </Link>
           </Button>
-        )}
+          {tab === "customers" && (
+            <Button onClick={openCreate}>
+              <UserPlus className="w-4 h-4 mr-2" /> Novo cliente
+            </Button>
+          )}
+        </div>
       </div>
+
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="mb-4">
         <TabsList>
@@ -453,7 +469,19 @@ const AdminCustomers = () => {
           </DialogHeader>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
             <div className="sm:col-span-2">
-              <Label>Nome *</Label>
+              <Label>WhatsApp <span className="text-primary">*</span></Label>
+              <Input
+                value={form.whatsapp}
+                onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
+                placeholder="(41) 99999-9999"
+                autoFocus={!editing}
+              />
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Identificador principal do cliente (junto com IP). Preenchimento prioritário.
+              </p>
+            </div>
+            <div className="sm:col-span-2">
+              <Label>Nome <span className="text-muted-foreground text-xs">(opcional — preenchido automaticamente a partir do WhatsApp)</span></Label>
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </div>
             <div>
@@ -464,10 +492,7 @@ const AdminCustomers = () => {
               <Label>Telefone</Label>
               <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
             </div>
-            <div>
-              <Label>WhatsApp</Label>
-              <Input value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} placeholder="(41) 99999-9999" />
-            </div>
+
             <div>
               <Label>Origem</Label>
               <Input value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} placeholder="Instagram, indicação, etc" />
