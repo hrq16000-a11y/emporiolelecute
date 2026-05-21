@@ -376,14 +376,14 @@ const AdminProductForm = () => {
   }
 
   return (
-    <div className="p-6 lg:p-8">
-      <div className="mb-6">
-        <Button variant="ghost" onClick={() => navigate('/admin/produtos')} className="mb-4">
-          <ArrowLeft className="w-4 h-4 mr-2" />
+    <div className="p-3 sm:p-6 lg:p-8 max-sm:[&_.p-6]:p-3 max-sm:[&_.space-y-6]:space-y-3 max-sm:[&_.space-y-4]:space-y-3 max-sm:[&_.gap-6]:gap-3 max-sm:[&_.gap-4]:gap-3 max-sm:[&_.text-lg]:text-base max-sm:[&_label]:text-sm">
+      <div className="mb-3 sm:mb-6">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/admin/produtos')} className="mb-2 sm:mb-4 h-8 px-2">
+          <ArrowLeft className="w-4 h-4 mr-1.5" />
           Voltar
         </Button>
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <h1 className="text-3xl font-display font-semibold text-foreground">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h1 className="text-xl sm:text-3xl font-display font-semibold text-foreground">
             {isEditing ? 'Editar Produto' : 'Novo Produto'}
           </h1>
           {isEditing && (() => {
@@ -396,7 +396,7 @@ const AdminProductForm = () => {
               tagsCount: selectedTags.length,
             });
             return (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <ProductSeoScoreBadge evaluation={seo} />
                 {seo.issues.filter((i) => i.level === 'error').length > 0 && (
                   <span className="text-xs text-rose-700">
@@ -412,8 +412,8 @@ const AdminProductForm = () => {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Main Info */}
           <Card className="lg:col-span-2 shadow-card">
             <CardHeader>
