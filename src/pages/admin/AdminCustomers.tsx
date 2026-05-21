@@ -115,6 +115,7 @@ const DeviceIcon = ({ t }: { t: string | null }) => {
 // ============ Component ============
 const AdminCustomers = () => {
   const qc = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [tab, setTab] = useState<"customers" | "visitors">("customers");
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<CustomerRow | null>(null);
