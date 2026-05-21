@@ -188,12 +188,9 @@ const RelatedSmart = ({ currentProductId, occasions, tags, category, limit = 8 }
           </Link>
         )}
       </div>
-      <div className="grid min-w-0 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+      <div className="grid min-w-0 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
         {items.map((p) => (
-          <div key={p.id} className="relative min-w-0">
-            <span className="absolute z-10 top-2 left-2 max-w-[calc(100%-1rem)] truncate text-[10px] uppercase bg-background/90 backdrop-blur text-foreground/80 px-2 py-0.5 rounded-full border shadow-sm">
-              {data!.reasonLabel[p._reason]}
-            </span>
+          <div key={p.id} className="min-w-0">
             <ProductCard product={toCardProduct(p)} />
           </div>
         ))}
