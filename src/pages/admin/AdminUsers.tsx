@@ -532,14 +532,29 @@ const AdminUsers = () => {
                 </TabsList>
 
                 <TabsContent value="perfil" className="mt-4 space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
                     <Badge variant="outline" className="text-[10px]">origem: {selected.source}</Badge>
-                    {selected.source !== "customer" && !selected.linked_customer_id && !selected.roles.includes("admin") && (
-                      <Button size="sm" variant="outline" onClick={() => handleMigrateToCustomer(selected)}>
-                        <Link2 className="h-3 w-3 mr-1" /> Migrar para cliente
-                      </Button>
-                    )}
+                    <div className="flex gap-2 flex-wrap">
+                      {selected.whatsapp && (
+                        <Button size="sm" variant="outline" asChild>
+                          <a
+                            href={buildWhatsappUrl(
+                              `Olá ${selected.full_name?.split(" ")[0] || ""}! Aqui é do Empório Lele Cute. Como podemos te ajudar?`
+                            )}
+                            target="_blank" rel="noopener noreferrer"
+                          >
+                            <MessageCircle className="h-3 w-3 mr-1" /> WhatsApp
+                          </a>
+                        </Button>
+                      )}
+                      {selected.source !== "customer" && !selected.linked_customer_id && !selected.roles.includes("admin") && (
+                        <Button size="sm" variant="outline" onClick={() => handleMigrateToCustomer(selected)}>
+                          <Link2 className="h-3 w-3 mr-1" /> Migrar para cliente
+                        </Button>
+                      )}
+                    </div>
                   </div>
+
 
                   {selected.source === "auth" ? (
                     <div className="space-y-1">
