@@ -164,8 +164,8 @@ const AdminUsers = () => {
     if (u.source !== "auth") { toast.error("Contato sem login. Crie ou convide o usuário primeiro."); return; }
     const has = u.roles.includes(role);
     const authId = u.user_id.replace(/^auth:/, "");
-    if (role === "admin" && has && currentAuthUser?.id === authId) {
-      toast.error("Você não pode remover seu próprio papel de admin.");
+    if (role === "admin" && has) {
+      toast.error("O papel de admin não pode ser removido. Administradores têm acesso permanente.");
       return;
     }
     if (!confirm(`Confirmar ${has ? "remoção" : "atribuição"} do papel ${role} para ${u.email}?`)) return;
