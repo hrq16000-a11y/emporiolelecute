@@ -114,20 +114,23 @@ Deno.serve(async (req) => {
 
     await walk("");
 
-    // 3) Deleta em lotes de 100
-    for (let i = 0; i < toDelete.length; i += 100) {
-      const batch = toDelete.slice(i, i + 100);
-      const { data: delData, error: delErr } = await supabase.storage.from(BUCKET).remove(batch);
-      if (delErr) {
-        failed += batch.length;
-        console.error(`[gc] falha ao deletar lote: ${delErr.message}`);
-      } else {
-        deleted += (delData?.length ?? batch.length);
+    // 3) Em dry_run, NÃO deleta. Apenas reporta candidatos (amostra de 50).
+    if (!dryRun) {
+      for (let i = 0; i < toDelete.length; i += 100) {
+        const batch = toDelete.slice(i, i + 100);
+        const { data: delData, error: delErr } = await supabase.storage.from(BUCKET).remove(batch);
+        if (delErr) {
+          failed += batch.length;
+          console.error(`[gc] falha ao deletar lote: ${delErr.message}`);
+        } else {
+          deleted += (delData?.length ?? batch.length);
+        }
       }
     }
 
     const summary = {
       ok: true,
+      mode: dryRun ? "dry_run" : "delete",
       bucket: BUCKET,
       cutoff: cutoff.toISOString(),
       analyzed,
@@ -135,9 +138,11 @@ Deno.serve(async (req) => {
       orphans_found: orphanCandidates,
       deleted,
       failed,
+      sample_orphans: toDelete.slice(0, 50),
       duration_ms: Date.now() - startedAt,
     };
     console.log("[gc] resumo:", JSON.stringify(summary));
+
 
     return new Response(JSON.stringify(summary), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
