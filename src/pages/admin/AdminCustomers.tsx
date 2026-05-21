@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Users, UserPlus, Search, Mail, Phone, MapPin, Calendar, Edit, Trash2,
+  Users, UserPlus, Search, Calendar, Edit, Trash2,
   Eye, Globe, Smartphone, Monitor, Tablet, Bot, ShieldCheck,
+  ChevronLeft, ChevronRight, X,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
@@ -20,6 +22,10 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { VisitorFilters, applyVisitorFilters, defaultFilters, type VisitorFilterState, type DatePreset, type DeviceFilter } from "@/components/admin/customers/VisitorFilters";
+import { VisitorCard } from "@/components/admin/customers/VisitorCard";
+import { CustomerCard } from "@/components/admin/customers/CustomerCard";
 
 // ============ Types ============
 interface CustomerRow {
@@ -112,19 +118,66 @@ const DeviceIcon = ({ t }: { t: string | null }) => {
   return <Monitor className="w-4 h-4" />;
 };
 
+// ============ URL state helpers ============
+const PAGE_SIZES = [10, 25, 50] as const;
+type PageSize = (typeof PAGE_SIZES)[number];
+
 // ============ Component ============
 const AdminCustomers = () => {
   const qc = useQueryClient();
+  const isMobile = useIsMobile();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [tab, setTab] = useState<"customers" | "visitors">("customers");
-  const [search, setSearch] = useState("");
+
+  // ============ Persistência URL ============
+  const tab = (searchParams.get("tab") as "customers" | "visitors") || "customers";
+  const search = searchParams.get("q") || "";
+  const page = Math.max(1, Number(searchParams.get("page") || 1));
+  const perPage: PageSize = (PAGE_SIZES.includes(Number(searchParams.get("per")) as PageSize)
+    ? (Number(searchParams.get("per")) as PageSize)
+    : 25);
+
+  const visitorFilters: VisitorFilterState = useMemo(() => ({
+    datePreset: (searchParams.get("dp") as DatePreset) || defaultFilters.datePreset,
+    dateFrom: searchParams.get("df"),
+    dateTo: searchParams.get("dt"),
+    hourFrom: Number(searchParams.get("hf") ?? defaultFilters.hourFrom),
+    hourTo: Number(searchParams.get("ht") ?? defaultFilters.hourTo),
+    device: (searchParams.get("dev") as DeviceFilter) || defaultFilters.device,
+    os: searchParams.get("os") || defaultFilters.os,
+  }), [searchParams]);
+
+  const patchParams = (patch: Record<string, string | number | null>) => {
+    const next = new URLSearchParams(searchParams);
+    for (const [k, v] of Object.entries(patch)) {
+      if (v == null || v === "") next.delete(k);
+      else next.set(k, String(v));
+    }
+    setSearchParams(next, { replace: true });
+  };
+
+  const setTab = (v: "customers" | "visitors") => patchParams({ tab: v === "customers" ? null : v, page: null });
+  const setSearch = (v: string) => patchParams({ q: v || null, page: null });
+  const setPage = (n: number) => patchParams({ page: n <= 1 ? null : n });
+  const setPerPage = (n: PageSize) => patchParams({ per: n === 25 ? null : n, page: null });
+  const setVisitorFilters = (f: VisitorFilterState) => patchParams({
+    dp: f.datePreset === "all" ? null : f.datePreset,
+    df: f.dateFrom,
+    dt: f.dateTo,
+    hf: f.hourFrom === 0 ? null : f.hourFrom,
+    ht: f.hourTo === 23 ? null : f.hourTo,
+    dev: f.device === "all" ? null : f.device,
+    os: f.os === "all" ? null : f.os,
+    page: null,
+  });
+
+  // ============ Estado UI (não persiste) ============
   const [editing, setEditing] = useState<CustomerRow | null>(null);
   const [creating, setCreating] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<CustomerRow | null>(null);
   const [viewVisitor, setViewVisitor] = useState<VisitorRow | null>(null);
   const [form, setForm] = useState(emptyForm);
 
-  // ====== Customers ======
+  // ====== Queries ======
   const customersQ = useQuery({
     queryKey: ["admin-customers-v2"],
     queryFn: async () => {
@@ -160,7 +213,7 @@ const AdminCustomers = () => {
         .select("*")
         .eq("visitor_id", viewVisitor.visitor_id)
         .order("viewed_at", { ascending: false })
-        .limit(100);
+        .limit(200);
       if (error) throw error;
       return (data || []) as PageviewRow[];
     },
@@ -170,12 +223,10 @@ const AdminCustomers = () => {
   // ====== Mutations ======
   const saveMut = useMutation({
     mutationFn: async (input: { id?: string }) => {
-      // Prioridade de identificação: WhatsApp > Nome. Pelo menos um é obrigatório.
       const wa = form.whatsapp.trim();
       let name = form.name.trim();
       if (!name && !wa) throw new Error("Informe ao menos o WhatsApp ou o Nome do cliente");
       if (!name && wa) {
-        // Nome derivado do WhatsApp para manter ficha legível
         const digits = wa.replace(/\D/g, "").slice(-4);
         name = digits ? `Contato ${digits}` : "Contato sem nome";
       }
@@ -202,9 +253,7 @@ const AdminCustomers = () => {
     onSuccess: () => {
       toast({ title: "Cliente salvo" });
       qc.invalidateQueries({ queryKey: ["admin-customers-v2"] });
-      setEditing(null);
-      setCreating(false);
-      setForm(emptyForm);
+      setEditing(null); setCreating(false); setForm(emptyForm);
     },
     onError: (e: Error) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });
@@ -234,7 +283,7 @@ const AdminCustomers = () => {
     setEditing(c);
   };
 
-  // Deep-link: abre a ficha quando vem /admin/clientes?customer=<id> (origem: /admin/usuarios)
+  // Deep-link: abre ficha quando vem /admin/clientes?customer=<id>
   useEffect(() => {
     const id = searchParams.get("customer");
     if (!id || !customersQ.data || editing) return;
@@ -247,56 +296,86 @@ const AdminCustomers = () => {
     }
   }, [searchParams, customersQ.data]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const filteredCustomers = (customersQ.data || []).filter((c) => {
+  // ====== Derived data ======
+  const filteredCustomers = useMemo(() => {
     const s = search.toLowerCase();
-    return !s ||
+    return (customersQ.data || []).filter((c) => !s ||
       c.name?.toLowerCase().includes(s) ||
       c.email?.toLowerCase().includes(s) ||
       c.phone?.includes(s) ||
       c.whatsapp?.includes(s) ||
-      c.city?.toLowerCase().includes(s);
-  });
+      c.city?.toLowerCase().includes(s));
+  }, [customersQ.data, search]);
 
-  const filteredVisitors = (visitorsQ.data || []).filter((v) => {
+  const osOptions = useMemo(() => {
+    const set = new Set<string>();
+    (visitorsQ.data || []).forEach((v) => v.os_name && set.add(v.os_name));
+    return Array.from(set).sort();
+  }, [visitorsQ.data]);
+
+  const filteredVisitors = useMemo(() => {
     const s = search.toLowerCase();
-    return !s ||
+    const base = (visitorsQ.data || []).filter((v) => !s ||
       v.visitor_id.toLowerCase().includes(s) ||
       v.ip?.toLowerCase().includes(s) ||
       v.ip_city?.toLowerCase().includes(s) ||
       v.ip_country?.toLowerCase().includes(s) ||
       v.device_model?.toLowerCase().includes(s) ||
-      v.os_name?.toLowerCase().includes(s);
-  });
+      v.os_name?.toLowerCase().includes(s));
+    return applyVisitorFilters(base, visitorFilters);
+  }, [visitorsQ.data, search, visitorFilters]);
+
+  // ====== Pagination ======
+  const activeList = tab === "customers" ? filteredCustomers : filteredVisitors;
+  const totalPages = Math.max(1, Math.ceil(activeList.length / perPage));
+  const safePage = Math.min(page, totalPages);
+  const startIdx = (safePage - 1) * perPage;
+  const pagedCustomers = filteredCustomers.slice(startIdx, startIdx + perPage);
+  const pagedVisitors = filteredVisitors.slice(startIdx, startIdx + perPage);
+
+  const handleInvite = async (c: CustomerRow) => {
+    if (!c.email) return;
+    if (!confirm(`Enviar convite de login para ${c.email}?`)) return;
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-create-user", {
+        body: { email: c.email, full_name: c.name, whatsapp: c.whatsapp, send_invite: true },
+      });
+      if (error) throw error;
+      if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
+      toast({ title: "Convite enviado", description: c.email });
+    } catch (e) {
+      toast({ title: "Erro", description: (e as Error).message, variant: "destructive" });
+    }
+  };
 
   // ============ Render ============
   return (
-    <div className="p-6 lg:p-8">
+    <div className="p-4 lg:p-8 overflow-x-hidden">
       <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-3xl font-display text-foreground flex items-center gap-3">
-            <Users className="h-8 w-8 text-primary" />
+          <h1 className="text-2xl lg:text-3xl font-display text-foreground flex items-center gap-3">
+            <Users className="h-7 w-7 lg:h-8 lg:w-8 text-primary" />
             Clientes & Visitantes
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Identificação prioritária por <strong>WhatsApp</strong> ou <strong>IP</strong>. Cadastro manual para contatos via WhatsApp/indicação; visitantes anônimos rastreados com consentimento (LGPD).
+          <p className="text-sm text-muted-foreground mt-1">
+            <strong>Visitante</strong>: anônimo (IP/dispositivo). <strong>Cliente</strong>: criado no pedido de orçamento. <strong>Usuário</strong>: login interno.
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" asChild>
+          <Button variant="outline" asChild size="sm">
             <Link to="/admin/usuarios">
-              <ShieldCheck className="w-4 h-4 mr-2" /> Gestão de usuários
+              <ShieldCheck className="w-4 h-4 mr-2" /> Usuários
             </Link>
           </Button>
           {tab === "customers" && (
-            <Button onClick={openCreate}>
+            <Button onClick={openCreate} size="sm">
               <UserPlus className="w-4 h-4 mr-2" /> Novo cliente
             </Button>
           )}
         </div>
       </div>
 
-
-      <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="mb-4">
+      <Tabs value={tab} onValueChange={(v) => setTab(v as "customers" | "visitors")} className="mb-4">
         <TabsList>
           <TabsTrigger value="customers">
             Clientes ({customersQ.data?.length ?? 0})
@@ -312,18 +391,41 @@ const AdminCustomers = () => {
             placeholder={tab === "customers" ? "Buscar nome, email, telefone, cidade…" : "Buscar IP, cidade, dispositivo…"}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
+            className="pl-10 pr-10"
           />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label="Limpar"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
+
+        {tab === "visitors" && (
+          <div className="mb-4 p-3 bg-muted/30 rounded-lg border border-border">
+            <VisitorFilters value={visitorFilters} onChange={setVisitorFilters} osOptions={osOptions} />
+          </div>
+        )}
 
         {/* ============ CUSTOMERS ============ */}
         <TabsContent value="customers">
           {customersQ.isLoading ? (
             <div className="py-16 text-center text-muted-foreground">Carregando…</div>
           ) : filteredCustomers.length === 0 ? (
-            <div className="text-center py-16 bg-card rounded-xl border border-border">
-              <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">Nenhum cliente cadastrado.</p>
+            <EmptyState icon={Users} text="Nenhum cliente cadastrado." />
+          ) : isMobile ? (
+            <div className="grid grid-cols-1 gap-3">
+              {pagedCustomers.map((c) => (
+                <CustomerCard
+                  key={c.id} customer={c}
+                  onEdit={() => openEdit(c)}
+                  onDelete={() => setConfirmDelete(c)}
+                  onInvite={c.email ? () => handleInvite(c) : undefined}
+                />
+              ))}
             </div>
           ) : (
             <div className="bg-card rounded-xl border border-border overflow-hidden">
@@ -341,7 +443,7 @@ const AdminCustomers = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredCustomers.map((c) => (
+                    {pagedCustomers.map((c) => (
                       <tr key={c.id} className="border-b border-border/50 hover:bg-muted/30">
                         <td className="p-3">
                           <p className="font-medium">{c.name}</p>
@@ -371,24 +473,7 @@ const AdminCustomers = () => {
                         </td>
                         <td className="p-3 text-right whitespace-nowrap">
                           {c.email && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              title="Migrar para usuário com login"
-                              onClick={async () => {
-                                if (!confirm(`Enviar convite de login para ${c.email}?`)) return;
-                                try {
-                                  const { data, error } = await supabase.functions.invoke("admin-create-user", {
-                                    body: { email: c.email, full_name: c.name, whatsapp: c.whatsapp, send_invite: true },
-                                  });
-                                  if (error) throw error;
-                                  if ((data as any)?.error) throw new Error((data as any).error);
-                                  toast({ title: "Convite enviado", description: `${c.email}` });
-                                } catch (e: any) {
-                                  toast({ title: "Erro", description: e.message, variant: "destructive" });
-                                }
-                              }}
-                            >
+                            <Button variant="ghost" size="sm" title="Migrar para usuário" onClick={() => handleInvite(c)}>
                               <ShieldCheck className="w-4 h-4" />
                             </Button>
                           )}
@@ -402,6 +487,13 @@ const AdminCustomers = () => {
               </div>
             </div>
           )}
+          {filteredCustomers.length > 0 && (
+            <Pagination
+              page={safePage} totalPages={totalPages} perPage={perPage}
+              total={filteredCustomers.length}
+              onPage={setPage} onPerPage={setPerPage}
+            />
+          )}
         </TabsContent>
 
         {/* ============ VISITORS ============ */}
@@ -409,11 +501,12 @@ const AdminCustomers = () => {
           {visitorsQ.isLoading ? (
             <div className="py-16 text-center text-muted-foreground">Carregando…</div>
           ) : filteredVisitors.length === 0 ? (
-            <div className="text-center py-16 bg-card rounded-xl border border-border">
-              <Globe className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">
-                Nenhum visitante registrado ainda. Os dados aparecem após visitantes aceitarem o banner de cookies.
-              </p>
+            <EmptyState icon={Globe} text="Nenhum visitante encontrado com os filtros atuais." />
+          ) : isMobile ? (
+            <div className="grid grid-cols-1 gap-3">
+              {pagedVisitors.map((v) => (
+                <VisitorCard key={v.visitor_id} visitor={v} onView={() => setViewVisitor(v)} />
+              ))}
             </div>
           ) : (
             <div className="bg-card rounded-xl border border-border overflow-hidden">
@@ -431,7 +524,7 @@ const AdminCustomers = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredVisitors.map((v) => (
+                    {pagedVisitors.map((v) => (
                       <tr key={v.visitor_id} className="border-b border-border/50 hover:bg-muted/30">
                         <td className="p-3">
                           <div className="font-mono text-xs">{v.visitor_id.slice(0, 8)}…</div>
@@ -458,7 +551,7 @@ const AdminCustomers = () => {
                           {v.utm_source && <Badge variant="outline" className="text-[10px]">{v.utm_source}</Badge>}
                           {v.first_referrer && (
                             <div className="text-muted-foreground truncate max-w-[140px]" title={v.first_referrer}>
-                              {new URL(v.first_referrer, "http://x").hostname.replace("x", "direto")}
+                              {(() => { try { return new URL(v.first_referrer).hostname; } catch { return v.first_referrer; } })()}
                             </div>
                           )}
                         </td>
@@ -479,12 +572,19 @@ const AdminCustomers = () => {
               </div>
             </div>
           )}
+          {filteredVisitors.length > 0 && (
+            <Pagination
+              page={safePage} totalPages={totalPages} perPage={perPage}
+              total={filteredVisitors.length}
+              onPage={setPage} onPerPage={setPerPage}
+            />
+          )}
         </TabsContent>
       </Tabs>
 
       {/* ============ Create / Edit Dialog ============ */}
       <Dialog open={!!editing || creating} onOpenChange={(o) => { if (!o) { setEditing(null); setCreating(false); } }}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? "Editar cliente" : "Novo cliente"}</DialogTitle>
             <DialogDescription>Cadastro manual — usado para clientes vindos por WhatsApp, indicação, etc.</DialogDescription>
@@ -498,12 +598,10 @@ const AdminCustomers = () => {
                 placeholder="(41) 99999-9999"
                 autoFocus={!editing}
               />
-              <p className="text-[11px] text-muted-foreground mt-1">
-                Identificador principal do cliente (junto com IP). Preenchimento prioritário.
-              </p>
+              <p className="text-[11px] text-muted-foreground mt-1">Identificador principal do cliente.</p>
             </div>
             <div className="sm:col-span-2">
-              <Label>Nome <span className="text-muted-foreground text-xs">(opcional — preenchido automaticamente a partir do WhatsApp)</span></Label>
+              <Label>Nome <span className="text-muted-foreground text-xs">(opcional)</span></Label>
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </div>
             <div>
@@ -514,10 +612,9 @@ const AdminCustomers = () => {
               <Label>Telefone</Label>
               <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
             </div>
-
             <div>
               <Label>Origem</Label>
-              <Input value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} placeholder="Instagram, indicação, etc" />
+              <Input value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} placeholder="Instagram, indicação…" />
             </div>
             <div>
               <Label>Cidade</Label>
@@ -560,8 +657,7 @@ const AdminCustomers = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Remover cliente?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. O cliente <strong>{confirmDelete?.name}</strong> será removido do cadastro.
-              Os pedidos e visitas associados permanecem.
+              Esta ação não pode ser desfeita. O cliente <strong>{confirmDelete?.name}</strong> será removido.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -582,7 +678,7 @@ const AdminCustomers = () => {
           </DialogHeader>
           {viewVisitor && (
             <div className="space-y-4 text-sm">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Info label="IP" value={viewVisitor.ip} />
                 <Info label="Consentimento" value={viewVisitor.consent_status} />
                 <Info label="País" value={viewVisitor.ip_country} />
@@ -599,17 +695,17 @@ const AdminCustomers = () => {
                 <Info label="UTM" value={[viewVisitor.utm_source, viewVisitor.utm_campaign].filter(Boolean).join(" / ")} />
                 <Info label="Total páginas" value={String(viewVisitor.total_pageviews)} />
                 <Info label="Tempo total" value={formatDuration(viewVisitor.total_time_seconds)} />
-                <Info label="GPS (se autorizado)" value={viewVisitor.gps_lat ? `${viewVisitor.gps_lat}, ${viewVisitor.gps_lon}` : null} />
-                <Info label="Geo aproximada (IP)" value={viewVisitor.ip_lat ? `${viewVisitor.ip_lat}, ${viewVisitor.ip_lon}` : null} />
+                <Info label="GPS" value={viewVisitor.gps_lat ? `${viewVisitor.gps_lat}, ${viewVisitor.gps_lon}` : null} />
+                <Info label="Geo (IP)" value={viewVisitor.ip_lat ? `${viewVisitor.ip_lat}, ${viewVisitor.ip_lon}` : null} />
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2 flex items-center gap-2"><Calendar className="w-4 h-4" /> Páginas visitadas</h4>
+                <h4 className="font-semibold mb-2 flex items-center gap-2"><Calendar className="w-4 h-4" /> Histórico de navegação ({pageviewsQ.data?.length ?? 0})</h4>
                 <div className="border border-border rounded-lg max-h-72 overflow-y-auto">
                   {pageviewsQ.isLoading && <div className="p-3 text-muted-foreground">Carregando…</div>}
                   {pageviewsQ.data?.length === 0 && <div className="p-3 text-muted-foreground">Sem páginas registradas.</div>}
                   {pageviewsQ.data?.map((pv) => (
-                    <div key={pv.id} className="p-2 border-b border-border/50 text-xs">
+                    <div key={pv.id} className="p-2 border-b border-border/50 text-xs last:border-0">
                       <div className="flex justify-between gap-2">
                         <span className="font-mono truncate flex-1">{pv.path}</span>
                         <span className="text-muted-foreground shrink-0">{formatDateTime(pv.viewed_at)}</span>
@@ -631,10 +727,45 @@ const AdminCustomers = () => {
   );
 };
 
+const EmptyState = ({ icon: Icon, text }: { icon: typeof Users; text: string }) => (
+  <div className="text-center py-16 bg-card rounded-xl border border-border">
+    <Icon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+    <p className="text-muted-foreground">{text}</p>
+  </div>
+);
+
+const Pagination = ({
+  page, totalPages, perPage, total, onPage, onPerPage,
+}: {
+  page: number; totalPages: number; perPage: PageSize; total: number;
+  onPage: (n: number) => void; onPerPage: (n: PageSize) => void;
+}) => (
+  <div className="flex flex-wrap items-center justify-between gap-3 mt-4 px-1">
+    <div className="text-xs text-muted-foreground">
+      {total === 0 ? "0 registros" : `${(page - 1) * perPage + 1}–${Math.min(page * perPage, total)} de ${total}`}
+    </div>
+    <div className="flex items-center gap-2">
+      <Select value={String(perPage)} onValueChange={(v) => onPerPage(Number(v) as PageSize)}>
+        <SelectTrigger className="w-auto h-8 text-xs"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          {PAGE_SIZES.map((n) => <SelectItem key={n} value={String(n)}>{n} / pág</SelectItem>)}
+        </SelectContent>
+      </Select>
+      <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => onPage(page - 1)} className="h-8">
+        <ChevronLeft className="w-4 h-4" />
+      </Button>
+      <span className="text-xs tabular-nums">{page} / {totalPages}</span>
+      <Button size="sm" variant="outline" disabled={page >= totalPages} onClick={() => onPage(page + 1)} className="h-8">
+        <ChevronRight className="w-4 h-4" />
+      </Button>
+    </div>
+  </div>
+);
+
 const Info = ({ label, value }: { label: string; value: string | null | undefined }) => (
   <div className="p-2 bg-muted/40 rounded">
     <div className="text-[10px] uppercase text-muted-foreground">{label}</div>
-    <div className="text-sm truncate" title={value || ""}>{value || "—"}</div>
+    <div className="text-sm break-words" title={value || ""}>{value || "—"}</div>
   </div>
 );
 
