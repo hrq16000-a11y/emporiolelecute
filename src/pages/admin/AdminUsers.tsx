@@ -140,12 +140,33 @@ const AdminUsers = () => {
   });
 
   const toggleRole = (u: UserRow, role: "admin" | "editor") => {
+    if (u.source !== "auth") {
+      toast.error("Este contato ainda não criou conta. Peça para acessar /admin/login primeiro.");
+      return;
+    }
     const has = u.roles.includes(role);
     const action = has ? "remove" : "add";
     const label = role === "admin" ? "administrador" : "editor";
     if (!confirm(`Confirmar ${has ? "remoção" : "atribuição"} do papel de ${label} para ${u.email}?`)) return;
     setRole.mutate({ user_id: u.user_id, role, action });
   };
+
+  // Edição de nome (somente perfis autenticados)
+  const [editingName, setEditingName] = useState("");
+  const updateName = useMutation({
+    mutationFn: async (p: { user_id: string; full_name: string }) => {
+      const { data, error } = await (supabase as any).rpc("update_user_profile", {
+        _user_id: p.user_id, _full_name: p.full_name,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Nome atualizado.");
+      qc.invalidateQueries({ queryKey: ["admin-all-users"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Falha ao atualizar nome"),
+  });
 
   // Ordenação dos usuários
   const sortedUsers = useMemo(() => {
