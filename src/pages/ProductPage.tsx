@@ -474,7 +474,7 @@ const ProductPage = () => {
 
       <main className="pt-20 md:pt-32 pb-16 max-w-full overflow-x-hidden">
         {/* Breadcrumb */}
-        <div className="container mx-auto max-w-full px-4 py-1.5 md:py-3 overflow-hidden">
+        <div className="layout-commerce py-1.5 md:py-3 overflow-hidden">
           <nav
             className="flex max-w-full items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 text-xs sm:text-sm text-muted-foreground scrollbar-hide"
             aria-label="Breadcrumb"
@@ -586,8 +586,9 @@ const ProductPage = () => {
               ) : null}
             </div>
 
-            {/* Info Section - Reference Style */}
-            <div className="flex min-w-0 max-w-full flex-col overflow-hidden">
+            {/* Info Section - Reference Style (cap editorial em desktop p/ preservar proximidade) */}
+            <div className="flex min-w-0 w-full lg:max-w-[560px] flex-col overflow-hidden">
+
               {/* Product Name + Social Proof (estrelas só quando há avaliações reais) */}
               <div className="flex items-start justify-between gap-3 sm:gap-4 mb-3">
                 <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-light text-foreground leading-tight tracking-tight min-w-0 break-words">
@@ -856,7 +857,7 @@ const ProductPage = () => {
                 );
                 return (
                   <>
-                    <div className="flex min-w-0 items-stretch gap-2 sm:gap-3 mb-4">
+                    <div className="flex min-w-0 items-stretch gap-2 sm:gap-3 mb-4 lg:max-w-[420px]">
                       {cartBtn(true)}
                       {/* Favorite */}
                       <Button
@@ -887,7 +888,7 @@ const ProductPage = () => {
                     {addedToCart && (
                       <Button
                         size="lg"
-                        className="w-full bg-primary hover:bg-primary-dark text-primary-foreground rounded-lg py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all mb-4"
+                        className="w-full lg:max-w-[420px] bg-primary hover:bg-primary-dark text-primary-foreground rounded-lg py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all mb-4"
                         onClick={() => navigate("/carrinho")}
                       >
                         Finalizar Compra Agora
@@ -957,8 +958,9 @@ const ProductPage = () => {
             return (
               <div
                 key={s.section_key}
-                className={`max-w-3xl mx-auto ${idx > 0 ? "border-t border-border/40 pt-10 md:border-0 md:pt-0" : ""}`.trim()}
+                className={`max-w-3xl mr-auto ${idx > 0 ? "border-t border-border/40 pt-10 md:border-0 md:pt-0" : ""}`.trim()}
               >
+
 
                 {node}
                 {s.section_key === "description" &&
