@@ -16,6 +16,7 @@ import { validateCoupon, type ValidCoupon } from "@/hooks/useCoupons";
 import { optimizeImage } from "@/lib/image";
 import { urls } from "@/lib/urls";
 import { calcCartTotals } from "@/lib/cartTotals";
+import { formatBRL } from "@/lib/format";
 
 interface AddressData {
   cep: string;
@@ -506,12 +507,12 @@ const Carrinho = () => {
                         </Link>
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
                           <p className="text-primary font-bold text-sm">
-                            R$ {item.price.toFixed(2).replace('.', ',')} / un
+                            {formatBRL(item.price)} / un
                           </p>
                           {item.originalPrice && item.originalPrice > item.price && (
                             <>
                               <span className="text-xs text-muted-foreground line-through">
-                                R$ {item.originalPrice.toFixed(2).replace('.', ',')}
+                                {formatBRL(item.originalPrice)}
                               </span>
                               <span className="text-[10px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded">
                                 -{Math.round((1 - item.price / item.originalPrice) * 100)}%
@@ -548,7 +549,7 @@ const Carrinho = () => {
                             <Trash2 className="h-4 w-4" />
                           </button>
                           <span className="ml-auto font-bold text-foreground">
-                            R$ {(item.price * item.quantity).toFixed(2).replace('.', ',')}
+                            {formatBRL(item.price * item.quantity)}
                           </span>
                         </div>
                       </div>
@@ -693,23 +694,23 @@ const Carrinho = () => {
                       <>
                         <div className="flex justify-between text-muted-foreground">
                           <span>De</span>
-                          <span className="line-through">R$ {originalSubtotal.toFixed(2).replace('.', ',')}</span>
+                          <span className="line-through">{formatBRL(originalSubtotal)}</span>
                         </div>
                         <div className="flex justify-between text-green-700 font-medium">
                           <span>Você economiza</span>
-                          <span>- R$ {savings.toFixed(2).replace('.', ',')}</span>
+                          <span>- {formatBRL(savings)}</span>
                         </div>
                       </>
                     );
                   })()}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal ({items.length} {items.length === 1 ? 'item' : 'itens'})</span>
-                    <span className="text-foreground">R$ {total.toFixed(2).replace('.', ',')}</span>
+                    <span className="text-foreground">{formatBRL(total)}</span>
                   </div>
                   {coupon && (
                     <div className="flex justify-between text-green-700">
                       <span>Cupom {coupon.code}</span>
-                      <span>- R$ {discount.toFixed(2).replace('.', ',')}</span>
+                      <span>- {formatBRL(discount)}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
@@ -746,7 +747,7 @@ const Carrinho = () => {
                 <div className="flex justify-between items-center mb-2">
                   <span className="font-semibold text-foreground">Subtotal</span>
                   <span className="text-2xl font-bold text-primary">
-                    R$ {totalWithDiscount.toFixed(2).replace('.', ',')}
+                    {formatBRL(totalWithDiscount)}
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground text-center mb-6">
