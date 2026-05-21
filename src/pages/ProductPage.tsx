@@ -721,8 +721,9 @@ const ProductPage = () => {
               <div className="mb-6">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                   <span className="font-medium text-foreground">Quantidade</span>
-                  <span className="text-sm text-muted-foreground">
-                    <Package className="h-3.5 w-3.5" strokeWidth={1.5} /> (Mínimo: {product.minQuantity}){" "}
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-0.5 text-xs font-medium text-primary/80">
+                    <Package className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden />
+                    Mínimo {product.minQuantity} un.
                   </span>
                 </div>
                 <div className="flex items-center gap-4">
