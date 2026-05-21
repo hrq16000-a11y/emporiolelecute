@@ -120,7 +120,6 @@ const ProductPage = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, [dbProduct?.id, ctaConfig?.sticky?.scrollViewportRatio]);
 
-
   // Fase 1 — Replace controlado para slug primário.
   // Blindagens: didReplaceRef (1x por mount) + checagem de pathname atual.
   const didReplaceRef = useRef(false);
@@ -701,8 +700,6 @@ const ProductPage = () => {
                   `Lembrancinha especial com sabonete artesanal. Perfeito para lembrancinhas de maternidade, batizado e eventos especiais.`}
               </p>
 
-
-
               {/* Personalization Field - only show if enabled */}
               {dbProduct?.personalization_enabled !== false && (
                 <div className="rounded-lg border-2 border-primary/30 bg-primary/5 p-5 mb-6">
@@ -725,8 +722,7 @@ const ProductPage = () => {
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                   <span className="font-medium text-foreground">Quantidade</span>
                   <span className="text-sm text-muted-foreground">
-                    <Package className="h-3.5 w-3.5" strokeWidth={1.5} />
-                    (Mínimo: {product.minQuantity})
+                    <Package className="h-3.5 w-3.5" strokeWidth={1.5} /> (Mínimo: {product.minQuantity}){" "}
                   </span>
                 </div>
                 <div className="flex items-center gap-4">
@@ -792,11 +788,11 @@ const ProductPage = () => {
                 productSlug={product.slug}
                 productName={product.name}
                 occasionName={dbProduct?.occasions?.[0]?.name}
-                 enabled={
-                   (dbProduct as any)?.show_quick_summary === true &&
-                   resolvePrimaryAction(dbProduct).primary !== "cart" &&
-                   ctaConfig?.quickSummary?.enabled !== false
-                 }
+                enabled={
+                  (dbProduct as any)?.show_quick_summary === true &&
+                  resolvePrimaryAction(dbProduct).primary !== "cart" &&
+                  ctaConfig?.quickSummary?.enabled !== false
+                }
                 title={ctaConfig?.quickSummary?.title}
                 minLabel={ctaConfig?.quickSummary?.minLabel}
                 prazoLabel={ctaConfig?.quickSummary?.prazoLabel}
@@ -869,7 +865,6 @@ const ProductPage = () => {
                       </Button>
                     </div>
 
-
                     {/* Go to Cart Button - Shows after adding to cart */}
                     {addedToCart && (
                       <Button
@@ -931,9 +926,7 @@ const ProductPage = () => {
                   </div>
                 </div>
               )}
-
             </div>
-
           </div>
 
           {/* Seções gerenciadas via /admin/pdp-sections (ordem + visibilidade).
@@ -949,30 +942,30 @@ const ProductPage = () => {
                 className={idx > 0 ? "border-t border-border/40 pt-10 md:border-0 md:pt-0" : undefined}
               >
                 {node}
-                {s.section_key === "description" && (() => {
-                  const { url } = buildWhatsAppMessage();
-                  return (
-                    <div ref={ctaAnchorRef} className="mt-6 mb-10 max-w-3xl">
-                      <a
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          openWhatsApp("product_page");
-                        }}
-                        className="flex max-w-full items-center justify-center gap-3 p-4 bg-foreground/95 hover:bg-foreground text-background rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-300"
-                      >
-                        <MessageCircle className="h-6 w-6 shrink-0" />
-                        <span className="min-w-0 truncate">Fazer Orçamento no WhatsApp</span>
-                      </a>
-                    </div>
-                  );
-                })()}
+                {s.section_key === "description" &&
+                  (() => {
+                    const { url } = buildWhatsAppMessage();
+                    return (
+                      <div ref={ctaAnchorRef} className="mt-6 mb-10 max-w-3xl">
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            openWhatsApp("product_page");
+                          }}
+                          className="flex max-w-full items-center justify-center gap-3 p-4 bg-foreground/95 hover:bg-foreground text-background rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-300"
+                        >
+                          <MessageCircle className="h-6 w-6 shrink-0" />
+                          <span className="min-w-0 truncate">Fazer Orçamento no WhatsApp</span>
+                        </a>
+                      </div>
+                    );
+                  })()}
               </div>
             );
           })}
-
 
           {/* Fase 11.1 — Linking semântico contextual (SAFE MODE) */}
           {(() => {
