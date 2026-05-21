@@ -1020,7 +1020,7 @@ const ProductPage = () => {
 
       {/* FAQ editorial por PDP — overrides do admin (product_faqs) ou fallback automático */}
       {dbProduct?.id && (
-        <section className="container mx-auto px-4">
+        <section className="layout-conversational">
           <ProductPdpFaq
             productId={dbProduct.id}
             productName={product.name}
