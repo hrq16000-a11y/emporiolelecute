@@ -503,9 +503,21 @@ const Carrinho = () => {
                         >
                           {item.name}
                         </Link>
-                        <p className="text-primary font-bold text-sm mt-1">
-                          R$ {item.price.toFixed(2).replace('.', ',')} / un
-                        </p>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          <p className="text-primary font-bold text-sm">
+                            R$ {item.price.toFixed(2).replace('.', ',')} / un
+                          </p>
+                          {item.originalPrice && item.originalPrice > item.price && (
+                            <>
+                              <span className="text-xs text-muted-foreground line-through">
+                                R$ {item.originalPrice.toFixed(2).replace('.', ',')}
+                              </span>
+                              <span className="text-[10px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded">
+                                -{Math.round((1 - item.price / item.originalPrice) * 100)}%
+                              </span>
+                            </>
+                          )}
+                        </div>
                         {item.personalization && (
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
                             {item.personalization}
