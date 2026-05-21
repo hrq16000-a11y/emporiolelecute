@@ -87,18 +87,18 @@ const AdminProducts = () => {
   };
 
   return (
-    <div className="p-6 lg:p-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div className="p-3 sm:p-6 lg:p-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div>
-          <h1 className="text-3xl font-display font-semibold text-foreground">Produtos</h1>
-          <p className="text-muted-foreground mt-1">Gerencie todos os produtos da loja</p>
+          <h1 className="text-2xl sm:text-3xl font-display font-semibold text-foreground">Produtos</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">Gerencie todos os produtos da loja</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" onClick={() => setBackfillOpen(true)}>
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
+          <Button variant="outline" onClick={() => setBackfillOpen(true)} className="w-full sm:w-auto justify-center">
             <Scale className="w-4 h-4 mr-2" />
             Backfill peso{productsWithoutWeight > 0 ? ` (${productsWithoutWeight})` : ''}
           </Button>
-          <Button asChild>
+          <Button asChild className="w-full sm:w-auto justify-center">
             <Link to="/admin/produtos/novo">
               <Plus className="w-4 h-4 mr-2" />
               Novo Produto
@@ -108,9 +108,9 @@ const AdminProducts = () => {
       </div>
 
       <Card className="shadow-card">
-        <CardContent className="p-6">
-          <div className="mb-6">
-            <div className="relative max-w-sm">
+        <CardContent className="p-3 sm:p-6">
+          <div className="mb-4 sm:mb-6">
+            <div className="relative w-full sm:max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar produtos..."
@@ -126,73 +126,34 @@ const AdminProducts = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
             </div>
           ) : filteredProducts && filteredProducts.length > 0 ? (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-16">Imagem</TableHead>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Preço</TableHead>
-                    <TableHead>Tags</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredProducts.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell>
-                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted">
-                          {product.images[0] && (
-                            <img
-                              src={product.images[0]}
-                              alt={product.name}
-                              className="w-full h-full object-contain p-1"
-                            />
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{product.name}</span>
-                          <a
-                            href={urls.product(product.slug)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-muted-foreground hover:text-primary transition-colors"
-                            title="Abrir produto em nova aba"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                          </a>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        R$ {product.price.toFixed(2).replace('.', ',')}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1 max-w-[200px]">
-                          {product.keywords && product.keywords.length > 0 ? (
-                            product.keywords.slice(0, 3).map((keyword, idx) => (
-                              <span 
-                                key={idx}
-                                className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full"
-                              >
-                                {keyword}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-xs text-muted-foreground">Sem tags</span>
-                          )}
-                          {product.keywords && product.keywords.length > 3 && (
-                            <span className="text-xs text-muted-foreground">
-                              +{product.keywords.length - 3}
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
+            <>
+              {/* MOBILE: lista em cards verticais */}
+              <ul className="md:hidden space-y-3">
+                {filteredProducts.map((product) => (
+                  <li
+                    key={product.id}
+                    className="rounded-xl border border-border bg-card p-3 flex gap-3"
+                  >
+                    <div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-muted">
+                      {product.images[0] && (
+                        <img
+                          src={product.images[0]}
+                          alt={product.name}
+                          className="w-full h-full object-contain p-1"
+                          loading="lazy"
+                        />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <Link
+                          to={`/admin/produtos/${product.id}`}
+                          className="font-medium text-sm leading-snug line-clamp-2 hover:text-primary"
+                        >
+                          {product.name}
+                        </Link>
                         <span
-                          className={`px-2 py-1 rounded-full text-xs ${
+                          className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium ${
                             product.is_active
                               ? 'bg-green-100 text-green-700'
                               : 'bg-muted text-muted-foreground'
@@ -200,41 +161,170 @@ const AdminProducts = () => {
                         >
                           {product.is_active ? 'Ativo' : 'Inativo'}
                         </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleToggleActive(product.id, product.is_active)}
-                            title={product.is_active ? 'Desativar' : 'Ativar'}
+                      </div>
+                      <p className="text-sm text-foreground/80 mt-0.5">
+                        R$ {product.price.toFixed(2).replace('.', ',')}
+                      </p>
+                      {product.keywords && product.keywords.length > 0 && (
+                        <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">
+                          {product.keywords.slice(0, 3).join(' · ')}
+                          {product.keywords.length > 3 && ` +${product.keywords.length - 3}`}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-1 mt-2 -ml-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-9 px-2 text-xs"
+                          onClick={() => handleToggleActive(product.id, product.is_active)}
+                        >
+                          {product.is_active ? (
+                            <><EyeOff className="w-4 h-4 mr-1" /> Ocultar</>
+                          ) : (
+                            <><Eye className="w-4 h-4 mr-1" /> Ativar</>
+                          )}
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-9 px-2 text-xs" asChild>
+                          <Link to={`/admin/produtos/${product.id}`}>
+                            <Pencil className="w-4 h-4 mr-1" /> Editar
+                          </Link>
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-9 px-2" asChild>
+                          <a
+                            href={urls.product(product.slug)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label="Abrir no site"
                           >
-                            {product.is_active ? (
-                              <EyeOff className="w-4 h-4" />
-                            ) : (
-                              <Eye className="w-4 h-4" />
-                            )}
-                          </Button>
-                          <Button variant="ghost" size="icon" asChild>
-                            <Link to={`/admin/produtos/${product.id}`}>
-                              <Pencil className="w-4 h-4" />
-                            </Link>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => setDeleteId(product.id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-9 px-2 text-destructive hover:text-destructive ml-auto"
+                          onClick={() => setDeleteId(product.id)}
+                          aria-label="Excluir"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              {/* DESKTOP/TABLET: tabela */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-16">Imagem</TableHead>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Preço</TableHead>
+                      <TableHead>Tags</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredProducts.map((product) => (
+                      <TableRow key={product.id}>
+                        <TableCell>
+                          <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted">
+                            {product.images[0] && (
+                              <img
+                                src={product.images[0]}
+                                alt={product.name}
+                                className="w-full h-full object-contain p-1"
+                              />
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{product.name}</span>
+                            <a
+                              href={urls.product(product.slug)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-muted-foreground hover:text-primary transition-colors"
+                              title="Abrir produto em nova aba"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </a>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          R$ {product.price.toFixed(2).replace('.', ',')}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1 max-w-[200px]">
+                            {product.keywords && product.keywords.length > 0 ? (
+                              product.keywords.slice(0, 3).map((keyword, idx) => (
+                                <span
+                                  key={idx}
+                                  className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full"
+                                >
+                                  {keyword}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-xs text-muted-foreground">Sem tags</span>
+                            )}
+                            {product.keywords && product.keywords.length > 3 && (
+                              <span className="text-xs text-muted-foreground">
+                                +{product.keywords.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs ${
+                              product.is_active
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-muted text-muted-foreground'
+                            }`}
+                          >
+                            {product.is_active ? 'Ativo' : 'Inativo'}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleToggleActive(product.id, product.is_active)}
+                              title={product.is_active ? 'Desativar' : 'Ativar'}
+                            >
+                              {product.is_active ? (
+                                <EyeOff className="w-4 h-4" />
+                              ) : (
+                                <Eye className="w-4 h-4" />
+                              )}
+                            </Button>
+                            <Button variant="ghost" size="icon" asChild>
+                              <Link to={`/admin/produtos/${product.id}`}>
+                                <Pencil className="w-4 h-4" />
+                              </Link>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => setDeleteId(product.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           ) : (
             <div className="text-center py-12">
               <p className="text-muted-foreground mb-4">Nenhum produto encontrado</p>
@@ -248,6 +338,7 @@ const AdminProducts = () => {
           )}
         </CardContent>
       </Card>
+
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
