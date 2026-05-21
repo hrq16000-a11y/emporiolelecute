@@ -34,6 +34,7 @@ const ProductStructuredData = ({
   name,
   description,
   price,
+  originalPrice,
   images,
   slug,
   rating,
