@@ -366,6 +366,83 @@ export function useUpdateProduct() {
   });
 }
 
+// =============================================================================
+// useSaveProductFull — operação ATÔMICA (RPC save_product_full)
+// Substitui a cadeia: update products + delete/insert pivôs + update redundante.
+// Lock otimista via expected_updated_at. Rollback total em qualquer erro.
+// =============================================================================
+
+export interface SaveProductFullPayload {
+  id: string | null;
+  expected_updated_at: string | null;
+  product: Record<string, unknown>;
+  occasion_ids: string[];
+  tag_ids: string[];
+  segment_ids: string[];
+}
+
+export interface SaveProductFullResult {
+  id: string;
+  slug: string;
+  updated_at: string;
+  row: Record<string, unknown>;
+}
+
+/** Categoria de erro mapeada para UX do AdminProductForm. */
+export type SaveProductErrorKind =
+  | 'stale_version'    // 40001 — outro admin editou
+  | 'slug_taken'       // 23505 — slug duplicado
+  | 'fk_missing'       // 23503 — categoria/tag removida
+  | 'forbidden'        // 42501 — sem permissão
+  | 'invalid'          // 23514 — slug reservado, validação
+  | 'unknown';
+
+export interface SaveProductError extends Error {
+  kind: SaveProductErrorKind;
+  code?: string;
+  hint?: string;
+}
+
+function classifySaveError(raw: unknown): SaveProductError {
+  const e = raw as { code?: string; hint?: string; message?: string; details?: string } | null;
+  const code = e?.code;
+  const hint = e?.hint;
+  const msg = e?.message || 'Erro ao salvar produto';
+  let kind: SaveProductErrorKind = 'unknown';
+  if (code === '40001' || hint === 'stale_version') kind = 'stale_version';
+  else if (code === '23505') kind = 'slug_taken';
+  else if (code === '23503') kind = 'fk_missing';
+  else if (code === '42501') kind = 'forbidden';
+  else if (code === '23514') kind = 'invalid';
+  const err = new Error(msg) as SaveProductError;
+  err.kind = kind;
+  err.code = code;
+  err.hint = hint;
+  return err;
+}
+
+export function useSaveProductFull() {
+  const qc = useQueryClient();
+  return useMutation<SaveProductFullResult, SaveProductError, SaveProductFullPayload>({
+    mutationFn: async (payload) => {
+      const { data, error } = await supabase.rpc('save_product_full' as any, {
+        _payload: payload as any,
+      });
+      if (error) throw classifySaveError(error);
+      return data as unknown as SaveProductFullResult;
+    },
+    onSuccess: (data) => {
+      // Invalidação completa — lista, by-id-or-slug, PDP pública e pivôs.
+      qc.invalidateQueries({ queryKey: ['products'] });
+      qc.invalidateQueries({ queryKey: ['product-by-id-or-slug'] });
+      qc.invalidateQueries({ queryKey: ['product', data.slug] });
+      qc.invalidateQueries({ queryKey: ['product_tags', data.id] });
+    },
+  });
+}
+
+
+
 // Delete product
 export function useDeleteProduct() {
   const queryClient = useQueryClient();
