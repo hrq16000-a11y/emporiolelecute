@@ -25,7 +25,7 @@ export default function PoliticaPrivacidade() {
     }
     setSending(true);
     try {
-      const visitor_id = typeof window !== "undefined" ? localStorage.getItem("ll_visitor_id") : null;
+      const visitor_id = typeof window !== "undefined" ? localStorage.getItem("elc_visitor_id") : null;
       const { error } = await supabase.functions.invoke("data-deletion-request", {
         body: { email, whatsapp, reason, visitor_id },
       });
