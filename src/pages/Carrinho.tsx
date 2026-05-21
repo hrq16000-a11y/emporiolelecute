@@ -503,9 +503,21 @@ const Carrinho = () => {
                         >
                           {item.name}
                         </Link>
-                        <p className="text-primary font-bold text-sm mt-1">
-                          R$ {item.price.toFixed(2).replace('.', ',')} / un
-                        </p>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          <p className="text-primary font-bold text-sm">
+                            R$ {item.price.toFixed(2).replace('.', ',')} / un
+                          </p>
+                          {item.originalPrice && item.originalPrice > item.price && (
+                            <>
+                              <span className="text-xs text-muted-foreground line-through">
+                                R$ {item.originalPrice.toFixed(2).replace('.', ',')}
+                              </span>
+                              <span className="text-[10px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded">
+                                -{Math.round((1 - item.price / item.originalPrice) * 100)}%
+                              </span>
+                            </>
+                          )}
+                        </div>
                         {item.personalization && (
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
                             {item.personalization}
@@ -673,6 +685,26 @@ const Carrinho = () => {
                 </h2>
 
                 <div className="space-y-3 text-sm">
+                  {(() => {
+                    const originalTotal = items.reduce(
+                      (sum, it) => sum + (it.originalPrice && it.originalPrice > it.price ? it.originalPrice : it.price) * it.quantity,
+                      0
+                    );
+                    const savings = originalTotal - total;
+                    if (savings <= 0) return null;
+                    return (
+                      <>
+                        <div className="flex justify-between text-muted-foreground">
+                          <span>De</span>
+                          <span className="line-through">R$ {originalTotal.toFixed(2).replace('.', ',')}</span>
+                        </div>
+                        <div className="flex justify-between text-green-700 font-medium">
+                          <span>Você economiza</span>
+                          <span>- R$ {savings.toFixed(2).replace('.', ',')}</span>
+                        </div>
+                      </>
+                    );
+                  })()}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal ({items.length} {items.length === 1 ? 'item' : 'itens'})</span>
                     <span className="text-foreground">R$ {total.toFixed(2).replace('.', ',')}</span>

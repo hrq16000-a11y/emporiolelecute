@@ -217,6 +217,7 @@ const ProductPage = () => {
       slug: product.slug,
       name: product.name,
       price: product.price,
+      originalPrice: product.originalPrice && product.originalPrice > product.price ? product.originalPrice : undefined,
       image: product.images[0] || "/placeholder.svg",
       personalization,
       minQuantity: product.minQuantity,
@@ -425,6 +426,7 @@ const ProductPage = () => {
         name={product.name}
         description={product.description || `Lembrancinha artesanal ${product.name}`}
         price={product.price}
+        originalPrice={product.originalPrice && product.originalPrice > product.price ? product.originalPrice : undefined}
         images={product.images}
         slug={canonicalSlug}
         rating={reviewStats?.avg_rating ? Number(reviewStats.avg_rating) : undefined}
