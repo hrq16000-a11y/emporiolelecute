@@ -335,7 +335,7 @@ const AdminProducts = () => {
                           {product.keywords.length > 3 && ` +${product.keywords.length - 3}`}
                         </p>
                       )}
-                      <div className="flex items-center gap-1 mt-2 -ml-2">
+                      <div className="flex items-center flex-wrap gap-1 mt-2">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -366,7 +366,7 @@ const AdminProducts = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-9 px-2 text-destructive hover:text-destructive ml-auto"
+                          className="h-9 px-2 text-destructive hover:text-destructive"
                           onClick={() => setDeleteId(product.id)}
                           aria-label="Excluir"
                         >
