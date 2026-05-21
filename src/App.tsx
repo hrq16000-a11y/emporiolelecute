@@ -152,6 +152,10 @@ import AdminErrorBoundary from "./components/AdminErrorBoundary";
 import RedirectHandler from "./components/RedirectHandler";
 import TrackingScripts from "./components/TrackingScripts";
 import CanonicalNormalizer from "./components/CanonicalNormalizer";
+import CookieConsentBanner from "./components/CookieConsentBanner";
+import { useVisitorTracking } from "./hooks/useVisitorTracking";
+
+const VisitorTracker = () => { useVisitorTracking(); return null; };
 import { logSlugEvent } from "./lib/slugObservability";
 import { urls, PRODUCT_PATH_PREFIX, LEGACY_PRODUCT_PATH_PREFIX } from "./lib/urls";
 
