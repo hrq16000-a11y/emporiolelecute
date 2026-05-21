@@ -92,8 +92,48 @@ describe("discountPercent", () => {
     expect(discountPercent({ price: 75, originalPrice: 100, quantity: 1 })).toBe(25);
     expect(discountPercent({ price: 67, originalPrice: 100, quantity: 1 })).toBe(33);
   });
+  it("arredonda corretamente nos limites (banker's rounding não afeta -X%)", () => {
+    // 12.5% → 13 (Math.round arredonda para cima em .5 positivo)
+    expect(discountPercent({ price: 87.5, originalPrice: 100, quantity: 1 })).toBe(13);
+    // 33.333...% → 33
+    expect(discountPercent({ price: 20, originalPrice: 30, quantity: 1 })).toBe(33);
+    // 66.666...% → 67
+    expect(discountPercent({ price: 10, originalPrice: 30, quantity: 1 })).toBe(67);
+    // 1% — desconto mínimo perceptível
+    expect(discountPercent({ price: 99, originalPrice: 100, quantity: 1 })).toBe(1);
+  });
   it("retorna null sem desconto", () => {
     expect(discountPercent({ price: 10, quantity: 1 })).toBeNull();
     expect(discountPercent({ price: 10, originalPrice: 10, quantity: 1 })).toBeNull();
   });
 });
+
+describe("calcCartTotals — quantidades e precisão", () => {
+  it("quantidade alta mantém soma exata até centavos", () => {
+    const r = calcCartTotals([
+      { price: 9.9, originalPrice: 12.5, quantity: 100 },
+    ]);
+    expect(r.subtotal).toBeCloseTo(990, 2);
+    expect(r.originalSubtotal).toBeCloseTo(1250, 2);
+    expect(r.savings).toBeCloseTo(260, 2);
+  });
+  it("ignora quantidade zero sem quebrar (item efêmero)", () => {
+    const r = calcCartTotals([
+      { price: 10, originalPrice: 15, quantity: 0 },
+      { price: 5, quantity: 2 },
+    ]);
+    expect(r.subtotal).toBe(10);
+    expect(r.originalSubtotal).toBe(10);
+    expect(r.savings).toBe(0);
+    expect(r.hasDiscount).toBe(false);
+  });
+  it("preços com 3 casas (truncamento do banco) somam previsivelmente", () => {
+    const r = calcCartTotals([
+      { price: 9.99, originalPrice: 12.99, quantity: 3 },
+    ]);
+    expect(r.subtotal).toBeCloseTo(29.97, 2);
+    expect(r.originalSubtotal).toBeCloseTo(38.97, 2);
+    expect(r.savings).toBeCloseTo(9, 2);
+  });
+});
+
