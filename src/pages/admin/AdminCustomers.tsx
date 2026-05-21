@@ -461,7 +461,19 @@ const AdminCustomers = () => {
           </DialogHeader>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
             <div className="sm:col-span-2">
-              <Label>Nome *</Label>
+              <Label>WhatsApp <span className="text-primary">*</span></Label>
+              <Input
+                value={form.whatsapp}
+                onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
+                placeholder="(41) 99999-9999"
+                autoFocus={!editing}
+              />
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Identificador principal do cliente (junto com IP). Preenchimento prioritário.
+              </p>
+            </div>
+            <div className="sm:col-span-2">
+              <Label>Nome <span className="text-muted-foreground text-xs">(opcional — preenchido automaticamente a partir do WhatsApp)</span></Label>
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </div>
             <div>
@@ -472,10 +484,7 @@ const AdminCustomers = () => {
               <Label>Telefone</Label>
               <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
             </div>
-            <div>
-              <Label>WhatsApp</Label>
-              <Input value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} placeholder="(41) 99999-9999" />
-            </div>
+
             <div>
               <Label>Origem</Label>
               <Input value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} placeholder="Instagram, indicação, etc" />
