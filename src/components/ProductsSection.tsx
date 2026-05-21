@@ -7,7 +7,7 @@ import { ProductGridSkeleton } from "@/components/ProductSkeleton";
 import { useDbProducts } from "@/hooks/useProducts";
 import type { Product } from "@/data/products";
 import { useHomeRegistry } from "@/contexts/HomeRegistry";
-import { sortByHomePriority } from "@/lib/homePriority";
+import { sortByHomePriority, seededShuffle, getBrazilDateKey } from "@/lib/homePriority";
 
 const ProductsSection = () => {
   const { data: dbProducts, isLoading } = useDbProducts();
@@ -18,12 +18,15 @@ const ProductsSection = () => {
     // Sprint final — exclui produtos já mostrados em blocos anteriores.
     const remainingIds = new Set(registry.filterProducts(active.map(p => p.id)));
     const pool = active.filter(p => remainingIds.has(p.id));
-    const ordered = sortByHomePriority(
-      (pool.length > 0 ? pool : active).map(p => ({
-        ...p,
-        featured_weight: (p as any).featured_weight ?? 0,
-        badge: p.badge,
-      }))
+    const ordered = seededShuffle(
+      sortByHomePriority(
+        (pool.length > 0 ? pool : active).map(p => ({
+          ...p,
+          featured_weight: (p as any).featured_weight ?? 0,
+          badge: p.badge,
+        }))
+      ),
+      getBrazilDateKey()
     ).slice(0, 6);
 
     registry.claimProducts(ordered.map(p => p.id));

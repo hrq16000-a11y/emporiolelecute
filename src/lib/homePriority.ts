@@ -35,3 +35,46 @@ export function sortByHomePriority<T extends HomePriorityInput>(items: T[]): T[]
     .sort((a, b) => (b.score - a.score) || (a.idx - b.idx))
     .map((x) => x.item);
 }
+
+/** Gera um seed numérico determinístico a partir de uma string (ex: YYYYMMDD). */
+function cyrb128(str: string): number {
+  let h1 = 1779033703, h2 = 3144134277, h3 = 1013904242, h4 = 2773480762;
+  for (let i = 0, k; i < str.length; i++) {
+    k = str.charCodeAt(i);
+    h1 = h2 ^ Math.imul(h1 ^ k, 597399067);
+    h2 = h3 ^ Math.imul(h2 ^ k, 2869860233);
+    h3 = h4 ^ Math.imul(h3 ^ k, 951274213);
+    h4 = h1 ^ Math.imul(h4 ^ k, 2716044179);
+  }
+  h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067);
+  h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
+  h3 = Math.imul(h1 ^ (h3 >>> 17), 951274213);
+  h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
+  return (h1 ^ h2 ^ h3 ^ h4) >>> 0;
+}
+
+/** PRNG simples e determinístico (Mulberry32). */
+function mulberry32(seed: number) {
+  return function() {
+    let t = seed += 0x6D2B79F5;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Shuffle determinístico (Fisher-Yates) usando seed string. */
+export function seededShuffle<T>(arr: T[], seedStr: string): T[] {
+  const rng = mulberry32(cyrb128(seedStr));
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/** Retorna a data local do Brasil no formato YYYYMMDD. */
+export function getBrazilDateKey(): string {
+  return new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).split('/').reverse().join('');
+}

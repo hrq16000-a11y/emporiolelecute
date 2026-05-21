@@ -6,18 +6,18 @@ import { ProductGridSkeleton } from "@/components/ProductSkeleton";
 import { useDbProducts } from "@/hooks/useProducts";
 import type { Product } from "@/data/products";
 import { useHomeRegistry } from "@/contexts/HomeRegistry";
-import { sortByHomePriority } from "@/lib/homePriority";
+import { sortByHomePriority, seededShuffle, getBrazilDateKey } from "@/lib/homePriority";
 import { urls, CANONICAL_ORIGIN } from "@/lib/urls";
 import SectionEyebrow from "@/components/SectionEyebrow";
 
-const STORAGE_KEY = "bestsellers:selection:v2";
-const TTL_MS = 1000 * 60 * 60 * 24; // 24h — same selection across reloads / sessions
+const getStorageKey = () => `bestsellers:selection:v3:${getBrazilDateKey()}`;
+const TTL_MS = 1000 * 60 * 60 * 24; // 24h
 
 type Cached = { ids: string[]; ts: number };
 
 const readCache = (): Cached | null => {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(getStorageKey());
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Cached;
     if (!parsed?.ids || Date.now() - parsed.ts > TTL_MS) return null;
@@ -29,19 +29,10 @@ const readCache = (): Cached | null => {
 
 const writeCache = (ids: string[]) => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ids, ts: Date.now() } satisfies Cached));
+    localStorage.setItem(getStorageKey(), JSON.stringify({ ids, ts: Date.now() } satisfies Cached));
   } catch {
     /* ignore */
   }
-};
-
-const shuffle = <T,>(arr: T[]): T[] => {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
 };
 
 interface BestSellersProps {
@@ -65,13 +56,17 @@ const BestSellers = ({ eyebrow }: BestSellersProps = {}) => {
       desiredMax
     );
 
-    // Score editorial: featured_weight + badge manual.
-    const sorted = sortByHomePriority(
-      pool.map(p => ({
-        ...p,
-        featured_weight: (p as any).featured_weight ?? 0,
-        badge: p.badge,
-      }))
+    // Score editorial + variação diária determinística.
+    const dailySeed = getBrazilDateKey();
+    const sorted = seededShuffle(
+      sortByHomePriority(
+        pool.map(p => ({
+          ...p,
+          featured_weight: (p as any).featured_weight ?? 0,
+          badge: p.badge,
+        }))
+      ),
+      dailySeed
     );
     const chosen = sorted.slice(0, targetCount);
 
