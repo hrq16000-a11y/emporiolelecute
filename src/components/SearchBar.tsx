@@ -140,12 +140,14 @@ const SearchBar = ({
       }));
 
     // Ordem dos grupos prioriza produtos (intent comercial)
-    const groups: Array<{ kind: SuggestionKind; items: Suggestion[] }> = [
-      { kind: "product", items: productItems },
-      { kind: "category", items: categoryItems },
-      { kind: "occasion", items: occasionItems },
-      { kind: "page", items: pageItems },
-    ].filter((g) => g.items.length > 0);
+    const groups: Array<{ kind: SuggestionKind; items: Suggestion[] }> = (
+      [
+        { kind: "product" as const, items: productItems },
+        { kind: "category" as const, items: categoryItems },
+        { kind: "occasion" as const, items: occasionItems },
+        { kind: "page" as const, items: pageItems },
+      ]
+    ).filter((g) => g.items.length > 0);
 
     const flat = groups.flatMap((g) => g.items);
     return { suggestions: flat, grouped: groups };
