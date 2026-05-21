@@ -148,6 +148,40 @@ const AdminProducts = () => {
     }
   };
 
+  const visibleIds = useMemo(() => filteredProducts.map((p) => p.id), [filteredProducts]);
+  const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selected.has(id));
+  const someVisibleSelected = visibleIds.some((id) => selected.has(id));
+  const toggleSelectAll = () => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) visibleIds.forEach((id) => next.delete(id));
+      else visibleIds.forEach((id) => next.add(id));
+      return next;
+    });
+  };
+
+  const runBulk = async (fn: (id: string) => Promise<unknown>, successMsg: string) => {
+    if (selected.size === 0) return;
+    setBulkBusy(true);
+    const ids = Array.from(selected);
+    const results = await Promise.allSettled(ids.map(fn));
+    const ok = results.filter((r) => r.status === 'fulfilled').length;
+    const fail = results.length - ok;
+    setBulkBusy(false);
+    clearSelection();
+    if (fail === 0) toast({ title: successMsg, description: `${ok} produto(s) atualizado(s).` });
+    else toast({ title: 'Concluído com erros', description: `${ok} ok, ${fail} falha(s).`, variant: 'destructive' });
+  };
+
+  const handleBulkActivate = () =>
+    runBulk((id) => updateProduct.mutateAsync({ id, is_active: true }), 'Produtos ativados');
+  const handleBulkDeactivate = () =>
+    runBulk((id) => updateProduct.mutateAsync({ id, is_active: false }), 'Produtos desativados');
+  const handleBulkDelete = async () => {
+    await runBulk((id) => deleteProduct.mutateAsync(id), 'Produtos excluídos');
+    setBulkDeleteOpen(false);
+  };
+
   return (
     <div className="p-3 sm:p-6 lg:p-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
