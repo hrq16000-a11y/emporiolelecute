@@ -257,6 +257,9 @@ const AdminProducts = () => {
                 <Button size="sm" variant="outline" onClick={handleBulkDeactivate} disabled={bulkBusy}>
                   <EyeOff className="w-4 h-4 mr-1" /> Desativar
                 </Button>
+                <Button size="sm" variant="default" onClick={() => setBulkEditOpen(true)} disabled={bulkBusy}>
+                  <Wand2 className="w-4 h-4 mr-1" /> Editar campos…
+                </Button>
                 <Button
                   size="sm"
                   variant="outline"
