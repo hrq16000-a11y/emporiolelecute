@@ -302,7 +302,9 @@ const AdminProductForm = () => {
         description: formData.description || null,
         long_description: formData.long_description || null,
         price: parseFloat(formData.price),
-        original_price: null,
+        original_price: formData.original_price && parseFloat(formData.original_price) > 0
+          ? parseFloat(formData.original_price)
+          : null,
         min_quantity: parseInt(formData.min_quantity) || 1,
         pix_discount: parseInt(formData.pix_discount) || 7,
         production_days: parseInt(formData.production_days) || 7,
