@@ -327,6 +327,32 @@ const ImageUploader = ({ images, onImagesChange, maxImages = 8 }: ImageUploaderP
         )}
       </div>
 
+      {/* Fila de uploads — status por arquivo */}
+      {uploadQueue.length > 0 && (
+        <ul className="space-y-1 text-sm">
+          {uploadQueue.map((e) => (
+            <li
+              key={e.id}
+              className={cn(
+                "flex items-center gap-2 rounded-md border border-border px-3 py-2",
+                e.status === 'done' && "bg-green-50 border-green-200 text-green-800",
+                e.status === 'error' && "bg-destructive/10 border-destructive/30 text-destructive",
+                e.status === 'uploading' && "bg-muted/50"
+              )}
+            >
+              {e.status === 'uploading' && <Loader2 className="w-4 h-4 animate-spin shrink-0" />}
+              {e.status === 'done' && <span className="w-4 h-4 shrink-0 text-center">✓</span>}
+              {e.status === 'error' && <X className="w-4 h-4 shrink-0" />}
+              <span className="truncate flex-1">{e.name}</span>
+              {e.status === 'uploading' && <span className="text-xs text-muted-foreground">Enviando…</span>}
+              {e.status === 'done' && <span className="text-xs">Enviado</span>}
+              {e.status === 'error' && <span className="text-xs">{e.error ?? 'Erro'}</span>}
+            </li>
+          ))}
+        </ul>
+      )}
+
+
       {/* Instructions */}
       {validImages.length > 0 && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
