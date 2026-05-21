@@ -71,23 +71,23 @@ const FAQSection = () => {
       {/* Schema.org FAQPage Structured Data for SEO */}
       <FAQStructuredData faqs={displayFaqs} />
       
-      <section 
-        id="faq" 
-        className="py-16 md:py-24 bg-background relative overflow-hidden"
+      <section
+        id="faq"
+        className="py-2 bg-background relative overflow-hidden"
         aria-labelledby="faq-heading"
       >
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-hearts-pattern opacity-10" />
-      
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="absolute inset-0 bg-hearts-pattern opacity-5" />
+
+      <div className="container mx-auto px-2 relative z-10">
         <div className="max-w-4xl mx-auto">
           {/* Section Header */}
-          <div className="text-center mb-12">
-            <h2 id="faq-heading" className="font-display text-3xl md:text-5xl text-foreground mb-4">
-              Perguntas <span className="font-script text-primary italic">Frequentes</span>
+          <div className="text-center mb-2">
+            <h2 id="faq-heading" className="font-display text-sm md:text-base text-foreground mb-1">
+              Perguntas <span className="font-script text-primary italic text-xs md:text-sm">Frequentes</span>
             </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Tire suas dúvidas sobre prazos, personalização, formas de pagamento e muito mais sobre nossas lembrancinhas artesanais.
+            <p className="text-muted-foreground text-[10px] md:text-xs max-w-2xl mx-auto leading-tight">
+              Tire suas dúvidas sobre prazos, personalização, formas de pagamento e muito mais.
             </p>
           </div>
 
