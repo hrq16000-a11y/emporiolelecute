@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Pencil, Trash2, Search, Eye, EyeOff, ExternalLink, Scale, Loader2, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Eye, EyeOff, ExternalLink, Scale, Loader2, ArrowUp, ArrowDown, ArrowUpDown, X, CheckSquare } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -44,6 +45,19 @@ const AdminProducts = () => {
   const [backfillOpen, setBackfillOpen] = useState(false);
   const [backfillKg, setBackfillKg] = useState('0.150');
   const [backfilling, setBackfilling] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkBusy, setBulkBusy] = useState(false);
+
+  const toggleSelected = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const clearSelection = () => setSelected(new Set());
 
   const productsWithoutWeight = products?.filter((p: any) => !p.weight || p.weight <= 0).length || 0;
 
@@ -134,6 +148,40 @@ const AdminProducts = () => {
     }
   };
 
+  const visibleIds = useMemo(() => filteredProducts.map((p) => p.id), [filteredProducts]);
+  const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selected.has(id));
+  const someVisibleSelected = visibleIds.some((id) => selected.has(id));
+  const toggleSelectAll = () => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) visibleIds.forEach((id) => next.delete(id));
+      else visibleIds.forEach((id) => next.add(id));
+      return next;
+    });
+  };
+
+  const runBulk = async (fn: (id: string) => Promise<unknown>, successMsg: string) => {
+    if (selected.size === 0) return;
+    setBulkBusy(true);
+    const ids = Array.from(selected);
+    const results = await Promise.allSettled(ids.map(fn));
+    const ok = results.filter((r) => r.status === 'fulfilled').length;
+    const fail = results.length - ok;
+    setBulkBusy(false);
+    clearSelection();
+    if (fail === 0) toast({ title: successMsg, description: `${ok} produto(s) atualizado(s).` });
+    else toast({ title: 'Concluído com erros', description: `${ok} ok, ${fail} falha(s).`, variant: 'destructive' });
+  };
+
+  const handleBulkActivate = () =>
+    runBulk((id) => updateProduct.mutateAsync({ id, is_active: true }), 'Produtos ativados');
+  const handleBulkDeactivate = () =>
+    runBulk((id) => updateProduct.mutateAsync({ id, is_active: false }), 'Produtos desativados');
+  const handleBulkDelete = async () => {
+    await runBulk((id) => deleteProduct.mutateAsync(id), 'Produtos excluídos');
+    setBulkDeleteOpen(false);
+  };
+
   return (
     <div className="p-3 sm:p-6 lg:p-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
@@ -193,6 +241,37 @@ const AdminProducts = () => {
             </div>
           </div>
 
+          {/* Barra de ações em massa */}
+          {selected.size > 0 && (
+            <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-lg border border-primary/30 bg-primary/5 sticky top-2 z-10 backdrop-blur">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <CheckSquare className="w-4 h-4 text-primary" />
+                {selected.size} selecionado(s)
+              </div>
+              <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
+                <Button size="sm" variant="outline" onClick={handleBulkActivate} disabled={bulkBusy}>
+                  <Eye className="w-4 h-4 mr-1" /> Ativar
+                </Button>
+                <Button size="sm" variant="outline" onClick={handleBulkDeactivate} disabled={bulkBusy}>
+                  <EyeOff className="w-4 h-4 mr-1" /> Desativar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => setBulkDeleteOpen(true)}
+                  disabled={bulkBusy}
+                >
+                  <Trash2 className="w-4 h-4 mr-1" /> Excluir
+                </Button>
+                <Button size="sm" variant="ghost" onClick={clearSelection} disabled={bulkBusy} aria-label="Limpar seleção">
+                  <X className="w-4 h-4" />
+                </Button>
+                {bulkBusy && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
+              </div>
+            </div>
+          )}
+
 
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
@@ -205,8 +284,15 @@ const AdminProducts = () => {
                 {filteredProducts.map((product) => (
                   <li
                     key={product.id}
-                    className="rounded-xl border border-border bg-card p-3 flex gap-3"
+                    className={`rounded-xl border ${selected.has(product.id) ? 'border-primary bg-primary/5' : 'border-border bg-card'} p-3 flex gap-3`}
                   >
+                    <div className="pt-1">
+                      <Checkbox
+                        checked={selected.has(product.id)}
+                        onCheckedChange={() => toggleSelected(product.id)}
+                        aria-label={`Selecionar ${product.name}`}
+                      />
+                    </div>
                     <div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-muted">
                       {product.images[0] && (
                         <img
@@ -292,6 +378,13 @@ const AdminProducts = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-10">
+                        <Checkbox
+                          checked={allVisibleSelected ? true : someVisibleSelected ? 'indeterminate' : false}
+                          onCheckedChange={toggleSelectAll}
+                          aria-label="Selecionar todos"
+                        />
+                      </TableHead>
                       <TableHead className="w-16">Imagem</TableHead>
                       <TableHead>
                         <button type="button" onClick={() => toggleSort('name')} className="inline-flex items-center gap-1 hover:text-primary transition-colors">
@@ -318,7 +411,14 @@ const AdminProducts = () => {
                   </TableHeader>
                   <TableBody>
                     {filteredProducts.map((product) => (
-                      <TableRow key={product.id}>
+                      <TableRow key={product.id} data-state={selected.has(product.id) ? 'selected' : undefined}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selected.has(product.id)}
+                            onCheckedChange={() => toggleSelected(product.id)}
+                            aria-label={`Selecionar ${product.name}`}
+                          />
+                        </TableCell>
                         <TableCell>
                           <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted">
                             {product.images[0] && (
@@ -428,6 +528,27 @@ const AdminProducts = () => {
         </CardContent>
       </Card>
 
+
+      <AlertDialog open={bulkDeleteOpen} onOpenChange={(o) => !bulkBusy && setBulkDeleteOpen(o)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir {selected.size} produto(s)?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Todos os produtos selecionados serão removidos permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={bulkBusy}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handleBulkDelete(); }}
+              disabled={bulkBusy}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {bulkBusy ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Excluindo...</> : 'Excluir todos'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
