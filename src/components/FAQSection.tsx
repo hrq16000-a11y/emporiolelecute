@@ -93,25 +93,25 @@ const FAQSection = () => {
 
           {/* FAQ Accordion */}
           {isLoading ? (
-            <div className="space-y-3">
+            <div className="space-y-1">
               {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-16 rounded-xl" />
+                <Skeleton key={i} className="h-6 rounded-lg" />
               ))}
             </div>
           ) : (
-            <Accordion type="single" collapsible className="space-y-3">
+            <Accordion type="single" collapsible className="space-y-0.5">
               {displayFaqs.map((faq, index) => (
-                <AccordionItem 
-                  key={faq.id || index} 
+                <AccordionItem
+                  key={faq.id || index}
                   value={`item-${faq.id || index}`}
-                  className="bg-card border border-border rounded-xl px-6 shadow-soft overflow-hidden data-[state=open]:border-primary/30"
+                  className="bg-card border border-border rounded-lg px-2 py-0.5 shadow-sm overflow-hidden data-[state=open]:border-primary/30 data-[state=open]:py-2"
                 >
-                  <AccordionTrigger className="hover:no-underline py-5 text-left">
-                    <span className="font-medium text-foreground pr-4">
+                  <AccordionTrigger className="hover:no-underline py-1 text-left">
+                    <span className="font-medium text-foreground text-[11px] md:text-xs pr-2 leading-tight">
                       {faq.question}
                     </span>
                   </AccordionTrigger>
-                  <AccordionContent className="pb-5 text-muted-foreground leading-relaxed whitespace-pre-line">
+                  <AccordionContent className="pb-1 text-muted-foreground text-[11px] md:text-xs leading-snug whitespace-pre-line">
                     {interpolate(faq.answer)}
                   </AccordionContent>
                 </AccordionItem>
@@ -120,8 +120,8 @@ const FAQSection = () => {
           )}
 
           {/* CTA */}
-          <div className="text-center mt-10 bg-primary-light/50 rounded-2xl p-8 border border-primary/20">
-            <p className="text-foreground font-medium mb-2">
+          <div className="text-center mt-2 bg-primary-light/50 rounded-lg p-2 border border-primary/20">
+            <p className="text-foreground font-medium text-[10px] md:text-xs mb-1">
               Não encontrou sua dúvida? Fale conosco!
             </p>
             <a
@@ -129,12 +129,12 @@ const FAQSection = () => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Button 
-                size="lg"
-                className="bg-green-500 hover:bg-green-600 text-white rounded-full px-8 py-6 text-lg mt-4"
+              <Button
+                size="sm"
+                className="bg-green-500 hover:bg-green-600 text-white rounded-full px-3 py-1 text-[10px] md:text-xs h-6"
               >
-                <MessageCircle className="h-5 w-5 mr-2" />
-                Falar no WhatsApp
+                <MessageCircle className="h-3 w-3 mr-1" />
+                WhatsApp
               </Button>
             </a>
           </div>
