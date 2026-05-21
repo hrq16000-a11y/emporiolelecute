@@ -128,9 +128,9 @@ const ProductPage = () => {
       return () => observer.disconnect();
     }
     // Fallback: gatilho relativo à altura da viewport (ratio configurável).
-    const ratio = ctaConfig?.sticky?.scrollViewportRatio ?? 0.7;
+    const ratio = ctaConfig?.sticky?.scrollViewportRatio ?? 0.015;
     const onScroll = () => {
-      const threshold = Math.max(320, window.innerHeight * ratio);
+      const threshold = Math.max(24, window.innerHeight * ratio);
       setShowStickyCta(window.scrollY > threshold);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
