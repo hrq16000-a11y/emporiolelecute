@@ -60,6 +60,7 @@ interface VisitorRow {
   screen_h: number | null;
   language: string | null;
   timezone: string | null;
+  ip_timezone: string | null;
   first_referrer: string | null;
   utm_source: string | null;
   utm_campaign: string | null;
