@@ -224,6 +224,7 @@ const ProductPage = () => {
       quantity,
     });
     setAddedToCart(true);
+    navigate("/carrinho");
   };
 
   const handleShare = async () => {
