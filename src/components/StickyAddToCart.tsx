@@ -8,22 +8,18 @@ interface StickyAddToCartProps {
   productName: string;
   productSlug?: string;
   price: string;
-  onWhatsApp: () => void;
   onAddToCart: () => void;
   isVisible: boolean;
   enabled?: boolean;
-  buttonLabel?: string;
 }
 
 export const StickyAddToCart = ({
   productName,
   productSlug,
   price,
-  onWhatsApp,
   onAddToCart,
   isVisible,
   enabled = true,
-  buttonLabel = "WhatsApp",
 }: StickyAddToCartProps) => {
   const viewedRef = useRef(false);
 
@@ -55,20 +51,11 @@ export const StickyAddToCart = ({
 
         <Button
           onClick={onAddToCart}
-          variant="outline"
-          size="icon"
-          className="rounded-full border-primary/40 text-primary hover:bg-primary/10 shrink-0 h-11 w-11"
+          className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full font-bold shadow-lg h-11"
           aria-label="Adicionar ao carrinho"
         >
-          <ShoppingCart className="h-5 w-5" />
-        </Button>
-
-        <Button
-          onClick={onWhatsApp}
-          className="flex-1 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-full font-bold shadow-lg h-11"
-        >
-          <MessageCircle className="h-4 w-4 mr-2" />
-          {buttonLabel}
+          <ShoppingCart className="h-4 w-4 mr-2" />
+          Adicionar
         </Button>
       </div>
     </div>
