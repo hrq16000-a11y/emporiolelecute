@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { validateCoupon, type ValidCoupon } from "@/hooks/useCoupons";
 import { optimizeImage } from "@/lib/image";
 import { urls } from "@/lib/urls";
+import { calcCartTotals } from "@/lib/cartTotals";
 
 interface AddressData {
   cep: string;
