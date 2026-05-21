@@ -22,6 +22,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useDbCategories } from '@/hooks/useProducts';
+import { useTags } from '@/hooks/useTags';
 import { useQueryClient } from '@tanstack/react-query';
 
 interface Props {
@@ -37,6 +38,7 @@ const BulkEditProductsDialog = ({ open, onOpenChange, selectedIds, onDone }: Pro
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: categories } = useDbCategories();
+  const { data: allTags } = useTags();
 
   // Toggles — só campos marcados são aplicados
   const [useCategory, setUseCategory] = useState(false);
@@ -61,16 +63,25 @@ const BulkEditProductsDialog = ({ open, onOpenChange, selectedIds, onDone }: Pro
   const [useKeywords, setUseKeywords] = useState(false);
   const [keywords, setKeywords] = useState('');
 
+  type TagMode = 'add' | 'remove' | 'replace';
+  const [useTagsField, setUseTagsField] = useState(false);
+  const [tagMode, setTagMode] = useState<TagMode>('add');
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const toggleTagId = (id: string) =>
+    setSelectedTagIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+
   const [busy, setBusy] = useState(false);
 
   const reset = () => {
     setUseCategory(false); setUseProductionDays(false); setUseMinQuantity(false);
     setUsePixDiscount(false); setUseBadge(false); setUsePrice(false); setUseKeywords(false);
+    setUseTagsField(false); setSelectedTagIds([]); setTagMode('add');
   };
 
   const anyChecked =
     useCategory || useProductionDays || useMinQuantity || usePixDiscount ||
-    useBadge || usePrice || useKeywords;
+    useBadge || usePrice || useKeywords || useTagsField;
+
 
   const handleApply = async () => {
     if (!anyChecked || selectedIds.length === 0) return;
@@ -147,7 +158,40 @@ const BulkEditProductsDialog = ({ open, onOpenChange, selectedIds, onDone }: Pro
         }
       }
 
+      // 4) Tags (vínculo via product_tags) — add / remove / replace
+      if (useTagsField && selectedTagIds.length > 0) {
+        if (tagMode === 'replace') {
+          // Apaga vínculos atuais e insere os selecionados
+          const { error: dErr } = await supabase
+            .from('product_tags').delete().in('product_id', selectedIds);
+          if (dErr) fail += selectedIds.length;
+          const rows = selectedIds.flatMap((pid) =>
+            selectedTagIds.map((tid) => ({ product_id: pid, tag_id: tid }))
+          );
+          const { error: iErr } = await supabase.from('product_tags').insert(rows);
+          if (iErr) fail += rows.length;
+        } else if (tagMode === 'add') {
+          const rows = selectedIds.flatMap((pid) =>
+            selectedTagIds.map((tid) => ({ product_id: pid, tag_id: tid }))
+          );
+          // upsert evita conflito de chave única (product_id, tag_id)
+          const { error: uErr } = await supabase
+            .from('product_tags')
+            .upsert(rows, { onConflict: 'product_id,tag_id', ignoreDuplicates: true });
+          if (uErr) fail += rows.length;
+        } else if (tagMode === 'remove') {
+          const { error: rErr } = await supabase
+            .from('product_tags')
+            .delete()
+            .in('product_id', selectedIds)
+            .in('tag_id', selectedTagIds);
+          if (rErr) fail += selectedIds.length;
+        }
+      }
+
       await queryClient.invalidateQueries({ queryKey: ['products'] });
+      await queryClient.invalidateQueries({ queryKey: ['product_tags'] });
+
 
       if (fail === 0) {
         toast({ title: 'Edição em massa aplicada', description: `${selectedIds.length} produto(s) atualizado(s).` });
@@ -282,7 +326,56 @@ const BulkEditProductsDialog = ({ open, onOpenChange, selectedIds, onDone }: Pro
               </>
             )}
           </div>
+
+          {/* Tags (vínculo) */}
+          <div className="rounded-lg border p-3 space-y-2">
+            <div className="flex items-center gap-2">
+              <Checkbox id="bk-tags" checked={useTagsField} onCheckedChange={(v) => setUseTagsField(!!v)} />
+              <Label htmlFor="bk-tags" className="font-medium cursor-pointer">Tags (vínculo)</Label>
+            </div>
+            {useTagsField && (
+              <div className="space-y-2">
+                <Select value={tagMode} onValueChange={(v) => setTagMode(v as TagMode)}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="add">Adicionar tags aos produtos</SelectItem>
+                    <SelectItem value="remove">Remover tags dos produtos</SelectItem>
+                    <SelectItem value="replace">Substituir todas as tags</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto rounded-md border p-2 bg-muted/30">
+                  {(allTags ?? []).length === 0 && (
+                    <p className="text-xs text-muted-foreground">Nenhuma tag cadastrada.</p>
+                  )}
+                  {(allTags ?? []).map((t) => {
+                    const active = selectedTagIds.includes(t.id);
+                    return (
+                      <button
+                        type="button"
+                        key={t.id}
+                        onClick={() => toggleTagId(t.id)}
+                        className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
+                          active
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-background hover:bg-accent border-border'
+                        }`}
+                      >
+                        {t.name}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {selectedTagIds.length} tag(s) selecionada(s).
+                  {tagMode === 'replace' && ' Todas as tags atuais serão substituídas.'}
+                  {tagMode === 'add' && ' As tags serão adicionadas sem duplicar.'}
+                  {tagMode === 'remove' && ' Apenas as tags selecionadas serão removidas.'}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
+
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>Cancelar</Button>
