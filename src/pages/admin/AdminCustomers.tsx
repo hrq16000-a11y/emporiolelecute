@@ -226,6 +226,19 @@ const AdminCustomers = () => {
     setEditing(c);
   };
 
+  // Deep-link: abre a ficha quando vem /admin/clientes?customer=<id> (origem: /admin/usuarios)
+  useEffect(() => {
+    const id = searchParams.get("customer");
+    if (!id || !customersQ.data || editing) return;
+    const c = customersQ.data.find((x) => x.id === id);
+    if (c) {
+      openEdit(c);
+      const next = new URLSearchParams(searchParams);
+      next.delete("customer");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, customersQ.data]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const filteredCustomers = (customersQ.data || []).filter((c) => {
     const s = search.toLowerCase();
     return !s ||
