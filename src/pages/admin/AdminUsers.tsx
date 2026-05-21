@@ -67,6 +67,7 @@ const downloadCSV = (filename: string, rows: (string | number | null | undefined
 
 const AdminUsers = () => {
   const qc = useQueryClient();
+  const { user: currentAuthUser } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // ====== Filters / paging state ======
