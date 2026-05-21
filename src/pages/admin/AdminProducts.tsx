@@ -366,7 +366,7 @@ const AdminProducts = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-9 px-2 text-destructive hover:text-destructive ml-auto"
+                          className="h-9 px-2 text-destructive hover:text-destructive"
                           onClick={() => setDeleteId(product.id)}
                           aria-label="Excluir"
                         >
