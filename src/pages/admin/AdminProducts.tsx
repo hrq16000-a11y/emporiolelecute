@@ -47,6 +47,32 @@ const AdminProducts = () => {
 
   const productsWithoutWeight = products?.filter((p: any) => !p.weight || p.weight <= 0).length || 0;
 
+  type SortKey = 'name' | 'price' | 'tags' | 'status';
+  type SortDir = 'asc' | 'desc';
+  const [sortKey, setSortKey] = useState<SortKey>('name');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
+
+  const SortIcon = ({ k }: { k: SortKey }) => {
+    if (sortKey !== k) return <ArrowUpDown className="w-3.5 h-3.5 opacity-40" />;
+    return sortDir === 'asc' ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />;
+  };
+
+  const sortLabels: Record<SortKey, { asc: string; desc: string }> = {
+    name: { asc: 'Nome A→Z', desc: 'Nome Z→A' },
+    price: { asc: 'Menor preço', desc: 'Maior preço' },
+    tags: { asc: 'Menos tags', desc: 'Mais tags' },
+    status: { asc: 'Inativos primeiro', desc: 'Ativos primeiro' },
+  };
+
   const runBackfill = async () => {
     const kg = parseFloat(backfillKg.replace(',', '.'));
     if (!kg || kg <= 0 || kg > 30) {
