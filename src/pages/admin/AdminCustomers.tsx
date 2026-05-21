@@ -170,11 +170,20 @@ const AdminCustomers = () => {
   // ====== Mutations ======
   const saveMut = useMutation({
     mutationFn: async (input: { id?: string }) => {
+      // Prioridade de identificação: WhatsApp > Nome. Pelo menos um é obrigatório.
+      const wa = form.whatsapp.trim();
+      let name = form.name.trim();
+      if (!name && !wa) throw new Error("Informe ao menos o WhatsApp ou o Nome do cliente");
+      if (!name && wa) {
+        // Nome derivado do WhatsApp para manter ficha legível
+        const digits = wa.replace(/\D/g, "").slice(-4);
+        name = digits ? `Contato ${digits}` : "Contato sem nome";
+      }
       const payload = {
-        name: form.name.trim(),
+        name,
         email: form.email.trim() || null,
         phone: form.phone.trim() || null,
-        whatsapp: form.whatsapp.trim() || null,
+        whatsapp: wa || null,
         city: form.city.trim() || null,
         state: form.state.trim() || null,
         source: form.source.trim() || null,
@@ -182,7 +191,6 @@ const AdminCustomers = () => {
         notes: form.notes.trim() || null,
         tags: form.tags ? form.tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
       };
-      if (!payload.name) throw new Error("Nome obrigatório");
       if (input.id) {
         const { error } = await supabase.from("customers").update(payload).eq("id", input.id);
         if (error) throw error;
