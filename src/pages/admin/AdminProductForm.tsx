@@ -110,6 +110,10 @@ const AdminProductForm = () => {
   const [badgeOverride, setBadgeOverride] = useState<PdpBadgeConfig | null>(null);
  const [showQuickSummary, setShowQuickSummary] = useState<boolean>(false);
  const [showMinQuantity, setShowMinQuantity] = useState<boolean>(false);
+  // Lock otimista local — começa nulo (create) e é atualizado na hidratação
+  // e após cada save bem-sucedido. Evita falso 40001 em saves sequenciais
+  // enquanto o refetch do React Query ainda não concluiu.
+  const [expectedUpdatedAt, setExpectedUpdatedAt] = useState<string | null>(null);
 
   const slugCheck = useSlugAvailability('products', formData.slug, id ?? null);
   const usage = useFormUsageTracking(isEditing ? 'product_form_edit' : 'product_form_create');
