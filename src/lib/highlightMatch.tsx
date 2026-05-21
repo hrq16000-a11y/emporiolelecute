@@ -22,7 +22,11 @@ export function highlightMatch(text: string, term: string): React.ReactNode {
   let idx = haystack.indexOf(needle, cursor);
   let key = 0;
   while (idx !== -1) {
-    if (idx > cursor) parts.push(text.slice(cursor, idx));
+    if (idx > cursor) {
+      parts.push(
+        <span key={`t-${key++}`}>{text.slice(cursor, idx)}</span>
+      );
+    }
     parts.push(
       <mark
         key={`hl-${key++}`}
@@ -34,6 +38,8 @@ export function highlightMatch(text: string, term: string): React.ReactNode {
     cursor = idx + needle.length;
     idx = haystack.indexOf(needle, cursor);
   }
-  if (cursor < text.length) parts.push(text.slice(cursor));
+  if (cursor < text.length) {
+    parts.push(<span key={`t-${key++}`}>{text.slice(cursor)}</span>);
+  }
   return <>{parts}</>;
 }
