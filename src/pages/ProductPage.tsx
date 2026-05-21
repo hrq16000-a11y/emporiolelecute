@@ -925,32 +925,8 @@ const ProductPage = () => {
                 </div>
               )}
 
-              {/* WhatsApp CTA final — oculto quando QuickSummary (CTA WA editorial) já está ativo,
-                  evitando sensação de mini-checkout repetido. */}
-              {(() => {
-                const quickSummaryActive =
-                  resolvePrimaryAction(dbProduct).primary !== "cart" && ctaConfig?.quickSummary?.enabled !== false;
-                if (quickSummaryActive) return null;
-                const { url } = buildWhatsAppMessage();
-                return (
-                  <div ref={ctaAnchorRef}>
-                    <a
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        openWhatsApp("product_page");
-                      }}
-                      className="flex max-w-full items-center justify-center gap-3 p-4 mt-4 bg-foreground/95 hover:bg-foreground text-background rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-300"
-                    >
-                      <MessageCircle className="h-6 w-6 shrink-0" />
-                      <span className="min-w-0 truncate">Fazer Orçamento no WhatsApp</span>
-                    </a>
-                  </div>
-                );
-              })()}
             </div>
+
           </div>
 
           {/* Seções gerenciadas via /admin/pdp-sections (ordem + visibilidade).
