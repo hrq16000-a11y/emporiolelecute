@@ -183,6 +183,10 @@ const AdminLayout = () => {
           </button>
         </div>
 
+        <div className="shrink-0 px-2.5 pt-2.5 pb-1">
+          <AdminSearchBar onResultSelect={closeMobile} />
+        </div>
+
         <div className="shrink-0 px-2.5 pt-2 pb-1">
           <button
             type="button"
