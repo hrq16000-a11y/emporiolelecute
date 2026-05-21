@@ -217,6 +217,7 @@ const ProductPage = () => {
       slug: product.slug,
       name: product.name,
       price: product.price,
+      originalPrice: product.originalPrice && product.originalPrice > product.price ? product.originalPrice : undefined,
       image: product.images[0] || "/placeholder.svg",
       personalization,
       minQuantity: product.minQuantity,
