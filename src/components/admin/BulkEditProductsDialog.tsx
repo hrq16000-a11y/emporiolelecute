@@ -22,6 +22,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useDbCategories } from '@/hooks/useProducts';
+import { useTags } from '@/hooks/useTags';
 import { useQueryClient } from '@tanstack/react-query';
 
 interface Props {
