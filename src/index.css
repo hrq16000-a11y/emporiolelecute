@@ -377,3 +377,24 @@
   html.exp-w-1120 .container { max-width: 1120px; }
   html.exp-w-1080 .container { max-width: 1080px; }
 }
+
+/* ============================================================
+   Layout semântico (Fase 3) — tokens de largura editoriais.
+   - layout-commerce: PDP, grids de produto, footer (1120px)
+   - layout-conversational: FAQ, depoimentos (max-w-4xl)
+   - layout-reading: descrição editorial longa (max-w-3xl, ~72ch)
+   Todos centralizados, com padding lateral padrão e fluidos
+   abaixo do breakpoint (mobile/tablet inalterados).
+   ============================================================ */
+@layer components {
+  .layout-commerce {
+    @apply w-full mx-auto px-4;
+    max-width: 1120px;
+  }
+  .layout-conversational {
+    @apply w-full mx-auto px-4 max-w-4xl;
+  }
+  .layout-reading {
+    @apply w-full mx-auto px-4 max-w-3xl;
+  }
+}
