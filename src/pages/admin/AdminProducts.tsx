@@ -241,6 +241,37 @@ const AdminProducts = () => {
             </div>
           </div>
 
+          {/* Barra de ações em massa */}
+          {selected.size > 0 && (
+            <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-lg border border-primary/30 bg-primary/5 sticky top-2 z-10 backdrop-blur">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <CheckSquare className="w-4 h-4 text-primary" />
+                {selected.size} selecionado(s)
+              </div>
+              <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
+                <Button size="sm" variant="outline" onClick={handleBulkActivate} disabled={bulkBusy}>
+                  <Eye className="w-4 h-4 mr-1" /> Ativar
+                </Button>
+                <Button size="sm" variant="outline" onClick={handleBulkDeactivate} disabled={bulkBusy}>
+                  <EyeOff className="w-4 h-4 mr-1" /> Desativar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => setBulkDeleteOpen(true)}
+                  disabled={bulkBusy}
+                >
+                  <Trash2 className="w-4 h-4 mr-1" /> Excluir
+                </Button>
+                <Button size="sm" variant="ghost" onClick={clearSelection} disabled={bulkBusy} aria-label="Limpar seleção">
+                  <X className="w-4 h-4" />
+                </Button>
+                {bulkBusy && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
+              </div>
+            </div>
+          )}
+
 
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
