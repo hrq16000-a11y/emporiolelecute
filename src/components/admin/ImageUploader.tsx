@@ -108,9 +108,18 @@ const SortableImageItem = ({ id, url, index, isMain, onRemove, isRemoving }: Sor
   );
 };
 
+interface UploadEntry {
+  id: string;
+  name: string;
+  status: 'uploading' | 'done' | 'error';
+  error?: string;
+}
+
 const ImageUploader = ({ images, onImagesChange, maxImages = 8 }: ImageUploaderProps) => {
   const [uploading, setUploading] = useState(false);
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+  // Feedback por arquivo durante o batch (evita sensação de "travou").
+  const [uploadQueue, setUploadQueue] = useState<UploadEntry[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
