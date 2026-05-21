@@ -79,7 +79,7 @@ const FAQSection = () => {
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-hearts-pattern opacity-5" />
 
-      <div className="container mx-auto px-2 relative z-10">
+      <div className="layout-conversational relative z-10">
         <div className="max-w-4xl mx-auto">
           {/* Section Header */}
           <div className="text-center mb-2">
