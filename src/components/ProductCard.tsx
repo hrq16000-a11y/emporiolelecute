@@ -26,10 +26,6 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
   });
   const { toast } = useToast();
 
-  // Sprint 2 — Badge neutra e silenciosa (editorial). Mantém apenas tipografia,
-  // sem competir cromaticamente com a PDP refinada.
-  const getBadgeStyles = (_badge?: string) =>
-    "bg-background/90 backdrop-blur-sm text-foreground border border-border/50";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
