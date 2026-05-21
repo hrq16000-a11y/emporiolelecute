@@ -7,7 +7,7 @@ import { ProductGridSkeleton } from "@/components/ProductSkeleton";
 import { useDbProducts } from "@/hooks/useProducts";
 import type { Product } from "@/data/products";
 import { useHomeRegistry } from "@/contexts/HomeRegistry";
-import { sortByHomePriority } from "@/lib/homePriority";
+import { sortByHomePriority, seededShuffle, getBrazilDateKey } from "@/lib/homePriority";
 
 const ProductsSection = () => {
   const { data: dbProducts, isLoading } = useDbProducts();

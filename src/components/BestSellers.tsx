@@ -6,7 +6,7 @@ import { ProductGridSkeleton } from "@/components/ProductSkeleton";
 import { useDbProducts } from "@/hooks/useProducts";
 import type { Product } from "@/data/products";
 import { useHomeRegistry } from "@/contexts/HomeRegistry";
-import { sortByHomePriority } from "@/lib/homePriority";
+import { sortByHomePriority, seededShuffle, getBrazilDateKey } from "@/lib/homePriority";
 import { urls, CANONICAL_ORIGIN } from "@/lib/urls";
 import SectionEyebrow from "@/components/SectionEyebrow";
 
