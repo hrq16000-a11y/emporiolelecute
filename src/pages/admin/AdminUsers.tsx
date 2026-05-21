@@ -549,7 +549,6 @@ const AdminUsers = () => {
                       <p className="text-xs text-muted-foreground">O papel de admin é permanente e não pode ser removido. Use "Ver loja como cliente" para visualizar o site com a experiência de cliente sem perder seus privilégios.</p>
                     )}
                   </div>
-                  </div>
                 </TabsContent>
 
                 <TabsContent value="auditoria" className="mt-4">
