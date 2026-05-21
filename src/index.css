@@ -359,3 +359,21 @@
     display: none;
   }
 }
+
+/* ============================================================
+   EXPERIMENTO REVERSÍVEL — width boutique (Fase 2 auditoria)
+   Off por padrão. Ativar adicionando uma das classes em <html>:
+     <html class="exp-w-1160">  → commerce 1160
+     <html class="exp-w-1120">  → commerce 1120 (recomendado)
+     <html class="exp-w-1080">  → commerce 1080 (radical)
+   Mobile/tablet (<1280px) NÃO são afetados: o Tailwind container
+   só aplica max-width a partir de 2xl (1280px), então abaixo
+   disso o layout continua idêntico.
+   Para descartar: remover este bloco. Para desativar: remover
+   a classe do <html>.
+   ============================================================ */
+@media (min-width: 1280px) {
+  html.exp-w-1160 .container { max-width: 1160px; }
+  html.exp-w-1120 .container { max-width: 1120px; }
+  html.exp-w-1080 .container { max-width: 1080px; }
+}
