@@ -1,0 +1,1 @@
+ALTER FUNCTION public.list_all_users_paginated(text,text,text,text,text,text,text,int,int) VOLATILE;
