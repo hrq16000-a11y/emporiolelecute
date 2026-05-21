@@ -23,7 +23,7 @@ import {
   useDbOccasions,
   useSaveProductFull,
   type SaveProductError,
-  DbProduct,
+  } from '@/hooks/useProducts';
 } from '@/hooks/useProducts';
 
 import { useTags } from '@/hooks/useTags';
