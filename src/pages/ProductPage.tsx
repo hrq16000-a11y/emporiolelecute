@@ -109,34 +109,17 @@ const ProductPage = () => {
   // Sticky CTA: aparece quando o CTA principal sai do viewport (qualquer altura de tela)
   // e some quando o usuário volta para ele. Fallback por scroll caso o ref não exista.
   useEffect(() => {
-    const anchor = ctaAnchorRef.current;
-    if (anchor && "IntersectionObserver" in window) {
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          // Se o CTA está visível, esconde o sticky.
-          // Se saiu do viewport (acima OU abaixo), mostra apenas quando já passou (acima).
-          if (entry.isIntersecting) {
-            setShowStickyCta(false);
-          } else {
-            const rect = entry.boundingClientRect;
-            setShowStickyCta(rect.top < 0);
-          }
-        },
-        { threshold: 0, rootMargin: "0px 0px -10% 0px" },
-      );
-      observer.observe(anchor);
-      return () => observer.disconnect();
-    }
-    // Fallback: gatilho relativo à altura da viewport (ratio configurável).
-    const ratio = ctaConfig?.sticky?.scrollViewportRatio ?? 0.015;
+    // Gatilho por scroll: aparece quando rolou ~15% da altura da viewport.
+    const ratio = ctaConfig?.sticky?.scrollViewportRatio ?? 0.15;
     const onScroll = () => {
-      const threshold = Math.max(24, window.innerHeight * ratio);
+      const threshold = Math.max(80, window.innerHeight * ratio);
       setShowStickyCta(window.scrollY > threshold);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, [dbProduct?.id, ctaConfig?.sticky?.scrollViewportRatio]);
+
 
   // Fase 1 — Replace controlado para slug primário.
   // Blindagens: didReplaceRef (1x por mount) + checagem de pathname atual.
