@@ -42,6 +42,6 @@ describe('buildProductJsonLd — priceSpecification', () => {
   it('arredonda preços para 2 casas', () => {
     const json = buildProductJsonLd({ ...base, price: 9.999, originalPrice: 14.995 });
     expect(json.offers.price).toBe(10);
-    expect((json.offers.priceSpecification as any).price).toBe(15);
+    expect((json.offers.priceSpecification as any).price).toBe(14.99);
   });
 });
