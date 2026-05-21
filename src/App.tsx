@@ -146,6 +146,7 @@ const AdminSeoSystemAudit = lazyWithRetry(() => import("./pages/admin/AdminSeoSy
 const AdminExecutiveMode = lazyWithRetry(() => import("./pages/admin/AdminExecutiveMode"), "AdminExecutiveMode");
 const AdminSeoOperationalConsolidation = lazyWithRetry(() => import("./pages/admin/AdminSeoOperationalConsolidation"), "AdminSeoOperationalConsolidation");
 const AcessoRestrito = lazy(() => import("./pages/AcessoRestrito"));
+const PoliticaPrivacidade = lazyWithRetry(() => import("./pages/PoliticaPrivacidade"), "PoliticaPrivacidade");
 
 import RequireAdmin from "./components/RequireAdmin";
 import AdminErrorBoundary from "./components/AdminErrorBoundary";
@@ -263,6 +264,11 @@ const App = () => {
                 <Route path="/contato" element={
                   <Suspense fallback={<PageSkeleton />}>
                     <Contato />
+                  </Suspense>
+                } />
+                <Route path="/politica-de-privacidade" element={
+                  <Suspense fallback={<PageSkeleton />}>
+                    <PoliticaPrivacidade />
                   </Suspense>
                 } />
                 <Route path="/depoimentos" element={

@@ -135,7 +135,12 @@ const Footer = () => {
 
         <div className="border-t border-primary-foreground/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-primary-foreground/45 font-light">
           <p>{config.footer_text.replace('{year}', new Date().getFullYear().toString())}</p>
-          <p className="tracking-wide">Feito à mão. Em Curitiba.</p>
+          <div className="flex items-center gap-4">
+            <Link to="/politica-de-privacidade" className="hover:text-primary transition-colors">
+              Política de Privacidade
+            </Link>
+            <span className="tracking-wide">Feito à mão. Em Curitiba.</span>
+          </div>
         </div>
       </div>
     </footer>
