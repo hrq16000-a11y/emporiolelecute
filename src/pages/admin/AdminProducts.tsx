@@ -310,7 +310,7 @@ const AdminProducts = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <Link
-                          to={`/admin/produtos/${product.id}`}
+                          to={`/admin/produtos/${product.slug}`}
                           className="font-medium text-[13px] leading-tight line-clamp-1 hover:text-primary"
                         >
                           {product.name}
@@ -347,7 +347,7 @@ const AdminProducts = () => {
                           {product.is_active ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                          <Link to={`/admin/produtos/${product.id}`} aria-label="Editar">
+                          <Link to={`/admin/produtos/${product.slug}`} aria-label="Editar">
                             <Pencil className="w-4 h-4" />
                           </Link>
                         </Button>
@@ -497,7 +497,7 @@ const AdminProducts = () => {
                               )}
                             </Button>
                             <Button variant="ghost" size="icon" asChild>
-                              <Link to={`/admin/produtos/${product.id}`}>
+                              <Link to={`/admin/produtos/${product.slug}`}>
                                 <Pencil className="w-4 h-4" />
                               </Link>
                             </Button>
