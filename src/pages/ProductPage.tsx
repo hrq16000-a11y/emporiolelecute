@@ -701,7 +701,7 @@ const ProductPage = () => {
 
               {/* Personalization Field - only show if enabled */}
               {dbProduct?.personalization_enabled !== false && (
-                <div className="rounded-lg border border-border/40 p-5 mb-6">
+                <div className="rounded-lg border-2 border-primary/30 bg-primary/5 p-5 mb-6">
                   <h3 className="text-sm font-medium text-foreground mb-3 tracking-wide">
                     {dbProduct?.personalization_label || "Personalização"}
                   </h3>
