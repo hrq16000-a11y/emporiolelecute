@@ -101,22 +101,21 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
       </Link>
       
       {/* Product Info */}
-      <div className="p-3 md:p-5">
+      <div className="p-2 md:p-3">
         {/* Rating removido — exibido apenas quando há avaliações reais (gerenciado na PDP) */}
-
 
         {/* Name — peso leve, sem hover coral */}
         <Link to={urls.product(product.slug)}>
-          <h3 className="font-display text-sm md:text-lg font-normal text-foreground mb-2 line-clamp-2 leading-snug" itemProp="name">
+          <h3 className="font-display text-sm md:text-base font-normal text-foreground mb-1 leading-snug" itemProp="name">
             {product.name}
           </h3>
         </Link>
 
         {/* Price — foreground calmo, sem coral saturado */}
-        <div className="flex flex-wrap items-baseline gap-2 mb-1" itemProp="offers" itemScope itemType="https://schema.org/Offer">
-          <span className="text-base md:text-xl font-display font-normal text-foreground">{product.price}</span>
+        <div className="flex flex-wrap items-baseline gap-2 mb-0.5" itemProp="offers" itemScope itemType="https://schema.org/Offer">
+          <span className="text-sm md:text-lg font-display font-normal text-foreground">{product.price}</span>
           {product.originalPrice && (
-            <span className="text-xs text-muted-foreground line-through">{product.originalPrice}</span>
+            <span className="text-[11px] text-muted-foreground line-through">{product.originalPrice}</span>
           )}
           {typeof product.priceValue === "number" && (
             <meta itemProp="price" content={Number(product.priceValue).toFixed(2)} />
@@ -135,7 +134,7 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
           const personalizable = !!product.personalization_enabled;
           if (!speed && !minQty && !personalizable) return null;
           return (
-            <ul className="mt-2 mb-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] md:text-xs text-muted-foreground/70">
+            <ul className="mt-1 mb-0 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] md:text-[11px] text-muted-foreground/70">
               {minQty && (
                 <li className="inline-flex items-center gap-1">
                   <span aria-hidden>•</span> Mín. {minQty} un.
@@ -143,12 +142,12 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
               )}
               {speed && (
                 <li className="inline-flex items-center gap-1">
-                  <Clock className="h-3 w-3" aria-hidden /> {speedLabel(speed)}
+                  <Clock className="h-2.5 w-2.5 md:h-3 md:w-3" aria-hidden /> {speedLabel(speed)}
                 </li>
               )}
               {personalizable && (
                 <li className="inline-flex items-center gap-1">
-                  <Sparkles className="h-3 w-3" aria-hidden /> Personalizável
+                  <Sparkles className="h-2.5 w-2.5 md:h-3 md:w-3" aria-hidden /> Personalizável
                 </li>
               )}
             </ul>
@@ -158,10 +157,10 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
         {/* CTA — link editorial; sem border em mobile (card inteiro já é clicável) */}
         <Link
           to={urls.product(product.slug)}
-          className="inline-flex items-center gap-1 mt-3 text-xs md:text-sm text-foreground/70 md:text-foreground/80 hover:text-foreground border-b-0 md:border-b md:border-border/60 md:hover:border-foreground/60 pb-0.5 transition-colors"
+          className="inline-flex items-center gap-1 mt-2 text-[11px] md:text-xs text-foreground/70 md:text-foreground/80 hover:text-foreground border-b-0 md:border-b md:border-border/60 md:hover:border-foreground/60 pb-0.5 transition-colors"
         >
           Ver detalhes
-          <ArrowRight className="h-3 w-3 md:h-3.5 md:w-3.5" strokeWidth={1.5} />
+          <ArrowRight className="h-2.5 w-2.5 md:h-3 md:w-3" strokeWidth={1.5} />
         </Link>
 
         {/* Hidden order dialog (kept for backward compat, triggered elsewhere) */}
