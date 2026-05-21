@@ -467,6 +467,48 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_migration_audit: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          performed_by: string | null
+          performed_by_email: string | null
+          source_id: string | null
+          source_kind: string
+          status: string
+          target_customer_id: string | null
+          target_email: string | null
+          target_whatsapp: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          performed_by?: string | null
+          performed_by_email?: string | null
+          source_id?: string | null
+          source_kind: string
+          status: string
+          target_customer_id?: string | null
+          target_email?: string | null
+          target_whatsapp?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          performed_by?: string | null
+          performed_by_email?: string | null
+          source_id?: string | null
+          source_kind?: string
+          status?: string
+          target_customer_id?: string | null
+          target_email?: string | null
+          target_whatsapp?: string | null
+        }
+        Relationships: []
+      }
       cookie_consent_config: {
         Row: {
           accept_label: string
@@ -2177,6 +2219,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      profile_change_audit: {
+        Row: {
+          changed_by: string | null
+          changed_by_email: string | null
+          created_at: string
+          field: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          user_id: string
+        }
+        Insert: {
+          changed_by?: string | null
+          changed_by_email?: string | null
+          created_at?: string
+          field: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          user_id: string
+        }
+        Update: {
+          changed_by?: string | null
+          changed_by_email?: string | null
+          created_at?: string
+          field?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -6587,6 +6662,16 @@ export type Database = {
         }
         Returns: Json
       }
+      list_contact_migration_audit: {
+        Args: {
+          _kind?: string
+          _limit?: number
+          _offset?: number
+          _search?: string
+          _status?: string
+        }
+        Returns: Json
+      }
       list_cron_jobs: {
         Args: never
         Returns: {
@@ -6673,6 +6758,7 @@ export type Database = {
         Args: { _full_name: string; _user_id: string }
         Returns: Json
       }
+      users_source_counts: { Args: never; Returns: Json }
       validate_coupon: {
         Args: { _code: string; _subtotal: number }
         Returns: Json
