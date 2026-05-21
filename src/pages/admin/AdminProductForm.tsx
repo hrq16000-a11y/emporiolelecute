@@ -18,13 +18,14 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import {
-  useDbProductById,
+  useDbProductByIdOrSlug,
   useDbCategories,
   useDbOccasions,
   useCreateProduct,
   useUpdateProduct,
   DbProduct,
 } from '@/hooks/useProducts';
+
 import { useTags, useUpdateProductTags } from '@/hooks/useTags';
 import { useSlugAvailability } from '@/hooks/useSlugAvailability';
 import { generateSafeSlug, assessSlugQuality } from '@/lib/slugHardening';
