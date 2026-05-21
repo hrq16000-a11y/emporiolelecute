@@ -535,6 +535,11 @@ const App = () => {
                       <AdminSearch />
                     </Suspense>
                   } />
+                  <Route path="busca/analytics" element={
+                    <Suspense fallback={<AdminSkeleton />}>
+                      <SearchAnalytics />
+                    </Suspense>
+                  } />
                   <Route path="configuracoes" element={
                     <Suspense fallback={<AdminSkeleton />}>
                       <AdminSettings />
