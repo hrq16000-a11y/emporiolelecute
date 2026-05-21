@@ -6,6 +6,8 @@ export interface CartItem {
   slug: string;
   name: string;
   price: number;
+  /** Preço "de" original (antes do desconto), quando aplicável. */
+  originalPrice?: number;
   quantity: number;
   image: string;
   personalization?: string;
