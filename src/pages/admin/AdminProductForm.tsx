@@ -145,6 +145,7 @@ const AdminProductForm = () => {
       description: existingProduct.description || '',
       long_description: existingProduct.long_description || '',
       price: existingProduct.price.toString(),
+      original_price: existingProduct.original_price ? existingProduct.original_price.toString() : '',
       min_quantity: existingProduct.min_quantity.toString(),
       pix_discount: existingProduct.pix_discount.toString(),
       production_days: existingProduct.production_days.toString(),
