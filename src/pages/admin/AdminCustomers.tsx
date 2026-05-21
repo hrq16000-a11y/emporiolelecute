@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Users, UserPlus, Search, Mail, Phone, MapPin, Calendar, Edit, Trash2,
-  Eye, Globe, Smartphone, Monitor, Tablet, Bot,
+  Eye, Globe, Smartphone, Monitor, Tablet, Bot, ShieldCheck,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
