@@ -108,9 +108,18 @@ const SortableImageItem = ({ id, url, index, isMain, onRemove, isRemoving }: Sor
   );
 };
 
+interface UploadEntry {
+  id: string;
+  name: string;
+  status: 'uploading' | 'done' | 'error';
+  error?: string;
+}
+
 const ImageUploader = ({ images, onImagesChange, maxImages = 8 }: ImageUploaderProps) => {
   const [uploading, setUploading] = useState(false);
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+  // Feedback por arquivo durante o batch (evita sensação de "travou").
+  const [uploadQueue, setUploadQueue] = useState<UploadEntry[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -185,33 +194,42 @@ const ImageUploader = ({ images, onImagesChange, maxImages = 8 }: ImageUploaderP
       return;
     }
 
+    const filesToUpload = Array.from(files).slice(0, remainingSlots);
+
+    // Inicializa fila com 1 entrada por arquivo
+    const initialQueue: UploadEntry[] = filesToUpload.map((f, i) => ({
+      id: `${Date.now()}-${i}-${f.name}`,
+      name: f.name,
+      status: 'uploading',
+    }));
+    setUploadQueue(initialQueue);
     setUploading(true);
 
-    const filesToUpload = Array.from(files).slice(0, remainingSlots);
+    const updateEntry = (id: string, patch: Partial<UploadEntry>) =>
+      setUploadQueue((prev) => prev.map((e) => (e.id === id ? { ...e, ...patch } : e)));
+
     const uploadedUrls: string[] = [];
 
-    for (const file of filesToUpload) {
+    for (let i = 0; i < filesToUpload.length; i++) {
+      const file = filesToUpload[i];
+      const entryId = initialQueue[i].id;
+
       if (!file.type.startsWith('image/')) {
-        toast({
-          title: 'Arquivo inválido',
-          description: 'Apenas imagens são permitidas.',
-          variant: 'destructive',
-        });
+        updateEntry(entryId, { status: 'error', error: 'Não é uma imagem' });
         continue;
       }
 
       if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: 'Arquivo muito grande',
-          description: 'Tamanho máximo: 5MB por imagem.',
-          variant: 'destructive',
-        });
+        updateEntry(entryId, { status: 'error', error: 'Maior que 5 MB' });
         continue;
       }
 
       const url = await uploadImage(file);
       if (url) {
         uploadedUrls.push(url);
+        updateEntry(entryId, { status: 'done' });
+      } else {
+        updateEntry(entryId, { status: 'error', error: 'Falha no envio' });
       }
     }
 
@@ -224,7 +242,18 @@ const ImageUploader = ({ images, onImagesChange, maxImages = 8 }: ImageUploaderP
       });
     }
 
+    const failedCount = filesToUpload.length - uploadedUrls.length;
+    if (failedCount > 0) {
+      toast({
+        title: 'Algumas imagens falharam',
+        description: `${failedCount} arquivo(s) não foi(ram) enviado(s). Veja a lista abaixo.`,
+        variant: 'destructive',
+      });
+    }
+
     setUploading(false);
+    // Limpa a fila após 4s para dar tempo de ler o status
+    setTimeout(() => setUploadQueue([]), 4000);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -297,6 +326,32 @@ const ImageUploader = ({ images, onImagesChange, maxImages = 8 }: ImageUploaderP
           </div>
         )}
       </div>
+
+      {/* Fila de uploads — status por arquivo */}
+      {uploadQueue.length > 0 && (
+        <ul className="space-y-1 text-sm">
+          {uploadQueue.map((e) => (
+            <li
+              key={e.id}
+              className={cn(
+                "flex items-center gap-2 rounded-md border border-border px-3 py-2",
+                e.status === 'done' && "bg-green-50 border-green-200 text-green-800",
+                e.status === 'error' && "bg-destructive/10 border-destructive/30 text-destructive",
+                e.status === 'uploading' && "bg-muted/50"
+              )}
+            >
+              {e.status === 'uploading' && <Loader2 className="w-4 h-4 animate-spin shrink-0" />}
+              {e.status === 'done' && <span className="w-4 h-4 shrink-0 text-center">✓</span>}
+              {e.status === 'error' && <X className="w-4 h-4 shrink-0" />}
+              <span className="truncate flex-1">{e.name}</span>
+              {e.status === 'uploading' && <span className="text-xs text-muted-foreground">Enviando…</span>}
+              {e.status === 'done' && <span className="text-xs">Enviado</span>}
+              {e.status === 'error' && <span className="text-xs">{e.error ?? 'Erro'}</span>}
+            </li>
+          ))}
+        </ul>
+      )}
+
 
       {/* Instructions */}
       {validImages.length > 0 && (

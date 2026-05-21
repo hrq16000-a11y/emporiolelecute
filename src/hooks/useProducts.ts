@@ -322,29 +322,10 @@ export function useDbOccasions(opts?: { publicOnly?: boolean }) {
     },
   });
 }
-
-// Create product
-export function useCreateProduct() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (product: Omit<DbProduct, 'id' | 'created_at' | 'updated_at'>) => {
-      const { data, error } = await supabase
-        .from('products')
-        .insert({ external_ref: '', ...product })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-    },
-  });
-}
-
-// Update product
+// useUpdateProduct — RESERVADO para updates atômicos de 1 campo (ex.: toggle is_active).
+// Para edições do formulário completo (slug/preço/categoria/imagens/pivôs), use
+// useSaveProductFull (RPC save_product_full com lock otimista). Não usar este hook
+// para campos sob o lock — bypassa o expected_updated_at.
 export function useUpdateProduct() {
   const queryClient = useQueryClient();
 
