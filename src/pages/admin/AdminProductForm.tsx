@@ -104,7 +104,8 @@ const AdminProductForm = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [keywordsInput, setKeywordsInput] = useState('');
   const [badgeOverride, setBadgeOverride] = useState<PdpBadgeConfig | null>(null);
-  const [showQuickSummary, setShowQuickSummary] = useState<boolean>(false);
+ const [showQuickSummary, setShowQuickSummary] = useState<boolean>(false);
+ const [showMinQuantity, setShowMinQuantity] = useState<boolean>(false);
 
   const slugCheck = useSlugAvailability('products', formData.slug, id ?? null);
   const usage = useFormUsageTracking(isEditing ? 'product_form_edit' : 'product_form_create');
@@ -181,6 +182,7 @@ const AdminProductForm = () => {
         setBadgeOverride(null);
       }
       setShowQuickSummary((existingProduct as any).show_quick_summary === true);
+      setShowMinQuantity((existingProduct as any).show_min_quantity === true);
     }
   }, [existingProduct, isEditing]);
 
@@ -336,6 +338,7 @@ const AdminProductForm = () => {
         .update({
           pdp_badge_override: (badgeOverride as any) ?? null,
           show_quick_summary: showQuickSummary,
+          show_min_quantity: showMinQuantity,
         } as any)
         .eq('id', productId);
 
@@ -1038,6 +1041,26 @@ const AdminProductForm = () => {
             </div>
           </CardHeader>
         </Card>
+
+        {/* Exibir quantidade mínima na PDP */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <CardTitle className="text-base">Exibir "Mínimo X un." na PDP</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Quando ativado, mostra o selo de quantidade mínima ("Mínimo {formData.min_quantity || 'X'} un.") na linha de informações da página deste produto. Padrão: desativado.
+                </p>
+              </div>
+              <Switch
+                checked={showMinQuantity}
+                onCheckedChange={setShowMinQuantity}
+                aria-label="Exibir quantidade mínima na PDP"
+              />
+            </div>
+          </CardHeader>
+        </Card>
+
 
         {/* Badge personalizado da PDP (override por produto) */}
         <Card>

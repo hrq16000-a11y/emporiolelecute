@@ -1,0 +1,1 @@
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS show_min_quantity boolean NOT NULL DEFAULT false;
