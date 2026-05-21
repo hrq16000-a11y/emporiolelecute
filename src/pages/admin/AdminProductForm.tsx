@@ -498,8 +498,10 @@ const AdminProductForm = () => {
                   value={formData.long_description}
                   onChange={(e) => setFormData((prev) => ({ ...prev, long_description: e.target.value }))}
                   placeholder="Descrição completa com detalhes do produto"
-                  rows={5}
+                  rows={14}
+                  className="min-h-[280px] resize-y"
                 />
+
               </div>
             </CardContent>
           </Card>
