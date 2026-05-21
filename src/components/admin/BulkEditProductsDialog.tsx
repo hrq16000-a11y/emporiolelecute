@@ -326,7 +326,56 @@ const BulkEditProductsDialog = ({ open, onOpenChange, selectedIds, onDone }: Pro
               </>
             )}
           </div>
+
+          {/* Tags (vínculo) */}
+          <div className="rounded-lg border p-3 space-y-2">
+            <div className="flex items-center gap-2">
+              <Checkbox id="bk-tags" checked={useTagsField} onCheckedChange={(v) => setUseTagsField(!!v)} />
+              <Label htmlFor="bk-tags" className="font-medium cursor-pointer">Tags (vínculo)</Label>
+            </div>
+            {useTagsField && (
+              <div className="space-y-2">
+                <Select value={tagMode} onValueChange={(v) => setTagMode(v as TagMode)}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="add">Adicionar tags aos produtos</SelectItem>
+                    <SelectItem value="remove">Remover tags dos produtos</SelectItem>
+                    <SelectItem value="replace">Substituir todas as tags</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto rounded-md border p-2 bg-muted/30">
+                  {(allTags ?? []).length === 0 && (
+                    <p className="text-xs text-muted-foreground">Nenhuma tag cadastrada.</p>
+                  )}
+                  {(allTags ?? []).map((t) => {
+                    const active = selectedTagIds.includes(t.id);
+                    return (
+                      <button
+                        type="button"
+                        key={t.id}
+                        onClick={() => toggleTagId(t.id)}
+                        className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
+                          active
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-background hover:bg-accent border-border'
+                        }`}
+                      >
+                        {t.name}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {selectedTagIds.length} tag(s) selecionada(s).
+                  {tagMode === 'replace' && ' Todas as tags atuais serão substituídas.'}
+                  {tagMode === 'add' && ' As tags serão adicionadas sem duplicar.'}
+                  {tagMode === 'remove' && ' Apenas as tags selecionadas serão removidas.'}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
+
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>Cancelar</Button>
