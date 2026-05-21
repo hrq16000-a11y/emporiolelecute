@@ -77,7 +77,7 @@ const BulkEditProductsDialog = ({ open, onOpenChange, selectedIds, onDone }: Pro
 
     // Patch comum (não envolve preço % nem keywords merge)
     const patch: Record<string, unknown> = {};
-    if (useCategory) patch.category_id = categoryId || null;
+    if (useCategory) patch.category_id = !categoryId || categoryId === '__none__' ? null : categoryId;
     if (useProductionDays) patch.production_days = parseInt(productionDays, 10) || 0;
     if (useMinQuantity) patch.min_quantity = Math.max(1, parseInt(minQuantity, 10) || 1);
     if (usePixDiscount) patch.pix_discount = Math.max(0, parseFloat(pixDiscount.replace(',', '.')) || 0);
@@ -186,7 +186,7 @@ const BulkEditProductsDialog = ({ open, onOpenChange, selectedIds, onDone }: Pro
               <Select value={categoryId} onValueChange={setCategoryId}>
                 <SelectTrigger><SelectValue placeholder="Selecione…" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">(Sem categoria)</SelectItem>
+                  <SelectItem value="__none__">(Sem categoria)</SelectItem>
                   {(categories ?? []).map((c: any) => (
                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}
