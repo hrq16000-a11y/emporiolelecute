@@ -623,6 +623,13 @@ const ProductPage = () => {
               {/* Trust row consolidado — linha editorial sutil, sem pílulas cromáticas */}
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-5 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5">
+                  <Package className="h-3.5 w-3.5" strokeWidth={1.5} />
+                  Mínimo {product.minQuantity} un.
+                </span>
+                <span className="text-muted-foreground/40" aria-hidden="true">
+                  ·
+                </span>
+                <span className="inline-flex items-center gap-1.5">
                   <Clock className="h-3.5 w-3.5" strokeWidth={1.5} />
                   Pronto em {product.productionDays} dias úteis
                 </span>
@@ -1029,7 +1036,7 @@ const ProductPage = () => {
 
       <Footer />
       {/* Spacer mobile para o sticky CTA não cobrir o final do rodapé */}
-      <div aria-hidden className="md:hidden h-[88px]" />
+      <div aria-hidden className="md:hidden h-[28px]" />
 
       {/* WhatsAppButton removido da PDP — sticky CTA + CTAs inline já cobrem a ação principal e evitam conflito de FABs */}
       <Chatbot />
