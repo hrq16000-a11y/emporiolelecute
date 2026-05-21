@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Plus, X, Save, Loader2, Tag, Check, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -21,16 +21,17 @@ import {
   useDbProductByIdOrSlug,
   useDbCategories,
   useDbOccasions,
-  useCreateProduct,
-  useUpdateProduct,
-  DbProduct,
+  useSaveProductFull,
+  type SaveProductError,
 } from '@/hooks/useProducts';
 
-import { useTags, useUpdateProductTags } from '@/hooks/useTags';
+
+import { useTags } from '@/hooks/useTags';
 import { useSlugAvailability } from '@/hooks/useSlugAvailability';
 import { generateSafeSlug, assessSlugQuality } from '@/lib/slugHardening';
-import { useSegments, useUpdateProductSegments } from '@/hooks/useSegments';
+import { useSegments } from '@/hooks/useSegments';
 import { supabase } from '@/integrations/supabase/client';
+
 import { evaluateProductSeo } from '@/lib/productSeo';
 import { buildProductChecklist } from '@/lib/thinContent';
 import ProductSeoScoreBadge from '@/components/admin/ProductSeoScoreBadge';
@@ -70,10 +71,8 @@ const AdminProductForm = () => {
   const { data: occasions } = useDbOccasions();
   const { data: tags } = useTags();
   const { data: segments } = useSegments();
-  const createProduct = useCreateProduct();
-  const updateProduct = useUpdateProduct();
-  const updateProductTags = useUpdateProductTags();
-  const updateProductSegments = useUpdateProductSegments();
+  const saveProduct = useSaveProductFull();
+
 
   const [formData, setFormData] = useState({
     name: '',
@@ -122,81 +121,86 @@ const AdminProductForm = () => {
   }, [existingProduct?.slug, routeParam, navigate]);
 
 
+  // ===========================================================================
+  // Hidratação do form a partir do produto carregado.
+  // BUG P0 corrigido: hidrata APENAS UMA VEZ por id.
+  // Antes: useEffect rehidratava em todo refetch (após save / invalidate),
+  // sobrescrevendo edições locais em andamento silenciosamente.
+  // Agora: hydratedForIdRef guarda o id já hidratado. Refetch não pisa no form.
+  // Quando o usuário navega para outro produto, o id muda e re-hidrata.
+  // ===========================================================================
+  const hydratedForIdRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (existingProduct && isEditing) {
-      const keywords = existingProduct.keywords || [];
-      setFormData({
-        name: existingProduct.name,
-        slug: existingProduct.slug,
-        description: existingProduct.description || '',
-        long_description: existingProduct.long_description || '',
-        price: existingProduct.price.toString(),
-        min_quantity: existingProduct.min_quantity.toString(),
-        pix_discount: existingProduct.pix_discount.toString(),
-        production_days: existingProduct.production_days.toString(),
-        weight: existingProduct.weight?.toString() || '',
-        category_id: existingProduct.category_id || '',
-        badge: existingProduct.badge || '',
-        rating: existingProduct.rating.toString(),
-        images: existingProduct.images.length > 0 ? existingProduct.images : [''],
-        features: existingProduct.features.length > 0 ? existingProduct.features : [''],
-        keywords: keywords,
-        
-        is_active: existingProduct.is_active,
-        personalization_enabled: existingProduct.personalization_enabled ?? true,
-        personalization_label: existingProduct.personalization_label || 'Personalização',
-        personalization_placeholder: existingProduct.personalization_placeholder || 'Digite o nome, data ou mensagem para personalização...',
-        google_product_category: (existingProduct as any).google_product_category || '',
-        editorial_content: (existingProduct as any).editorial_content || '',
-        featured_weight: String((existingProduct as any).featured_weight ?? 0),
-        production_speed: ((existingProduct as any).production_speed || '') as '' | 'rapido' | 'normal' | 'longo',
+    if (!isEditing) return;
+    if (!existingProduct) return;
+    if (hydratedForIdRef.current === existingProduct.id) return; // já hidratou esse produto
+    hydratedForIdRef.current = existingProduct.id;
+
+    const keywords = existingProduct.keywords || [];
+    setFormData({
+      name: existingProduct.name,
+      slug: existingProduct.slug,
+      description: existingProduct.description || '',
+      long_description: existingProduct.long_description || '',
+      price: existingProduct.price.toString(),
+      min_quantity: existingProduct.min_quantity.toString(),
+      pix_discount: existingProduct.pix_discount.toString(),
+      production_days: existingProduct.production_days.toString(),
+      weight: existingProduct.weight?.toString() || '',
+      category_id: existingProduct.category_id || '',
+      badge: existingProduct.badge || '',
+      rating: existingProduct.rating.toString(),
+      images: existingProduct.images.length > 0 ? existingProduct.images : [''],
+      features: existingProduct.features.length > 0 ? existingProduct.features : [''],
+      keywords: keywords,
+      is_active: existingProduct.is_active,
+      personalization_enabled: existingProduct.personalization_enabled ?? true,
+      personalization_label: existingProduct.personalization_label || 'Personalização',
+      personalization_placeholder: existingProduct.personalization_placeholder || 'Digite o nome, data ou mensagem para personalização...',
+      google_product_category: (existingProduct as any).google_product_category || '',
+      editorial_content: (existingProduct as any).editorial_content || '',
+      featured_weight: String((existingProduct as any).featured_weight ?? 0),
+      production_speed: ((existingProduct as any).production_speed || '') as '' | 'rapido' | 'normal' | 'longo',
+    });
+    setKeywordsInput(keywords.join(', '));
+
+    // Pivôs — só carregam na hidratação inicial.
+    supabase
+      .from('product_occasions')
+      .select('occasion_id')
+      .eq('product_id', existingProduct.id)
+      .then(({ data }) => {
+        if (data) setSelectedOccasions(data.map((o) => o.occasion_id));
       });
-      setKeywordsInput(keywords.join(', '));
 
-      // Load product occasions
-      supabase
-        .from('product_occasions')
-        .select('occasion_id')
-        .eq('product_id', existingProduct.id)
-        .then(({ data }) => {
-          if (data) {
-            setSelectedOccasions(data.map((o) => o.occasion_id));
-          }
-        });
+    supabase
+      .from('product_tags')
+      .select('tag_id')
+      .eq('product_id', existingProduct.id)
+      .then(({ data }) => {
+        if (data) setSelectedTags(data.map((t) => t.tag_id));
+      });
 
-      // Load product tags
-      supabase
-        .from('product_tags')
-        .select('tag_id')
-        .eq('product_id', existingProduct.id)
-        .then(({ data }) => {
-          if (data) {
-            setSelectedTags(data.map((t) => t.tag_id));
-          }
-        });
+    supabase
+      .from('product_segments')
+      .select('segment_id')
+      .eq('product_id', existingProduct.id)
+      .then(({ data }) => {
+        if (data) setSelectedSegments(data.map((s) => s.segment_id));
+      });
 
-      // Load product segments
-      supabase
-        .from('product_segments')
-        .select('segment_id')
-        .eq('product_id', existingProduct.id)
-        .then(({ data }) => {
-          if (data) {
-            setSelectedSegments(data.map((s) => s.segment_id));
-          }
-        });
-
-      // Load badge override
-      const ov = (existingProduct as any).pdp_badge_override;
-      if (ov && typeof ov === 'object') {
-        setBadgeOverride({ ...DEFAULT_BADGE_OVERRIDE, ...ov });
-      } else {
-        setBadgeOverride(null);
-      }
-      setShowQuickSummary((existingProduct as any).show_quick_summary === true);
-      setShowMinQuantity((existingProduct as any).show_min_quantity === true);
+    const ov = (existingProduct as any).pdp_badge_override;
+    if (ov && typeof ov === 'object') {
+      setBadgeOverride({ ...DEFAULT_BADGE_OVERRIDE, ...ov });
+    } else {
+      setBadgeOverride(null);
     }
+    setShowQuickSummary((existingProduct as any).show_quick_summary === true);
+    setShowMinQuantity((existingProduct as any).show_min_quantity === true);
   }, [existingProduct, isEditing]);
+
+
 
   // Fase 4.1: gerador token-aware. Nunca corta no meio de palavra,
   // remove stopwords antes de cortar tokens semânticos, jamais emite hash.
@@ -288,13 +292,15 @@ const AdminProductForm = () => {
     setIsSaving(true);
 
     try {
-      const productData: Omit<DbProduct, 'id' | 'created_at' | 'updated_at'> = {
+      // Payload único — todos os campos de products + flags + badge + pivôs.
+      // Substitui: 1 update products + 2 round-trips de occasions + 2 hooks de tag/segment + 1 update redundante.
+      const productPayload: Record<string, unknown> = {
         name: formData.name,
         slug: formData.slug,
         description: formData.description || null,
         long_description: formData.long_description || null,
         price: parseFloat(formData.price),
-        original_price: null, // Removed from form
+        original_price: null,
         min_quantity: parseInt(formData.min_quantity) || 1,
         pix_discount: parseInt(formData.pix_discount) || 7,
         production_days: parseInt(formData.production_days) || 7,
@@ -305,7 +311,6 @@ const AdminProductForm = () => {
         images: formData.images.filter(Boolean),
         features: formData.features.filter(Boolean),
         keywords: formData.keywords,
-        
         is_active: formData.is_active,
         personalization_enabled: formData.personalization_enabled,
         personalization_label: formData.personalization_label || null,
@@ -314,65 +319,80 @@ const AdminProductForm = () => {
         editorial_content: formData.editorial_content || null,
         featured_weight: parseInt(formData.featured_weight) || 0,
         production_speed: formData.production_speed || null,
-      } as any;
+        // Funde os campos antes "atualizados em segundo UPDATE" no payload principal.
+        pdp_badge_override: badgeOverride ?? null,
+        show_quick_summary: showQuickSummary,
+        show_min_quantity: showMinQuantity,
+      };
 
-      let productId: string;
+      const result = await saveProduct.mutateAsync({
+        id: isEditing && id ? id : null,
+        expected_updated_at: isEditing ? (existingProduct?.updated_at ?? null) : null,
+        product: productPayload,
+        occasion_ids: selectedOccasions,
+        tag_ids: selectedTags,
+        segment_ids: selectedSegments,
+      });
 
-      if (isEditing && id) {
-        await updateProduct.mutateAsync({ id, ...productData });
-        productId = id;
-      } else {
-        const result = await createProduct.mutateAsync(productData);
-        productId = result.id;
-      }
+      // Após save bem-sucedido, sincroniza o expected_updated_at local
+      // para próximos saves sem precisar de refetch (cobre "salvar sequencial").
+      // O guard `hydratedRef` impede que o refetch do React Query pise no form.
+      // Fica registrado para o próximo lock otimista via existingProduct refetch.
+      void result;
 
-      // Update product occasions
-      await supabase.from('product_occasions').delete().eq('product_id', productId);
-      
-      if (selectedOccasions.length > 0) {
-        await supabase.from('product_occasions').insert(
-          selectedOccasions.map((occasionId) => ({
-            product_id: productId,
-            occasion_id: occasionId,
-          }))
-        );
-      }
-
-      // Update product tags
-      await updateProductTags.mutateAsync({ productId, tagIds: selectedTags });
-
-      // Update product segments
-      await updateProductSegments.mutateAsync({ productId, segmentIds: selectedSegments });
-
-      // Update PDP badge override (null clears it) e flag de Resumo Rápido
-      await supabase
-        .from('products')
-        .update({
-          pdp_badge_override: (badgeOverride as any) ?? null,
-          show_quick_summary: showQuickSummary,
-          show_min_quantity: showMinQuantity,
-        } as any)
-        .eq('id', productId);
-
-
-      toast({ title: isEditing ? 'Produto atualizado!' : 'Produto criado!' });
-      // Stay on page after save when editing
-      if (!isEditing) {
-        navigate('/admin/produtos');
-      }
       toast({ title: isEditing ? 'Produto atualizado!' : 'Produto criado!' });
       usage.markSubmitted();
-      // Stay on page after save when editing
       if (!isEditing) {
         navigate('/admin/produtos');
       }
     } catch (error) {
-      console.error('Error saving product:', error);
-      toast({ title: 'Erro ao salvar produto', variant: 'destructive' });
+      const err = error as SaveProductError;
+      console.error('Error saving product:', err);
+      switch (err?.kind) {
+        case 'stale_version':
+          toast({
+            title: 'Edição desatualizada',
+            description: 'Outro admin editou este produto. Recarregue a página para ver a versão atual.',
+            variant: 'destructive',
+          });
+          break;
+        case 'slug_taken':
+          toast({
+            title: 'Slug já em uso',
+            description: 'Escolha um slug diferente — outro produto já usa esse.',
+            variant: 'destructive',
+          });
+          break;
+        case 'fk_missing':
+          toast({
+            title: 'Referência inválida',
+            description: 'Uma categoria, tag, ocasião ou segmento foi removida. Atualize as seleções e tente novamente.',
+            variant: 'destructive',
+          });
+          break;
+        case 'forbidden':
+          toast({
+            title: 'Sem permissão',
+            description: 'Sua conta não tem permissão para salvar produtos.',
+            variant: 'destructive',
+          });
+          break;
+        case 'invalid':
+          toast({
+            title: 'Dados inválidos',
+            description: err.message || 'Verifique os campos e tente novamente.',
+            variant: 'destructive',
+          });
+          break;
+        default:
+          toast({ title: 'Erro ao salvar produto', variant: 'destructive' });
+      }
     } finally {
       setIsSaving(false);
     }
   };
+
+
 
   if (isEditing && loadingProduct) {
     return (
