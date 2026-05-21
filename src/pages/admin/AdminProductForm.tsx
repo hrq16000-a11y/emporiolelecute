@@ -80,7 +80,7 @@ const AdminProductForm = () => {
     description: '',
     long_description: '',
     price: '',
-    original_price: '',
+    promotional_price: '',
     min_quantity: '1',
     pix_discount: '7',
     production_days: '7',
