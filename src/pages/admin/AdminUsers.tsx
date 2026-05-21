@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -66,6 +67,7 @@ const downloadCSV = (filename: string, rows: (string | number | null | undefined
 
 const AdminUsers = () => {
   const qc = useQueryClient();
+  const { user: currentAuthUser } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // ====== Filters / paging state ======
@@ -161,8 +163,13 @@ const AdminUsers = () => {
   const toggleRole = (u: UserRow, role: "admin" | "editor") => {
     if (u.source !== "auth") { toast.error("Contato sem login. Crie ou convide o usuário primeiro."); return; }
     const has = u.roles.includes(role);
+    const authId = u.user_id.replace(/^auth:/, "");
+    if (role === "admin" && has && currentAuthUser?.id === authId) {
+      toast.error("Você não pode remover seu próprio papel de admin.");
+      return;
+    }
     if (!confirm(`Confirmar ${has ? "remoção" : "atribuição"} do papel ${role} para ${u.email}?`)) return;
-    setRole.mutate({ user_id: u.user_id.replace(/^auth:/, ""), role, action: has ? "remove" : "add" });
+    setRole.mutate({ user_id: authId, role, action: has ? "remove" : "add" });
   };
 
   const [editingName, setEditingName] = useState("");
@@ -514,7 +521,9 @@ const AdminUsers = () => {
                   <div className="space-y-2 pt-2">
                     <h3 className="text-xs uppercase text-muted-foreground font-medium">Papéis</h3>
                     <div className="flex gap-2">
-                      <Button size="sm" disabled={selected.source !== "auth"}
+                      <Button size="sm"
+                        disabled={selected.source !== "auth" || (selected.roles.includes("admin") && currentAuthUser?.id === selected.user_id.replace(/^auth:/, ""))}
+                        title={selected.roles.includes("admin") && currentAuthUser?.id === selected.user_id.replace(/^auth:/, "") ? "Você não pode remover seu próprio papel de admin" : undefined}
                         variant={selected.roles.includes("admin") ? "outline" : "default"}
                         onClick={() => toggleRole(selected, "admin")}>
                         {selected.roles.includes("admin") ? <><UserMinus className="h-3 w-3 mr-1" />Remover admin</> : <><UserPlus className="h-3 w-3 mr-1" />Tornar admin</>}
