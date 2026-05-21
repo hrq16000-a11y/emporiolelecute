@@ -13,6 +13,8 @@ interface ProductStructuredDataProps {
   name: string;
   description: string;
   price: number;
+  /** Preço "de" original quando há desconto ativo. */
+  originalPrice?: number;
   images: string[];
   slug: string;
   rating?: number;
