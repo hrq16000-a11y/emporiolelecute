@@ -45,6 +45,19 @@ const AdminProducts = () => {
   const [backfillOpen, setBackfillOpen] = useState(false);
   const [backfillKg, setBackfillKg] = useState('0.150');
   const [backfilling, setBackfilling] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkBusy, setBulkBusy] = useState(false);
+
+  const toggleSelected = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const clearSelection = () => setSelected(new Set());
 
   const productsWithoutWeight = products?.filter((p: any) => !p.weight || p.weight <= 0).length || 0;
 
