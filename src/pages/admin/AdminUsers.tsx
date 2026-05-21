@@ -406,7 +406,7 @@ const AdminUsers = () => {
                         )}
                       </td>
                       <td className="py-2 pr-3 text-right whitespace-nowrap">
-                        {u.source !== "customer" && !u.linked_customer_id && (
+                        {u.source !== "customer" && !u.linked_customer_id && !u.roles.includes("admin") && (
                           <Button size="sm" variant="outline" className="mr-1" onClick={() => handleMigrateToCustomer(u)}>
                             <Link2 className="h-3 w-3 mr-1" /> → Cliente
                           </Button>
