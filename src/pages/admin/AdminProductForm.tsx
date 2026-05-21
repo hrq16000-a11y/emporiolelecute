@@ -141,6 +141,8 @@ const AdminProductForm = () => {
     if (!existingProduct) return;
     if (hydratedForIdRef.current === existingProduct.id) return; // já hidratou esse produto
     hydratedForIdRef.current = existingProduct.id;
+    setExpectedUpdatedAt(existingProduct.updated_at ?? null);
+
 
     const keywords = existingProduct.keywords || [];
     setFormData({
