@@ -415,7 +415,9 @@ const AdminProductForm = () => {
       <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Main Info */}
-          <Card className="lg:col-span-2 shadow-card">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+          <Card className="shadow-card">
+
             <CardHeader>
               <CardTitle className="text-lg font-display">Informações Básicas</CardTitle>
             </CardHeader>
