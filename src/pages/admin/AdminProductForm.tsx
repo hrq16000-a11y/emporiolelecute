@@ -144,8 +144,11 @@ const AdminProductForm = () => {
       slug: existingProduct.slug,
       description: existingProduct.description || '',
       long_description: existingProduct.long_description || '',
-      price: existingProduct.price.toString(),
-      original_price: existingProduct.original_price ? existingProduct.original_price.toString() : '',
+      // Inverte semântica para o admin: campo "Preço" = valor normal (de),
+      // campo "Preço promocional" = novo valor cobrado (por). No DB continuamos
+      // gravando price = cobrado e original_price = riscado.
+      price: (existingProduct.original_price ?? existingProduct.price).toString(),
+      promotional_price: existingProduct.original_price ? existingProduct.price.toString() : '',
       min_quantity: existingProduct.min_quantity.toString(),
       pix_discount: existingProduct.pix_discount.toString(),
       production_days: existingProduct.production_days.toString(),
