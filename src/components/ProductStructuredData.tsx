@@ -30,7 +30,12 @@ interface ProductStructuredDataProps {
   sku?: string;
 }
 
-const ProductStructuredData = ({
+/**
+ * Builder PURO do JSON-LD do produto.
+ * Exportado para testes — não tocar na ordem dos campos sem revalidar
+ * o Rich Results Test do Google.
+ */
+export function buildProductJsonLd({
   name,
   description,
   price,
@@ -40,21 +45,20 @@ const ProductStructuredData = ({
   rating,
   reviewCount,
   productionDays = 7,
-  category = "Lembrancinhas Artesanais",
-  brand = "Empório LeleCute",
+  category = 'Lembrancinhas Artesanais',
+  brand = 'Empório LeleCute',
   reviews,
   material,
   sku,
-}: ProductStructuredDataProps) => {
-  const baseUrl = CANONICAL_ORIGIN;
-  const productUrl = urls.productCanonical(slug);
-
-  // Calculate priceValidUntil - one year from now in YYYY-MM-DD format
-  const priceValidUntil = new Date();
-  priceValidUntil.setFullYear(priceValidUntil.getFullYear() + 1);
-  const priceValidUntilStr = priceValidUntil.toISOString().split('T')[0];
-
-  const structuredData = {
+  baseUrl,
+  productUrl,
+  priceValidUntilStr,
+}: ProductStructuredDataProps & {
+  baseUrl: string;
+  productUrl: string;
+  priceValidUntilStr: string;
+}) {
+  return {
     "@context": "https://schema.org/",
     "@type": "Product",
     "name": name,
@@ -62,10 +66,7 @@ const ProductStructuredData = ({
     "image": images.length > 0 ? images : [`${baseUrl}/placeholder.svg`],
     "sku": sku || slug,
     "mpn": (sku || slug).toUpperCase(),
-    "brand": {
-      "@type": "Brand",
-      "name": brand
-    },
+    "brand": { "@type": "Brand", "name": brand },
     "category": category,
     ...(material ? { "material": material } : {}),
     "additionalProperty": [
@@ -92,36 +93,16 @@ const ProductStructuredData = ({
         : {}),
       "availability": "https://schema.org/InStock",
       "itemCondition": "https://schema.org/NewCondition",
-      "seller": {
-        "@type": "Organization",
-        "name": brand
-      },
+      "seller": { "@type": "Organization", "name": brand },
       "shippingDetails": {
         "@type": "OfferShippingDetails",
-        "shippingRate": {
-          "@type": "MonetaryAmount",
-          "value": 0,
-          "currency": "BRL"
-        },
-        "shippingDestination": {
-          "@type": "DefinedRegion",
-          "addressCountry": "BR"
-        },
+        "shippingRate": { "@type": "MonetaryAmount", "value": 0, "currency": "BRL" },
+        "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "BR" },
         "deliveryTime": {
           "@type": "ShippingDeliveryTime",
-          "handlingTime": {
-            "@type": "QuantitativeValue",
-            "minValue": productionDays,
-            "maxValue": productionDays + 2,
-            "unitCode": "DAY"
-          },
-          "transitTime": {
-            "@type": "QuantitativeValue",
-            "minValue": 3,
-            "maxValue": 15,
-            "unitCode": "DAY"
-          }
-        }
+          "handlingTime": { "@type": "QuantitativeValue", "minValue": productionDays, "maxValue": productionDays + 2, "unitCode": "DAY" },
+          "transitTime": { "@type": "QuantitativeValue", "minValue": 3, "maxValue": 15, "unitCode": "DAY" },
+        },
       },
       "hasMerchantReturnPolicy": {
         "@type": "MerchantReturnPolicy",
@@ -129,10 +110,9 @@ const ProductStructuredData = ({
         "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
         "merchantReturnDays": 7,
         "returnMethod": "https://schema.org/ReturnByMail",
-        "returnFees": "https://schema.org/FreeReturn"
-      }
+        "returnFees": "https://schema.org/FreeReturn",
+      },
     },
-    // aggregateRating só é incluído quando reviews reais existem (evita penalidade Google).
     ...(rating && reviewCount && reviewCount > 0
       ? {
           aggregateRating: {
@@ -149,12 +129,7 @@ const ProductStructuredData = ({
           review: reviews.slice(0, 5).map((r) => ({
             "@type": "Review",
             author: { "@type": "Person", name: r.author_name },
-            reviewRating: {
-              "@type": "Rating",
-              ratingValue: r.rating,
-              bestRating: 5,
-              worstRating: 1,
-            },
+            reviewRating: { "@type": "Rating", ratingValue: r.rating, bestRating: 5, worstRating: 1 },
             ...(r.comment ? { reviewBody: r.comment } : {}),
             ...(r.review_date ? { datePublished: r.review_date.slice(0, 10) } : {}),
             ...(r.source ? { publisher: { "@type": "Organization", name: r.source } } : {}),
@@ -162,6 +137,17 @@ const ProductStructuredData = ({
         }
       : {}),
   };
+}
+
+const ProductStructuredData = (props: ProductStructuredDataProps) => {
+  const baseUrl = CANONICAL_ORIGIN;
+  const productUrl = urls.productCanonical(props.slug);
+  const priceValidUntil = new Date();
+  priceValidUntil.setFullYear(priceValidUntil.getFullYear() + 1);
+  const priceValidUntilStr = priceValidUntil.toISOString().split('T')[0];
+
+  const structuredData = buildProductJsonLd({ ...props, baseUrl, productUrl, priceValidUntilStr });
+
 
   return (
     <Helmet>
