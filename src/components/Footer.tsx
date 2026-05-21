@@ -28,7 +28,7 @@ const Footer = () => {
 
   return (
     <footer id="contato" className="bg-foreground text-primary-foreground pt-20 pb-10">
-      <div className="container mx-auto px-4">
+      <div className="layout-commerce">
         {/* Microcopy editorial — assinatura acima dos grupos de links */}
         <div className="max-w-2xl mb-14">
           <p className="text-base md:text-lg text-primary-foreground/85 font-light leading-relaxed">
