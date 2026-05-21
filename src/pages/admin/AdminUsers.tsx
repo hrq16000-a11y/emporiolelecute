@@ -406,7 +406,7 @@ const AdminUsers = () => {
                         )}
                       </td>
                       <td className="py-2 pr-3 text-right whitespace-nowrap">
-                        {u.source !== "customer" && !u.linked_customer_id && (
+                        {u.source !== "customer" && !u.linked_customer_id && !u.roles.includes("admin") && (
                           <Button size="sm" variant="outline" className="mr-1" onClick={() => handleMigrateToCustomer(u)}>
                             <Link2 className="h-3 w-3 mr-1" /> → Cliente
                           </Button>
@@ -473,7 +473,7 @@ const AdminUsers = () => {
                 <TabsContent value="perfil" className="mt-4 space-y-4">
                   <div className="flex items-center justify-between">
                     <Badge variant="outline" className="text-[10px]">origem: {selected.source}</Badge>
-                    {selected.source !== "customer" && !selected.linked_customer_id && (
+                    {selected.source !== "customer" && !selected.linked_customer_id && !selected.roles.includes("admin") && (
                       <Button size="sm" variant="outline" onClick={() => handleMigrateToCustomer(selected)}>
                         <Link2 className="h-3 w-3 mr-1" /> Migrar para cliente
                       </Button>
@@ -532,11 +532,13 @@ const AdminUsers = () => {
                           <UserPlus className="h-3 w-3 mr-1" />Tornar admin
                         </Button>
                       )}
-                      <Button size="sm" disabled={selected.source !== "auth"}
-                        variant={selected.roles.includes("editor") ? "outline" : "secondary"}
-                        onClick={() => toggleRole(selected, "editor")}>
-                        {selected.roles.includes("editor") ? "Remover editor" : "Tornar editor"}
-                      </Button>
+                      {!selected.roles.includes("admin") && (
+                        <Button size="sm" disabled={selected.source !== "auth"}
+                          variant={selected.roles.includes("editor") ? "outline" : "secondary"}
+                          onClick={() => toggleRole(selected, "editor")}>
+                          {selected.roles.includes("editor") ? "Remover editor" : "Tornar editor"}
+                        </Button>
+                      )}
                       {selected.roles.includes("admin") && currentAuthUser?.id === selected.user_id.replace(/^auth:/, "") && (
                         <Button size="sm" variant="outline" asChild>
                           <a href="/" target="_blank" rel="noopener noreferrer">
