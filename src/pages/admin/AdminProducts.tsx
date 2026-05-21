@@ -335,7 +335,7 @@ const AdminProducts = () => {
                           {product.keywords.length > 3 && ` +${product.keywords.length - 3}`}
                         </p>
                       )}
-                      <div className="flex items-center gap-1 mt-2 -ml-2">
+                      <div className="flex items-center flex-wrap gap-1 mt-2">
                         <Button
                           variant="ghost"
                           size="sm"
