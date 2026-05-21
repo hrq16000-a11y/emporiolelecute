@@ -473,7 +473,7 @@ const AdminUsers = () => {
                 <TabsContent value="perfil" className="mt-4 space-y-4">
                   <div className="flex items-center justify-between">
                     <Badge variant="outline" className="text-[10px]">origem: {selected.source}</Badge>
-                    {selected.source !== "customer" && !selected.linked_customer_id && (
+                    {selected.source !== "customer" && !selected.linked_customer_id && !selected.roles.includes("admin") && (
                       <Button size="sm" variant="outline" onClick={() => handleMigrateToCustomer(selected)}>
                         <Link2 className="h-3 w-3 mr-1" /> Migrar para cliente
                       </Button>
