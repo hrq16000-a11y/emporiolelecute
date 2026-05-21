@@ -1059,6 +1059,8 @@ const AdminProductForm = () => {
               />
             </div>
           </CardHeader>
+        </Card>
+
 
         {/* Badge personalizado da PDP (override por produto) */}
         <Card>
