@@ -520,20 +520,35 @@ const AdminUsers = () => {
 
                   <div className="space-y-2 pt-2">
                     <h3 className="text-xs uppercase text-muted-foreground font-medium">Papéis</h3>
-                    <div className="flex gap-2">
-                      <Button size="sm"
-                        disabled={selected.source !== "auth" || (selected.roles.includes("admin") && currentAuthUser?.id === selected.user_id.replace(/^auth:/, ""))}
-                        title={selected.roles.includes("admin") && currentAuthUser?.id === selected.user_id.replace(/^auth:/, "") ? "Você não pode remover seu próprio papel de admin" : undefined}
-                        variant={selected.roles.includes("admin") ? "outline" : "default"}
-                        onClick={() => toggleRole(selected, "admin")}>
-                        {selected.roles.includes("admin") ? <><UserMinus className="h-3 w-3 mr-1" />Remover admin</> : <><UserPlus className="h-3 w-3 mr-1" />Tornar admin</>}
-                      </Button>
+                    <div className="flex gap-2 flex-wrap">
+                      {selected.roles.includes("admin") ? (
+                        <Badge variant="default" className="gap-1 px-3 py-1.5">
+                          <ShieldCheck className="h-3 w-3" /> Admin (permanente)
+                        </Badge>
+                      ) : (
+                        <Button size="sm" disabled={selected.source !== "auth"}
+                          variant="default"
+                          onClick={() => toggleRole(selected, "admin")}>
+                          <UserPlus className="h-3 w-3 mr-1" />Tornar admin
+                        </Button>
+                      )}
                       <Button size="sm" disabled={selected.source !== "auth"}
                         variant={selected.roles.includes("editor") ? "outline" : "secondary"}
                         onClick={() => toggleRole(selected, "editor")}>
                         {selected.roles.includes("editor") ? "Remover editor" : "Tornar editor"}
                       </Button>
+                      {selected.roles.includes("admin") && currentAuthUser?.id === selected.user_id.replace(/^auth:/, "") && (
+                        <Button size="sm" variant="outline" asChild>
+                          <a href="/" target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="h-3 w-3 mr-1" />Ver loja como cliente
+                          </a>
+                        </Button>
+                      )}
                     </div>
+                    {selected.roles.includes("admin") && (
+                      <p className="text-xs text-muted-foreground">O papel de admin é permanente e não pode ser removido. Use "Ver loja como cliente" para visualizar o site com a experiência de cliente sem perder seus privilégios.</p>
+                    )}
+                  </div>
                   </div>
                 </TabsContent>
 
