@@ -1,6 +1,13 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Pencil, Trash2, Search, Eye, EyeOff, ExternalLink, Scale, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Eye, EyeOff, ExternalLink, Scale, Loader2, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,6 +47,32 @@ const AdminProducts = () => {
 
   const productsWithoutWeight = products?.filter((p: any) => !p.weight || p.weight <= 0).length || 0;
 
+  type SortKey = 'name' | 'price' | 'tags' | 'status';
+  type SortDir = 'asc' | 'desc';
+  const [sortKey, setSortKey] = useState<SortKey>('name');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
+
+  const SortIcon = ({ k }: { k: SortKey }) => {
+    if (sortKey !== k) return <ArrowUpDown className="w-3.5 h-3.5 opacity-40" />;
+    return sortDir === 'asc' ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />;
+  };
+
+  const sortLabels: Record<SortKey, { asc: string; desc: string }> = {
+    name: { asc: 'Nome A→Z', desc: 'Nome Z→A' },
+    price: { asc: 'Menor preço', desc: 'Maior preço' },
+    tags: { asc: 'Menos tags', desc: 'Mais tags' },
+    status: { asc: 'Inativos primeiro', desc: 'Ativos primeiro' },
+  };
+
   const runBackfill = async () => {
     const kg = parseFloat(backfillKg.replace(',', '.'));
     if (!kg || kg <= 0 || kg > 30) {
@@ -62,9 +95,24 @@ const AdminProducts = () => {
     }
   };
 
-  const filteredProducts = products?.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredProducts = useMemo(() => {
+    const base = products?.filter((p) => p.name.toLowerCase().includes(search.toLowerCase())) ?? [];
+    const dir = sortDir === 'asc' ? 1 : -1;
+    const sorted = [...base].sort((a, b) => {
+      switch (sortKey) {
+        case 'price':
+          return ((a.price ?? 0) - (b.price ?? 0)) * dir;
+        case 'tags':
+          return ((a.keywords?.length ?? 0) - (b.keywords?.length ?? 0)) * dir;
+        case 'status':
+          return ((a.is_active ? 1 : 0) - (b.is_active ? 1 : 0)) * dir;
+        case 'name':
+        default:
+          return a.name.localeCompare(b.name, 'pt-BR') * dir;
+      }
+    });
+    return sorted;
+  }, [products, search, sortKey, sortDir]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -109,7 +157,7 @@ const AdminProducts = () => {
 
       <Card className="shadow-card">
         <CardContent className="p-3 sm:p-6">
-          <div className="mb-4 sm:mb-6">
+          <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
             <div className="relative w-full sm:max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -119,7 +167,32 @@ const AdminProducts = () => {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
+            <div className="flex items-center gap-2 sm:ml-auto">
+              <span className="text-xs text-muted-foreground hidden sm:inline">Ordenar:</span>
+              <Select value={sortKey} onValueChange={(v) => { setSortKey(v as SortKey); setSortDir('asc'); }}>
+                <SelectTrigger className="h-10 w-[150px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Nome</SelectItem>
+                  <SelectItem value="price">Preço</SelectItem>
+                  <SelectItem value="tags">Tags</SelectItem>
+                  <SelectItem value="status">Status</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10"
+                onClick={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
+                title={sortLabels[sortKey][sortDir === 'asc' ? 'desc' : 'asc']}
+              >
+                {sortDir === 'asc' ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
+                <span className="ml-1 text-xs hidden sm:inline">{sortLabels[sortKey][sortDir]}</span>
+              </Button>
+            </div>
           </div>
+
 
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
@@ -220,10 +293,26 @@ const AdminProducts = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-16">Imagem</TableHead>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Preço</TableHead>
-                      <TableHead>Tags</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>
+                        <button type="button" onClick={() => toggleSort('name')} className="inline-flex items-center gap-1 hover:text-primary transition-colors">
+                          Nome <SortIcon k="name" />
+                        </button>
+                      </TableHead>
+                      <TableHead>
+                        <button type="button" onClick={() => toggleSort('price')} className="inline-flex items-center gap-1 hover:text-primary transition-colors">
+                          Preço <SortIcon k="price" />
+                        </button>
+                      </TableHead>
+                      <TableHead>
+                        <button type="button" onClick={() => toggleSort('tags')} className="inline-flex items-center gap-1 hover:text-primary transition-colors">
+                          Tags <SortIcon k="tags" />
+                        </button>
+                      </TableHead>
+                      <TableHead>
+                        <button type="button" onClick={() => toggleSort('status')} className="inline-flex items-center gap-1 hover:text-primary transition-colors">
+                          Status <SortIcon k="status" />
+                        </button>
+                      </TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
