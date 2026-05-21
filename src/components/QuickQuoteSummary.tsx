@@ -87,9 +87,9 @@ export const QuickQuoteSummary = ({
       <Button
         type="button"
         onClick={onWhatsApp}
-        className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white font-bold rounded-lg"
+        className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white font-bold rounded-lg whitespace-normal break-words text-sm leading-tight px-3 py-2.5 h-auto"
       >
-        <MessageCircle className="h-4 w-4 mr-2" />
+        <MessageCircle className="h-4 w-4 mr-2 shrink-0" />
         {contextualCta}
       </Button>
     </section>
