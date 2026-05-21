@@ -6573,6 +6573,20 @@ export type Database = {
         Args: { _role?: string; _search?: string }
         Returns: Json
       }
+      list_all_users_paginated: {
+        Args: {
+          _ip?: string
+          _limit?: number
+          _offset?: number
+          _role?: string
+          _search?: string
+          _sort_dir?: string
+          _sort_key?: string
+          _source?: string
+          _whatsapp?: string
+        }
+        Returns: Json
+      }
       list_cron_jobs: {
         Args: never
         Returns: {
@@ -6598,9 +6612,28 @@ export type Database = {
           username: string
         }[]
       }
+      list_user_audit: {
+        Args: {
+          _email: string
+          _from?: string
+          _limit?: number
+          _offset?: number
+          _status?: string
+          _to?: string
+        }
+        Returns: Json
+      }
       log_search: {
         Args: { _q: string; _result_count: number; _suggestion?: string }
         Returns: undefined
+      }
+      migrate_customer_to_user_link: {
+        Args: { _customer_id: string; _user_id: string }
+        Returns: Json
+      }
+      migrate_visitor_to_customer: {
+        Args: { _visitor_id: string }
+        Returns: Json
       }
       normalize_search: { Args: { _s: string }; Returns: string }
       normalize_slug: { Args: { _s: string }; Returns: string }
