@@ -22,9 +22,11 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 interface UserRow {
+  source: "auth" | "customer" | "visitor" | "order";
   user_id: string;
   email: string | null;
   full_name: string | null;
+  whatsapp: string | null;
   created_at: string;
   last_sign_in_at: string | null;
   email_confirmed_at: string | null;
@@ -138,12 +140,33 @@ const AdminUsers = () => {
   });
 
   const toggleRole = (u: UserRow, role: "admin" | "editor") => {
+    if (u.source !== "auth") {
+      toast.error("Este contato ainda não criou conta. Peça para acessar /admin/login primeiro.");
+      return;
+    }
     const has = u.roles.includes(role);
     const action = has ? "remove" : "add";
     const label = role === "admin" ? "administrador" : "editor";
     if (!confirm(`Confirmar ${has ? "remoção" : "atribuição"} do papel de ${label} para ${u.email}?`)) return;
     setRole.mutate({ user_id: u.user_id, role, action });
   };
+
+  // Edição de nome (somente perfis autenticados)
+  const [editingName, setEditingName] = useState("");
+  const updateName = useMutation({
+    mutationFn: async (p: { user_id: string; full_name: string }) => {
+      const { data, error } = await (supabase as any).rpc("update_user_profile", {
+        _user_id: p.user_id, _full_name: p.full_name,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Nome atualizado.");
+      qc.invalidateQueries({ queryKey: ["admin-all-users"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Falha ao atualizar nome"),
+  });
 
   // Ordenação dos usuários
   const sortedUsers = useMemo(() => {
@@ -463,7 +486,16 @@ const AdminUsers = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {pagedUsers.map((u) => (
+                  {pagedUsers.map((u) => {
+                    const isAuth = u.source === "auth";
+                    const srcBadge = isAuth
+                      ? null
+                      : u.source === "customer"
+                        ? <Badge variant="outline" className="text-[10px] ml-1">CRM</Badge>
+                        : u.source === "visitor"
+                          ? <Badge variant="outline" className="text-[10px] ml-1">visitante</Badge>
+                          : <Badge variant="outline" className="text-[10px] ml-1">pedido</Badge>;
+                    return (
                     <tr key={u.user_id} className="border-b last:border-0 align-top hover:bg-muted/30">
                       <td className="py-2 pr-3">
                         <button
@@ -471,13 +503,20 @@ const AdminUsers = () => {
                           onClick={() => setSelectedUser(u)}
                           className="text-left hover:underline"
                         >
-                          <div className="font-medium break-all">{u.full_name || u.email || "—"}</div>
-                          <div className="text-xs text-muted-foreground break-all">{u.email}</div>
+                          <div className="font-medium break-all flex items-center gap-1 flex-wrap">
+                            {u.full_name || u.email || u.whatsapp || "—"}
+                            {srcBadge}
+                          </div>
+                          <div className="text-xs text-muted-foreground break-all">
+                            {u.email || u.whatsapp || "—"}
+                          </div>
                         </button>
                       </td>
                       <td className="py-2 pr-3">
                         <div className="flex flex-wrap gap-1">
-                          {u.roles.length === 0 ? (
+                          {!isAuth ? (
+                            <span className="text-xs text-muted-foreground italic">sem login</span>
+                          ) : u.roles.length === 0 ? (
                             <span className="text-xs text-muted-foreground">sem papel</span>
                           ) : (
                             u.roles.map((r) => (
@@ -494,17 +533,21 @@ const AdminUsers = () => {
                       <td className="py-2 pr-3 text-xs text-muted-foreground whitespace-nowrap">
                         {u.last_sign_in_at
                           ? format(new Date(u.last_sign_in_at), "dd/MM/yyyy HH:mm", { locale: ptBR })
-                          : "nunca"}
+                          : isAuth ? "nunca" : "—"}
                       </td>
                       <td className="py-2 pr-3 whitespace-nowrap">
-                        {u.email_confirmed_at ? (
-                          <span className="inline-flex items-center gap-1 text-emerald-600 text-xs">
-                            <CheckCircle2 className="h-3 w-3" /> confirmado
-                          </span>
+                        {isAuth ? (
+                          u.email_confirmed_at ? (
+                            <span className="inline-flex items-center gap-1 text-emerald-600 text-xs">
+                              <CheckCircle2 className="h-3 w-3" /> confirmado
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-amber-600 text-xs">
+                              <AlertCircle className="h-3 w-3" /> pendente
+                            </span>
+                          )
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-amber-600 text-xs">
-                            <AlertCircle className="h-3 w-3" /> pendente
-                          </span>
+                          <span className="text-xs text-muted-foreground">—</span>
                         )}
                       </td>
                       <td className="py-2 pr-3">
@@ -515,6 +558,13 @@ const AdminUsers = () => {
                           >
                             ver ficha <ExternalLink className="h-3 w-3" />
                           </Link>
+                        ) : !isAuth ? (
+                          <Link
+                            to={`/admin/clientes`}
+                            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                          >
+                            criar cliente <ExternalLink className="h-3 w-3" />
+                          </Link>
                         ) : (
                           <span className="text-xs text-muted-foreground">—</span>
                         )}
@@ -524,7 +574,7 @@ const AdminUsers = () => {
                           size="sm"
                           variant={u.roles.includes("admin") ? "outline" : "default"}
                           className="mr-1"
-                          disabled={setRole.isPending}
+                          disabled={setRole.isPending || !isAuth}
                           onClick={() => toggleRole(u, "admin")}
                         >
                           {u.roles.includes("admin") ? (<><UserMinus className="h-3 w-3 mr-1" /> Admin</>) : (<><UserPlus className="h-3 w-3 mr-1" /> Admin</>)}
@@ -532,14 +582,15 @@ const AdminUsers = () => {
                         <Button
                           size="sm"
                           variant={u.roles.includes("editor") ? "outline" : "secondary"}
-                          disabled={setRole.isPending}
+                          disabled={setRole.isPending || !isAuth}
                           onClick={() => toggleRole(u, "editor")}
                         >
                           {u.roles.includes("editor") ? (<><UserMinus className="h-3 w-3 mr-1" /> Editor</>) : (<><UserPlus className="h-3 w-3 mr-1" /> Editor</>)}
                         </Button>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -674,30 +725,78 @@ const AdminUsers = () => {
 
               <div className="mt-6 space-y-5">
                 <section className="space-y-2">
-                  <h3 className="text-xs uppercase text-muted-foreground font-medium">Perfil</h3>
-                  <div className="grid gap-2 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      {selectedUser.email_confirmed_at ? (
-                        <span className="inline-flex items-center gap-1 text-emerald-600">
-                          <CheckCircle2 className="h-3.5 w-3.5" /> E-mail confirmado
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-amber-600">
-                          <AlertCircle className="h-3.5 w-3.5" /> E-mail pendente de confirmação
-                        </span>
-                      )}
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs uppercase text-muted-foreground font-medium">Perfil</h3>
+                    <Badge variant="outline" className="text-[10px]">
+                      origem: {selectedUser.source}
+                    </Badge>
+                  </div>
+
+                  {/* Edição de nome (somente perfis autenticados) */}
+                  {selectedUser.source === "auth" ? (
+                    <div className="space-y-1">
+                      <Label htmlFor="edit-name" className="text-xs">Nome completo</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="edit-name"
+                          value={editingName !== "" ? editingName : (selectedUser.full_name || "")}
+                          onChange={(e) => setEditingName(e.target.value)}
+                          placeholder="Nome do usuário"
+                        />
+                        <Button
+                          size="sm"
+                          disabled={updateName.isPending || !editingName.trim() || editingName.trim() === (selectedUser.full_name || "")}
+                          onClick={() => updateName.mutate({ user_id: selectedUser.user_id, full_name: editingName.trim() }, {
+                            onSuccess: () => setEditingName(""),
+                          })}
+                        >
+                          Salvar
+                        </Button>
+                      </div>
                     </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      Contato sem login. Para editar dados, use o{" "}
+                      <Link to="/admin/clientes" className="text-primary underline">CRM de clientes</Link>.
+                    </p>
+                  )}
+
+                  <div className="grid gap-2 text-sm pt-2">
+                    {selectedUser.email && (
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        {selectedUser.source === "auth" ? (
+                          selectedUser.email_confirmed_at ? (
+                            <span className="inline-flex items-center gap-1 text-emerald-600">
+                              <CheckCircle2 className="h-3.5 w-3.5" /> E-mail confirmado
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-amber-600">
+                              <AlertCircle className="h-3.5 w-3.5" /> E-mail pendente de confirmação
+                            </span>
+                          )
+                        ) : (
+                          <span className="text-muted-foreground break-all">{selectedUser.email}</span>
+                        )}
+                      </div>
+                    )}
+                    {selectedUser.whatsapp && (
+                      <div className="text-muted-foreground text-sm">
+                        WhatsApp: <strong className="text-foreground">{selectedUser.whatsapp}</strong>
+                      </div>
+                    )}
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Calendar className="h-4 w-4" />
                       Cadastro: {format(new Date(selectedUser.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                     </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <LogIn className="h-4 w-4" />
-                      Último login: {selectedUser.last_sign_in_at
-                        ? format(new Date(selectedUser.last_sign_in_at), "dd/MM/yyyy HH:mm", { locale: ptBR })
-                        : "nunca"}
-                    </div>
+                    {selectedUser.source === "auth" && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <LogIn className="h-4 w-4" />
+                        Último login: {selectedUser.last_sign_in_at
+                          ? format(new Date(selectedUser.last_sign_in_at), "dd/MM/yyyy HH:mm", { locale: ptBR })
+                          : "nunca"}
+                      </div>
+                    )}
                   </div>
                 </section>
 

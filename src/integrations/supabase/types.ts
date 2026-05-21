@@ -6636,6 +6636,10 @@ export type Database = {
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       unaccent: { Args: { "": string }; Returns: string }
+      update_user_profile: {
+        Args: { _full_name: string; _user_id: string }
+        Returns: Json
+      }
       validate_coupon: {
         Args: { _code: string; _subtotal: number }
         Returns: Json
