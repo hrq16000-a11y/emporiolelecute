@@ -606,13 +606,17 @@ const ProductPage = () => {
 
               {/* Trust row consolidado — linha editorial sutil, sem pílulas cromáticas */}
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-5 text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-1.5">
-                  <Package className="h-3.5 w-3.5" strokeWidth={1.5} />
-                  Mínimo {product.minQuantity} un.
-                </span>
-                <span className="text-muted-foreground/40" aria-hidden="true">
-                  ·
-                </span>
+                {(dbProduct as any)?.show_min_quantity === true && (
+                  <>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Package className="h-3.5 w-3.5" strokeWidth={1.5} />
+                      Mínimo {product.minQuantity} un.
+                    </span>
+                    <span className="text-muted-foreground/40" aria-hidden="true">
+                      ·
+                    </span>
+                  </>
+                )}
                 <span className="inline-flex items-center gap-1.5">
                   <Clock className="h-3.5 w-3.5" strokeWidth={1.5} />
                   Pronto em {product.productionDays} dias úteis
