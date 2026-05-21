@@ -90,6 +90,46 @@ const AdminUsers = () => {
     promote.mutate(v);
   };
 
+  // ============== Lista de usuários ==============
+  const [userSearch, setUserSearch] = useState("");
+  const [userRoleFilter, setUserRoleFilter] = useState<string>("all");
+
+  const usersQ = useQuery({
+    queryKey: ["admin-all-users", userSearch, userRoleFilter],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc("list_all_users", {
+        _search: userSearch || null,
+        _role: userRoleFilter,
+      });
+      if (error) throw error;
+      return ((data as any)?.rows || []) as UserRow[];
+    },
+  });
+
+  const setRole = useMutation({
+    mutationFn: async (p: { user_id: string; role: string; action: "add" | "remove" }) => {
+      const { data, error } = await (supabase as any).rpc("set_user_role", {
+        _user_id: p.user_id, _role: p.role, _action: p.action,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_d, vars) => {
+      toast.success(vars.action === "add" ? `Papel "${vars.role}" adicionado.` : `Papel "${vars.role}" removido.`);
+      qc.invalidateQueries({ queryKey: ["admin-all-users"] });
+      qc.invalidateQueries({ queryKey: ["role_promotion_audit"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Falha ao atualizar papel"),
+  });
+
+  const toggleRole = (u: UserRow, role: "admin" | "editor") => {
+    const has = u.roles.includes(role);
+    const action = has ? "remove" : "add";
+    const label = role === "admin" ? "administrador" : "editor";
+    if (!confirm(`Confirmar ${has ? "remoção" : "atribuição"} do papel de ${label} para ${u.email}?`)) return;
+    setRole.mutate({ user_id: u.user_id, role, action });
+  };
+
   const filtered = useMemo(() => {
     const q = filterText.trim().toLowerCase();
     return audit.filter((r) => {
