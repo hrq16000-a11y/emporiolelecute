@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { EXECUTIVE_NAV, type NavGroup, type NavLeaf } from '@/lib/executiveNavigation';
 import { useAdminPageTracking } from '@/hooks/useAdminPageTracking';
 import { trackAdminEvent } from '@/lib/adminUsage';
+import AdminSearchBar from '@/components/admin/AdminSearchBar';
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   LayoutDashboard, Package, Tags, Calendar, Home, Sparkles, ShoppingCart, Users,
@@ -180,6 +181,10 @@ const AdminLayout = () => {
           <button onClick={closeMobile} className="lg:hidden p-2 hover:bg-muted rounded-lg transition-colors">
             <X className="w-5 h-5" />
           </button>
+        </div>
+
+        <div className="shrink-0 px-2.5 pt-2.5 pb-1">
+          <AdminSearchBar onResultSelect={closeMobile} />
         </div>
 
         <div className="shrink-0 px-2.5 pt-2 pb-1">

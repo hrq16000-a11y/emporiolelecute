@@ -1,22 +1,55 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { Search, X, Loader2 } from "lucide-react";
+import { Search, X, Loader2, Package, Tag, Calendar, FileText } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useDbProducts } from "@/hooks/useProducts";
+import { useDbProducts, useDbCategories, useDbOccasions } from "@/hooks/useProducts";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Input } from "@/components/ui/input";
 import { optimizeImage } from "@/lib/image";
 import { urls } from "@/lib/urls";
+import { highlightMatch } from "@/lib/highlightMatch";
 
 interface SearchBarProps {
-  /** Destination path for "see all" + Enter submit. Default: /produtos */
+  /** Destino do "ver todos" e do Enter sem seleção. Default: /produtos */
   searchPath?: string;
-  /** Query string param name used on submit. Default: busca */
+  /** Nome do query param no submit. Default: busca */
   paramKey?: string;
-  /** Called after the user selects a suggestion or submits (mobile close hook) */
+  /** Disparado após selecionar uma sugestão (gancho de fechamento mobile) */
   onResultSelect?: () => void;
-  /** Autofocus the input on mount */
+  /** Autofocus no input ao montar */
   autoFocus?: boolean;
 }
+
+type SuggestionKind = "product" | "category" | "occasion" | "page";
+interface Suggestion {
+  kind: SuggestionKind;
+  id: string;
+  label: string;
+  sublabel?: string;
+  to: string;
+  image?: string | null;
+}
+
+// Páginas estáticas públicas — sempre buscáveis sem depender de fetch.
+const STATIC_PAGES: Array<{ label: string; to: string; keywords?: string[] }> = [
+  { label: "Início", to: "/", keywords: ["home", "principal"] },
+  { label: "Loja", to: "/loja", keywords: ["produtos", "comprar"] },
+  { label: "Sobre", to: "/sobre", keywords: ["historia", "marca"] },
+  { label: "Contato", to: "/contato", keywords: ["whatsapp", "email"] },
+  { label: "Blog", to: "/blog", keywords: ["artigos", "posts"] },
+  { label: "Orçamento", to: "/orcamento", keywords: ["personalizado", "cotacao"] },
+  { label: "Rastrear Pedido", to: "/rastrear", keywords: ["pedido", "status"] },
+  { label: "Política de Privacidade", to: "/politica-de-privacidade", keywords: ["lgpd", "privacidade"] },
+];
+
+const KIND_META: Record<SuggestionKind, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
+  product: { label: "Produtos", icon: Package },
+  category: { label: "Categorias", icon: Tag },
+  occasion: { label: "Ocasiões", icon: Calendar },
+  page: { label: "Páginas", icon: FileText },
+};
+
+const normalize = (s: string) =>
+  s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 const SearchBar = ({
   searchPath = "/produtos",
@@ -31,45 +64,102 @@ const SearchBar = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  // Debounce the search query for performance (300ms delay)
+  // Debounce 300ms — evita re-render por tecla
   const debouncedQuery = useDebounce(query, 300);
 
-  const { data: products = [], isLoading } = useDbProducts();
+  const { data: products = [], isLoading: loadingProducts } = useDbProducts();
+  const { data: categories = [] } = useDbCategories({ publicOnly: true });
+  const { data: occasions = [] } = useDbOccasions({ publicOnly: true });
 
-  // Cache filtered suggestions using memoization
-  const suggestions = useMemo(() => {
-    if (debouncedQuery.length < 2) return [];
-    
-    const searchTerm = debouncedQuery.toLowerCase();
-    return products
-      .filter((product) => {
-        // Only show active products in search suggestions
-        if (!product.is_active) return false;
-        
-        // Search across multiple fields for best results
-        return (
-          product.name.toLowerCase().includes(searchTerm) ||
-          (product.description?.toLowerCase().includes(searchTerm)) ||
-          (product.category?.name?.toLowerCase().includes(searchTerm)) ||
-          (product.occasions?.some((o) => o.name.toLowerCase().includes(searchTerm))) ||
-          (product.tags?.some((t) => t.name.toLowerCase().includes(searchTerm))) ||
-          (product.keywords?.some((k) => k.toLowerCase().includes(searchTerm)))
+  // Gera sugestões agrupadas (produtos, categorias, ocasiões, páginas)
+  const { suggestions, grouped } = useMemo(() => {
+    const empty = { suggestions: [] as Suggestion[], grouped: [] as Array<{ kind: SuggestionKind; items: Suggestion[] }> };
+    if (debouncedQuery.length < 2) return empty;
+
+    const term = normalize(debouncedQuery);
+
+    const productItems: Suggestion[] = products
+      .filter((p) => {
+        if (!p.is_active) return false;
+        const hay = normalize(
+          [
+            p.name,
+            p.description ?? "",
+            p.category?.name ?? "",
+            ...(p.occasions?.map((o) => o.name) ?? []),
+            ...(p.tags?.map((t) => t.name) ?? []),
+            ...(p.keywords ?? []),
+          ].join(" ")
         );
+        return hay.includes(term);
       })
-      .slice(0, 6);
-  }, [debouncedQuery, products]);
+      .slice(0, 5)
+      .map((p) => ({
+        kind: "product" as const,
+        id: p.id,
+        label: p.name,
+        sublabel: `${p.category?.name ?? ""}${p.category?.name ? " • " : ""}${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(p.price)}`,
+        to: urls.product(p.slug),
+        image: p.images?.[0],
+      }));
 
-  // Show/hide dropdown based on debounced query
+    const categoryItems: Suggestion[] = categories
+      .filter((c) => normalize(c.name).includes(term))
+      .slice(0, 3)
+      .map((c) => ({
+        kind: "category" as const,
+        id: c.id,
+        label: c.name,
+        sublabel: "Categoria",
+        to: `/categoria/${c.slug}`,
+      }));
+
+    const occasionItems: Suggestion[] = occasions
+      .filter((o) => normalize(o.name).includes(term))
+      .slice(0, 3)
+      .map((o) => ({
+        kind: "occasion" as const,
+        id: o.id,
+        label: o.name,
+        sublabel: "Ocasião",
+        to: `/ocasiao/${o.slug}`,
+      }));
+
+    const pageItems: Suggestion[] = STATIC_PAGES
+      .filter((p) => {
+        const hay = normalize([p.label, ...(p.keywords ?? [])].join(" "));
+        return hay.includes(term);
+      })
+      .slice(0, 3)
+      .map((p) => ({
+        kind: "page" as const,
+        id: p.to,
+        label: p.label,
+        sublabel: "Página",
+        to: p.to,
+      }));
+
+    // Ordem dos grupos prioriza produtos (intent comercial)
+    const groups: Array<{ kind: SuggestionKind; items: Suggestion[] }> = (
+      [
+        { kind: "product" as const, items: productItems },
+        { kind: "category" as const, items: categoryItems },
+        { kind: "occasion" as const, items: occasionItems },
+        { kind: "page" as const, items: pageItems },
+      ]
+    ).filter((g) => g.items.length > 0);
+
+    const flat = groups.flatMap((g) => g.items);
+    return { suggestions: flat, grouped: groups };
+  }, [debouncedQuery, products, categories, occasions]);
+
+  // Abre/fecha dropdown conforme query debouncada
   useEffect(() => {
-    if (debouncedQuery.length >= 2) {
-      setIsOpen(true);
-    } else {
-      setIsOpen(false);
-    }
+    setIsOpen(debouncedQuery.length >= 2);
     setSelectedIndex(-1);
   }, [debouncedQuery]);
 
-  // Close dropdown when clicking outside
+  // Fecha ao clicar fora
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -79,6 +169,13 @@ const SearchBar = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleSelect = (s: Suggestion) => {
+    navigate(s.to);
+    setQuery("");
+    setIsOpen(false);
+    onResultSelect?.();
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
@@ -90,10 +187,7 @@ const SearchBar = ({
     } else if (e.key === "Enter") {
       e.preventDefault();
       if (selectedIndex >= 0 && suggestions[selectedIndex]) {
-        navigate(urls.product(suggestions[selectedIndex].slug));
-        setQuery("");
-        setIsOpen(false);
-        onResultSelect?.();
+        handleSelect(suggestions[selectedIndex]);
       } else if (query.length >= 2) {
         navigate(`${searchPath}?${paramKey}=${encodeURIComponent(query)}`);
         setIsOpen(false);
@@ -118,30 +212,33 @@ const SearchBar = ({
     inputRef.current?.focus();
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price);
-  };
-
-  // Show loading only while typing (not on initial load)
+  // Loading visível apenas enquanto debounce ainda não alcançou query
   const isSearching = query.length >= 2 && query !== debouncedQuery;
 
   return (
     <div ref={containerRef} className="relative w-full max-w-xs">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden />
         <Input
           ref={inputRef}
           type="text"
-          placeholder="Buscar produtos..."
+          placeholder="Buscar produtos, categorias..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => debouncedQuery.length >= 2 && setIsOpen(true)}
           className="pl-9 pr-8 h-9 rounded-full bg-secondary/50 border-border/50 focus:bg-background"
+          role="combobox"
+          aria-expanded={isOpen}
+          aria-autocomplete="list"
+          aria-controls="search-suggestions"
+          aria-activedescendant={selectedIndex >= 0 ? `search-opt-${selectedIndex}` : undefined}
         />
         {query && (
           <button
+            type="button"
             onClick={clearSearch}
+            aria-label="Limpar busca"
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
           >
             <X className="h-4 w-4" />
@@ -150,47 +247,78 @@ const SearchBar = ({
       </div>
 
       {isOpen && (
-        <div className="absolute top-full mt-2 w-full bg-background border border-border rounded-xl shadow-lg overflow-hidden z-50 animate-fade-in">
-          {isSearching || isLoading ? (
-            <div className="flex items-center justify-center py-6">
+        <div
+          id="search-suggestions"
+          role="listbox"
+          className="absolute top-full mt-2 w-full bg-popover text-popover-foreground border border-border rounded-xl shadow-lg overflow-hidden z-50 animate-fade-in max-h-[70vh] overflow-y-auto"
+        >
+          {isSearching || (loadingProducts && products.length === 0) ? (
+            <div className="flex items-center justify-center py-6" role="status" aria-live="polite">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               <span className="ml-2 text-sm text-muted-foreground">Buscando...</span>
             </div>
-          ) : suggestions.length > 0 ? (
+          ) : grouped.length > 0 ? (
             <>
-              <ul className="py-2">
-                {suggestions.map((product, index) => (
-                  <li key={product.id}>
-                    <Link
-                      to={urls.product(product.slug)}
-                      onClick={() => {
-                        setQuery("");
-                        setIsOpen(false);
-                        onResultSelect?.();
-                      }}
-                      className={`flex items-center gap-3 px-4 py-2 transition-colors ${
-                        index === selectedIndex
-                          ? "bg-primary-light"
-                          : "hover:bg-secondary"
-                      }`}
-                    >
-                      <img
-                        src={optimizeImage(product.images?.[0], { width: 96, resize: "contain" })}
-                        alt={product.name}
-                        className="w-10 h-10 rounded-lg object-contain bg-muted p-1"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">
-                          {product.name}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {product.category?.name} • {formatPrice(product.price)}
-                        </p>
+              {(() => {
+                let flatIdx = -1;
+                return grouped.map((group) => {
+                  const Meta = KIND_META[group.kind];
+                  const Icon = Meta.icon;
+                  return (
+                    <div key={group.kind} className="py-1">
+                      <div className="flex items-center gap-1.5 px-4 pt-2 pb-1 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/80">
+                        <Icon className="h-3 w-3" />
+                        {Meta.label}
                       </div>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+                      <ul>
+                        {group.items.map((s) => {
+                          flatIdx += 1;
+                          const idx = flatIdx;
+                          return (
+                            <li key={`${s.kind}-${s.id}`}>
+                              <Link
+                                id={`search-opt-${idx}`}
+                                role="option"
+                                aria-selected={idx === selectedIndex}
+                                to={s.to}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleSelect(s);
+                                }}
+                                className={`flex items-center gap-3 px-4 py-2 transition-colors ${
+                                  idx === selectedIndex ? "bg-primary-light" : "hover:bg-secondary"
+                                }`}
+                              >
+                                {s.kind === "product" ? (
+                                  <img
+                                    src={optimizeImage(s.image, { width: 96, resize: "contain" })}
+                                    alt={s.label}
+                                    className="w-10 h-10 rounded-lg object-contain bg-muted p-1 shrink-0"
+                                  />
+                                ) : (
+                                  <span className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0 text-muted-foreground">
+                                    <Icon className="h-4 w-4" />
+                                  </span>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-foreground truncate">
+                                    {highlightMatch(s.label, debouncedQuery)}
+                                  </p>
+                                  {s.sublabel && (
+                                    <p className="text-xs text-muted-foreground truncate">
+                                      {s.sublabel}
+                                    </p>
+                                  )}
+                                </div>
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  );
+                });
+              })()}
               <Link
                 to={`${searchPath}?${paramKey}=${encodeURIComponent(query)}`}
                 onClick={() => {
@@ -205,7 +333,7 @@ const SearchBar = ({
           ) : (
             <div className="p-4">
               <p className="text-sm text-muted-foreground text-center">
-                Nenhum produto encontrado para "{debouncedQuery}"
+                Nenhum resultado encontrado para "{debouncedQuery}"
               </p>
             </div>
           )}
