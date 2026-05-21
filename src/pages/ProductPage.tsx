@@ -888,7 +888,7 @@ const ProductPage = () => {
                     {addedToCart && (
                       <Button
                         size="lg"
-                        className="w-full bg-primary hover:bg-primary-dark text-primary-foreground rounded-lg py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all mb-4"
+                        className="w-full lg:max-w-[420px] bg-primary hover:bg-primary-dark text-primary-foreground rounded-lg py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all mb-4"
                         onClick={() => navigate("/carrinho")}
                       >
                         Finalizar Compra Agora
