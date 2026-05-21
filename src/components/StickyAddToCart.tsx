@@ -52,10 +52,10 @@ export const StickyAddToCart = ({
         <Button
           onClick={onAddToCart}
           className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full font-bold shadow-lg h-11"
-          aria-label="Adicionar ao carrinho"
+          aria-label="Comprar agora"
         >
           <ShoppingCart className="h-4 w-4 mr-2" />
-          Adicionar
+          Comprar
         </Button>
       </div>
     </div>
