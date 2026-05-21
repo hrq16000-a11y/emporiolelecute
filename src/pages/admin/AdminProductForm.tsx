@@ -182,6 +182,7 @@ const AdminProductForm = () => {
         setBadgeOverride(null);
       }
       setShowQuickSummary((existingProduct as any).show_quick_summary === true);
+      setShowMinQuantity((existingProduct as any).show_min_quantity === true);
     }
   }, [existingProduct, isEditing]);
 
