@@ -293,10 +293,26 @@ const AdminProducts = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-16">Imagem</TableHead>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Preço</TableHead>
-                      <TableHead>Tags</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>
+                        <button type="button" onClick={() => toggleSort('name')} className="inline-flex items-center gap-1 hover:text-primary transition-colors">
+                          Nome <SortIcon k="name" />
+                        </button>
+                      </TableHead>
+                      <TableHead>
+                        <button type="button" onClick={() => toggleSort('price')} className="inline-flex items-center gap-1 hover:text-primary transition-colors">
+                          Preço <SortIcon k="price" />
+                        </button>
+                      </TableHead>
+                      <TableHead>
+                        <button type="button" onClick={() => toggleSort('tags')} className="inline-flex items-center gap-1 hover:text-primary transition-colors">
+                          Tags <SortIcon k="tags" />
+                        </button>
+                      </TableHead>
+                      <TableHead>
+                        <button type="button" onClick={() => toggleSort('status')} className="inline-flex items-center gap-1 hover:text-primary transition-colors">
+                          Status <SortIcon k="status" />
+                        </button>
+                      </TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
