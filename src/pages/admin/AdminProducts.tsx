@@ -411,7 +411,14 @@ const AdminProducts = () => {
                   </TableHeader>
                   <TableBody>
                     {filteredProducts.map((product) => (
-                      <TableRow key={product.id}>
+                      <TableRow key={product.id} data-state={selected.has(product.id) ? 'selected' : undefined}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selected.has(product.id)}
+                            onCheckedChange={() => toggleSelected(product.id)}
+                            aria-label={`Selecionar ${product.name}`}
+                          />
+                        </TableCell>
                         <TableCell>
                           <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted">
                             {product.images[0] && (
