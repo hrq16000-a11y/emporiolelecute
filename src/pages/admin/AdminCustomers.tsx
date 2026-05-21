@@ -278,15 +278,23 @@ const AdminCustomers = () => {
             Clientes & Visitantes
           </h1>
           <p className="text-muted-foreground mt-1">
-            Cadastro manual de clientes e rastreamento anônimo de visitantes (LGPD)
+            Identificação prioritária por <strong>WhatsApp</strong> ou <strong>IP</strong>. Cadastro manual para contatos via WhatsApp/indicação; visitantes anônimos rastreados com consentimento (LGPD).
           </p>
         </div>
-        {tab === "customers" && (
-          <Button onClick={openCreate}>
-            <UserPlus className="w-4 h-4 mr-2" /> Novo cliente
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" asChild>
+            <Link to="/admin/usuarios">
+              <ShieldCheck className="w-4 h-4 mr-2" /> Gestão de usuários
+            </Link>
           </Button>
-        )}
+          {tab === "customers" && (
+            <Button onClick={openCreate}>
+              <UserPlus className="w-4 h-4 mr-2" /> Novo cliente
+            </Button>
+          )}
+        </div>
       </div>
+
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="mb-4">
         <TabsList>
