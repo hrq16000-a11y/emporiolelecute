@@ -369,7 +369,29 @@ const AdminCustomers = () => {
                         <td className="p-3">
                           <Badge variant={c.status === "active" ? "default" : "secondary"}>{c.status}</Badge>
                         </td>
-                        <td className="p-3 text-right">
+                        <td className="p-3 text-right whitespace-nowrap">
+                          {c.email && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              title="Migrar para usuário com login"
+                              onClick={async () => {
+                                if (!confirm(`Enviar convite de login para ${c.email}?`)) return;
+                                try {
+                                  const { data, error } = await supabase.functions.invoke("admin-create-user", {
+                                    body: { email: c.email, full_name: c.name, whatsapp: c.whatsapp, send_invite: true },
+                                  });
+                                  if (error) throw error;
+                                  if ((data as any)?.error) throw new Error((data as any).error);
+                                  toast({ title: "Convite enviado", description: `${c.email}` });
+                                } catch (e: any) {
+                                  toast({ title: "Erro", description: e.message, variant: "destructive" });
+                                }
+                              }}
+                            >
+                              <ShieldCheck className="w-4 h-4" />
+                            </Button>
+                          )}
                           <Button variant="ghost" size="sm" onClick={() => openEdit(c)}><Edit className="w-4 h-4" /></Button>
                           <Button variant="ghost" size="sm" onClick={() => setConfirmDelete(c)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
                         </td>
