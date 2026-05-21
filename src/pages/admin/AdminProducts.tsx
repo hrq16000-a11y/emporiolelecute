@@ -48,6 +48,7 @@ const AdminProducts = () => {
   const [backfilling, setBackfilling] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const [bulkBusy, setBulkBusy] = useState(false);
 
   const toggleSelected = (id: string) => {
