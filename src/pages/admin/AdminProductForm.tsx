@@ -776,7 +776,6 @@ const AdminProductForm = () => {
                   <p className="text-[11px] text-destructive">O "por" precisa ser menor que o "de".</p>
                 )}
               </div>
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="min_quantity">Qtd. mínima</Label>
                 <Input
