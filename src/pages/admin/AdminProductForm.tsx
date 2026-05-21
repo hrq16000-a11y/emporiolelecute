@@ -304,10 +304,19 @@ const AdminProductForm = () => {
         slug: formData.slug,
         description: formData.description || null,
         long_description: formData.long_description || null,
-        price: parseFloat(formData.price),
-        original_price: formData.original_price && parseFloat(formData.original_price) > 0
-          ? parseFloat(formData.original_price)
-          : null,
+        // Mapeamento DB ⇄ UI:
+        // - UI "Preço" (de/normal) ⇒ se houver promocional válido, vai p/ original_price; senão vai p/ price.
+        // - UI "Preço promocional" (por/cobrado) ⇒ vira o price quando preenchido e menor que o normal.
+        price: (() => {
+          const normal = parseFloat(formData.price);
+          const promo = formData.promotional_price ? parseFloat(formData.promotional_price) : NaN;
+          return Number.isFinite(promo) && promo > 0 && promo < normal ? promo : normal;
+        })(),
+        original_price: (() => {
+          const normal = parseFloat(formData.price);
+          const promo = formData.promotional_price ? parseFloat(formData.promotional_price) : NaN;
+          return Number.isFinite(promo) && promo > 0 && promo < normal ? normal : null;
+        })(),
         min_quantity: parseInt(formData.min_quantity) || 1,
         pix_discount: parseInt(formData.pix_discount) || 7,
         production_days: parseInt(formData.production_days) || 7,
