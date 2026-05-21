@@ -35,9 +35,7 @@ Deno.serve(async (req) => {
 
   try {
     // 1) Carrega TODAS as URLs referenciadas em products.images em um Set para O(1) lookup.
-    // products.images é text[]; unnest -> distinct para reduzir payload.
-    const { data: refRows, error: refErr } = await supabase.rpc("noop_placeholder").catch(() => ({ data: null, error: null }));
-    // Usamos select direto (RPC não existe). Mantemos fallback simples:
+    // products.images é text[]; iteramos e indexamos por URL completa e por path relativo.
     const { data: refData, error: refErr2 } = await supabase
       .from("products")
       .select("images");
