@@ -128,7 +128,7 @@ const AdminProductsHealth = () => {
                 <CardContent className="p-4 flex items-start gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-1 flex-wrap">
-                      <Link to={`/admin/produtos/${product.id}`} className="font-medium hover:underline">{product.name}</Link>
+                      <Link to={`/admin/produtos/${product.slug || product.id}`} className="font-medium hover:underline">{product.name}</Link>
                       <ProductSeoScoreBadge evaluation={seo} />
                       <span className="text-xs text-muted-foreground">{PRODUCT_PATH_PREFIX}/{product.slug}</span>
                     </div>
@@ -145,7 +145,7 @@ const AdminProductsHealth = () => {
                     </div>
                   </div>
                   <Button asChild variant="ghost" size="icon">
-                    <Link to={`/admin/produtos/${product.id}`}><Pencil className="h-4 w-4" /></Link>
+                    <Link to={`/admin/produtos/${product.slug || product.id}`}><Pencil className="h-4 w-4" /></Link>
                   </Button>
                 </CardContent>
               </Card>

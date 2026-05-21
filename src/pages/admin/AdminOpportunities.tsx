@@ -43,7 +43,7 @@ const AdminOpportunities = () => {
       const productsWithoutFeaturedReview: Item[] = [];
 
       for (const p of products ?? []) {
-        const href = `/admin/produtos/${p.id}`;
+        const href = `/admin/produtos/${p.slug || p.id}`;
         if (!(segMap.get(p.id) ?? []).length) productsWithoutSegment.push({ id: p.id, name: p.name, slug: p.slug, reason: 'Sem segmento', href });
         if (!(p.editorial_content || '').trim()) productsWithoutEditorial.push({ id: p.id, name: p.name, slug: p.slug, reason: 'Sem editorial', href });
         if (!(tagMap.get(p.id) ?? []).length) productsWithoutCrossLink.push({ id: p.id, name: p.name, slug: p.slug, reason: 'Sem tags (cross-linking)', href });
