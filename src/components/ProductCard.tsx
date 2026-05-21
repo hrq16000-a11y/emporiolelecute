@@ -26,10 +26,6 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
   });
   const { toast } = useToast();
 
-  // Sprint 2 — Badge neutra e silenciosa (editorial). Mantém apenas tipografia,
-  // sem competir cromaticamente com a PDP refinada.
-  const getBadgeStyles = (_badge?: string) =>
-    "bg-background/90 backdrop-blur-sm text-foreground border border-border/50";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,12 +89,6 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
           style={{ transition: 'opacity 400ms ease' }}
         />
         
-        {/* Badge — pílula neutra, sem cor saturada */}
-        {product.badge && (
-          <span className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-medium ${getBadgeStyles(product.badge)}`}>
-            {product.badge}
-          </span>
-        )}
 
         {/* Favorite Button — sem shadow, sem hover coral agressivo */}
         <button
