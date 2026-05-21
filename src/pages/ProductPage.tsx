@@ -671,14 +671,30 @@ const ProductPage = () => {
                   ))}
               </div>
 
-              {/* Preço — hierarquia editorial (total primeiro, unitário e parcelas como apoio) */}
+              {/* Preço — hierarquia editorial (total primeiro, unitário e parcelas como apoio).
+                  Quando há originalPrice (preço "de"), exibe riscado + selo de % de desconto. */}
               <div className="mb-6 min-w-0">
                 <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1.5">Valor total</p>
+                {product.originalPrice && product.originalPrice > product.price && (
+                  <p className="text-sm text-muted-foreground line-through break-words leading-none mb-1">
+                    De R$ {(product.originalPrice * quantity).toFixed(2).replace(".", ",")}
+                  </p>
+                )}
                 <p className="font-display text-3xl sm:text-4xl font-light text-foreground break-words leading-none">
                   R$ {totalPrice.toFixed(2).replace(".", ",")}
+                  {discountPercent && discountPercent > 0 && (
+                    <span className="ml-3 align-middle inline-block text-xs font-medium uppercase tracking-wide text-primary bg-primary/10 px-2 py-0.5 rounded">
+                      -{discountPercent}%
+                    </span>
+                  )}
                 </p>
                 <p className="text-sm text-muted-foreground mt-2 break-words">
-                  R$ {product.price.toFixed(2).replace(".", ",")} / unidade
+                  {product.originalPrice && product.originalPrice > product.price && (
+                    <span className="line-through mr-1.5">
+                      R$ {product.originalPrice.toFixed(2).replace(".", ",")}
+                    </span>
+                  )}
+                  <span className="text-foreground">R$ {product.price.toFixed(2).replace(".", ",")}</span> / unidade
                   <span className="text-muted-foreground/40 mx-2" aria-hidden="true">
                     ·
                   </span>
