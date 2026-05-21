@@ -57,12 +57,15 @@ const DEFAULT_BADGE_OVERRIDE: PdpBadgeConfig = {
 };
 
 const AdminProductForm = () => {
-  const { id } = useParams();
+  // Aceita UUID (legado) ou slug (URL amigável) — ambos resolvem o mesmo produto.
+  const { id: routeParam } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isEditing = !!id;
+  const { data: existingProduct, isLoading: loadingProduct } = useDbProductByIdOrSlug(routeParam);
+  // ID interno (UUID) usado em mutations — vem do produto resolvido.
+  const id = existingProduct?.id;
+  const isEditing = !!routeParam;
 
-  const { data: existingProduct, isLoading: loadingProduct } = useDbProductById(id || '');
   const { data: categories } = useDbCategories();
   const { data: occasions } = useDbOccasions();
   const { data: tags } = useTags();
