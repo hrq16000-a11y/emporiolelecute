@@ -1,16 +1,33 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ShieldCheck, History, AlertCircle, CheckCircle2, Download, FileText, ShieldOff } from "lucide-react";
+import {
+  ShieldCheck, History, AlertCircle, CheckCircle2, Download, FileText, ShieldOff,
+  Users, UserPlus, UserMinus, ExternalLink, RefreshCw,
+} from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+
+interface UserRow {
+  user_id: string;
+  email: string | null;
+  full_name: string | null;
+  created_at: string;
+  last_sign_in_at: string | null;
+  email_confirmed_at: string | null;
+  roles: string[];
+  linked_customer_id: string | null;
+  linked_visitors: number;
+}
 
 interface AuditRow {
   id: string;
