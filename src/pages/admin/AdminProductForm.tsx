@@ -18,13 +18,14 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import {
-  useDbProductById,
+  useDbProductByIdOrSlug,
   useDbCategories,
   useDbOccasions,
   useCreateProduct,
   useUpdateProduct,
   DbProduct,
 } from '@/hooks/useProducts';
+
 import { useTags, useUpdateProductTags } from '@/hooks/useTags';
 import { useSlugAvailability } from '@/hooks/useSlugAvailability';
 import { generateSafeSlug, assessSlugQuality } from '@/lib/slugHardening';
@@ -56,12 +57,15 @@ const DEFAULT_BADGE_OVERRIDE: PdpBadgeConfig = {
 };
 
 const AdminProductForm = () => {
-  const { id } = useParams();
+  // Aceita UUID (legado) ou slug (URL amigável) — ambos resolvem o mesmo produto.
+  const { id: routeParam } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isEditing = !!id;
+  const { data: existingProduct, isLoading: loadingProduct } = useDbProductByIdOrSlug(routeParam);
+  // ID interno (UUID) usado em mutations — vem do produto resolvido.
+  const id = existingProduct?.id;
+  const isEditing = !!routeParam;
 
-  const { data: existingProduct, isLoading: loadingProduct } = useDbProductById(id || '');
   const { data: categories } = useDbCategories();
   const { data: occasions } = useDbOccasions();
   const { data: tags } = useTags();
@@ -109,6 +113,14 @@ const AdminProductForm = () => {
 
   const slugCheck = useSlugAvailability('products', formData.slug, id ?? null);
   const usage = useFormUsageTracking(isEditing ? 'product_form_edit' : 'product_form_create');
+
+  // Canonicaliza a URL do admin: se chegou via UUID, troca para o slug do produto.
+  useEffect(() => {
+    if (existingProduct?.slug && routeParam && routeParam !== existingProduct.slug) {
+      navigate(`/admin/produtos/${existingProduct.slug}`, { replace: true });
+    }
+  }, [existingProduct?.slug, routeParam, navigate]);
+
 
   useEffect(() => {
     if (existingProduct && isEditing) {
