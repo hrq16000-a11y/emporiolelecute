@@ -338,6 +338,7 @@ const AdminProductForm = () => {
         .update({
           pdp_badge_override: (badgeOverride as any) ?? null,
           show_quick_summary: showQuickSummary,
+          show_min_quantity: showMinQuantity,
         } as any)
         .eq('id', productId);
 
