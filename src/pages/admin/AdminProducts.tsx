@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Pencil, Trash2, Search, Eye, EyeOff, ExternalLink, Scale, Loader2, ArrowUp, ArrowDown, ArrowUpDown, X, CheckSquare } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Eye, EyeOff, ExternalLink, Scale, Loader2, ArrowUp, ArrowDown, ArrowUpDown, X, CheckSquare, Wand2 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import BulkEditProductsDialog from '@/components/admin/BulkEditProductsDialog';
 import {
   Select,
   SelectContent,
@@ -47,6 +48,7 @@ const AdminProducts = () => {
   const [backfilling, setBackfilling] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const [bulkBusy, setBulkBusy] = useState(false);
 
   const toggleSelected = (id: string) => {
@@ -254,6 +256,9 @@ const AdminProducts = () => {
                 </Button>
                 <Button size="sm" variant="outline" onClick={handleBulkDeactivate} disabled={bulkBusy}>
                   <EyeOff className="w-4 h-4 mr-1" /> Desativar
+                </Button>
+                <Button size="sm" variant="default" onClick={() => setBulkEditOpen(true)} disabled={bulkBusy}>
+                  <Wand2 className="w-4 h-4 mr-1" /> Editar campos…
                 </Button>
                 <Button
                   size="sm"
@@ -528,6 +533,13 @@ const AdminProducts = () => {
         </CardContent>
       </Card>
 
+
+      <BulkEditProductsDialog
+        open={bulkEditOpen}
+        onOpenChange={setBulkEditOpen}
+        selectedIds={Array.from(selected)}
+        onDone={clearSelection}
+      />
 
       <AlertDialog open={bulkDeleteOpen} onOpenChange={(o) => !bulkBusy && setBulkDeleteOpen(o)}>
         <AlertDialogContent>
