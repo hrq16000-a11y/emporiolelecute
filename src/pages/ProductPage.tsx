@@ -586,8 +586,9 @@ const ProductPage = () => {
               ) : null}
             </div>
 
-            {/* Info Section - Reference Style */}
-            <div className="flex min-w-0 max-w-full flex-col overflow-hidden">
+            {/* Info Section - Reference Style (cap editorial em desktop p/ preservar proximidade) */}
+            <div className="flex min-w-0 w-full lg:max-w-[560px] flex-col overflow-hidden">
+
               {/* Product Name + Social Proof (estrelas só quando há avaliações reais) */}
               <div className="flex items-start justify-between gap-3 sm:gap-4 mb-3">
                 <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-light text-foreground leading-tight tracking-tight min-w-0 break-words">
