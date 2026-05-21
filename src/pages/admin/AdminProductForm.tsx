@@ -21,16 +21,17 @@ import {
   useDbProductByIdOrSlug,
   useDbCategories,
   useDbOccasions,
-  useCreateProduct,
-  useUpdateProduct,
+  useSaveProductFull,
+  type SaveProductError,
   DbProduct,
 } from '@/hooks/useProducts';
 
-import { useTags, useUpdateProductTags } from '@/hooks/useTags';
+import { useTags } from '@/hooks/useTags';
 import { useSlugAvailability } from '@/hooks/useSlugAvailability';
 import { generateSafeSlug, assessSlugQuality } from '@/lib/slugHardening';
-import { useSegments, useUpdateProductSegments } from '@/hooks/useSegments';
+import { useSegments } from '@/hooks/useSegments';
 import { supabase } from '@/integrations/supabase/client';
+
 import { evaluateProductSeo } from '@/lib/productSeo';
 import { buildProductChecklist } from '@/lib/thinContent';
 import ProductSeoScoreBadge from '@/components/admin/ProductSeoScoreBadge';
