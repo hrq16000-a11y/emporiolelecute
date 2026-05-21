@@ -1242,25 +1242,41 @@ const AdminProductForm = () => {
           />
         )}
 
-        {/* Save Button at bottom */}
-        <div className="flex justify-end gap-4 sticky bottom-4 bg-background/95 backdrop-blur-sm p-4 rounded-lg border shadow-lg">
-          <Button type="button" variant="outline" onClick={() => navigate('/admin/produtos')}>
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={isSaving} size="lg">
-            {isSaving ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Salvando...
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                {isEditing ? 'Salvar Alterações' : 'Criar Produto'}
-              </>
-            )}
-          </Button>
+        {/* Dock flutuante de salvar — sempre visível, compacto, canto inferior direito.
+            pointer-events controlado para não bloquear cliques fora dos botões. */}
+        <div className="fixed bottom-4 right-4 z-40 pointer-events-none">
+          <div className="pointer-events-auto flex items-center gap-2 bg-background/90 backdrop-blur-md px-2 py-2 rounded-full border shadow-lg">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-9 rounded-full text-xs"
+              onClick={() => navigate('/admin/produtos')}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSaving}
+              size="sm"
+              className="h-9 rounded-full text-xs px-4"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="w-3.5 h-3.5 mr-1.5" />
+                  {isEditing ? 'Salvar' : 'Criar'}
+                </>
+              )}
+            </Button>
+          </div>
         </div>
+        {/* Espaço extra no fim do form para o dock flutuante não tampar o último campo. */}
+        <div aria-hidden className="h-20" />
       </form>
     </div>
   );
