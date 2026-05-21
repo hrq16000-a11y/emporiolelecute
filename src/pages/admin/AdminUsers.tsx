@@ -71,20 +71,53 @@ const AdminUsers = () => {
   const { user: currentAuthUser } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // ====== Filters / paging state ======
-  const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");
-  const [sourceFilter, setSourceFilter] = useState("all");
-  const [whatsappFilter, setWhatsappFilter] = useState("");
-  const [ipFilter, setIpFilter] = useState("");
-  const [sortKey, setSortKey] = useState<SortKey>("created_at");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
+  // ====== Filters / paging state (inicializados da URL para persistir ao recarregar) ======
+  const initialUrl = searchParams;
+  const [search, setSearch] = useState(initialUrl.get("q") || "");
+  const [roleFilter, setRoleFilter] = useState(initialUrl.get("role") || "all");
+  const [sourceFilter, setSourceFilter] = useState(initialUrl.get("src") || "all");
+  const [whatsappFilter, setWhatsappFilter] = useState(initialUrl.get("wa") || "");
+  const [ipFilter, setIpFilter] = useState(initialUrl.get("ip") || "");
+  const [sortKey, setSortKey] = useState<SortKey>((initialUrl.get("sk") as SortKey) || "created_at");
+  const [sortDir, setSortDir] = useState<SortDir>((initialUrl.get("sd") as SortDir) || "desc");
+  const [page, setPage] = useState(Number(initialUrl.get("pg")) || 1);
+  const [pageSize, setPageSize] = useState(Number(initialUrl.get("ps")) || 25);
 
   const [selected, setSelected] = useState<UserRow | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [drawerTab, setDrawerTab] = useState<"perfil" | "auditoria">("perfil");
+  const { buildWhatsappUrl } = useContactInfo();
+
+  // Sincroniza filtros com a URL (mantém ao recarregar / compartilhar)
+  const syncRef = useRef(false);
+  useEffect(() => {
+    if (!syncRef.current) { syncRef.current = true; return; }
+    const next = new URLSearchParams(searchParams);
+    const setOrDel = (k: string, v: string, defVal?: string) => {
+      if (!v || v === defVal) next.delete(k); else next.set(k, v);
+    };
+    setOrDel("q", search);
+    setOrDel("role", roleFilter, "all");
+    setOrDel("src", sourceFilter, "all");
+    setOrDel("wa", whatsappFilter);
+    setOrDel("ip", ipFilter);
+    setOrDel("sk", sortKey, "created_at");
+    setOrDel("sd", sortDir, "desc");
+    setOrDel("pg", page > 1 ? String(page) : "");
+    setOrDel("ps", pageSize !== 25 ? String(pageSize) : "");
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, roleFilter, sourceFilter, whatsappFilter, ipFilter, sortKey, sortDir, page, pageSize]);
+
+  // Contadores por fonte
+  const countsQ = useQuery({
+    queryKey: ["users-source-counts"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc("users_source_counts");
+      if (error) throw error;
+      return data as Record<string, number>;
+    },
+  });
 
   // ====== Query: paginated users ======
   const usersQ = useQuery({
