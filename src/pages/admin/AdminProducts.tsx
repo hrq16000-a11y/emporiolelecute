@@ -284,8 +284,15 @@ const AdminProducts = () => {
                 {filteredProducts.map((product) => (
                   <li
                     key={product.id}
-                    className="rounded-xl border border-border bg-card p-3 flex gap-3"
+                    className={`rounded-xl border ${selected.has(product.id) ? 'border-primary bg-primary/5' : 'border-border bg-card'} p-3 flex gap-3`}
                   >
+                    <div className="pt-1">
+                      <Checkbox
+                        checked={selected.has(product.id)}
+                        onCheckedChange={() => toggleSelected(product.id)}
+                        aria-label={`Selecionar ${product.name}`}
+                      />
+                    </div>
                     <div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-muted">
                       {product.images[0] && (
                         <img
