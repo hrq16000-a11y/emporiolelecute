@@ -629,7 +629,8 @@ const AdminUsers = () => {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="auditoria" className="mt-4">
+                <TabsContent value="auditoria" className="mt-4 space-y-4">
+                  <ProfileNameAuditPanel userId={selected.user_id} />
                   <UserAuditPanel email={selected.email} statusBadge={statusBadge} />
                 </TabsContent>
               </Tabs>
