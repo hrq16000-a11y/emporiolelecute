@@ -532,11 +532,13 @@ const AdminUsers = () => {
                           <UserPlus className="h-3 w-3 mr-1" />Tornar admin
                         </Button>
                       )}
-                      <Button size="sm" disabled={selected.source !== "auth"}
-                        variant={selected.roles.includes("editor") ? "outline" : "secondary"}
-                        onClick={() => toggleRole(selected, "editor")}>
-                        {selected.roles.includes("editor") ? "Remover editor" : "Tornar editor"}
-                      </Button>
+                      {!selected.roles.includes("admin") && (
+                        <Button size="sm" disabled={selected.source !== "auth"}
+                          variant={selected.roles.includes("editor") ? "outline" : "secondary"}
+                          onClick={() => toggleRole(selected, "editor")}>
+                          {selected.roles.includes("editor") ? "Remover editor" : "Tornar editor"}
+                        </Button>
+                      )}
                       {selected.roles.includes("admin") && currentAuthUser?.id === selected.user_id.replace(/^auth:/, "") && (
                         <Button size="sm" variant="outline" asChild>
                           <a href="/" target="_blank" rel="noopener noreferrer">
