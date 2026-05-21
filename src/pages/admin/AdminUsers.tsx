@@ -163,8 +163,13 @@ const AdminUsers = () => {
   const toggleRole = (u: UserRow, role: "admin" | "editor") => {
     if (u.source !== "auth") { toast.error("Contato sem login. Crie ou convide o usuário primeiro."); return; }
     const has = u.roles.includes(role);
+    const authId = u.user_id.replace(/^auth:/, "");
+    if (role === "admin" && has && currentAuthUser?.id === authId) {
+      toast.error("Você não pode remover seu próprio papel de admin.");
+      return;
+    }
     if (!confirm(`Confirmar ${has ? "remoção" : "atribuição"} do papel ${role} para ${u.email}?`)) return;
-    setRole.mutate({ user_id: u.user_id.replace(/^auth:/, ""), role, action: has ? "remove" : "add" });
+    setRole.mutate({ user_id: authId, role, action: has ? "remove" : "add" });
   };
 
   const [editingName, setEditingName] = useState("");
