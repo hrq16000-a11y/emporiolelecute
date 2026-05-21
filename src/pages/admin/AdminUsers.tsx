@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useContactInfo } from "@/hooks/useContactInfo";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -19,7 +20,7 @@ import { toast } from "sonner";
 import {
   ShieldCheck, History, AlertCircle, CheckCircle2, Download, ShieldOff,
   Users, UserPlus, UserMinus, ExternalLink, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown,
-  Mail, Calendar, LogIn, User as UserIcon, Link2, Copy,
+  Mail, Calendar, LogIn, User as UserIcon, Link2, Copy, MessageCircle, FileEdit,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
