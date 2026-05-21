@@ -38,6 +38,7 @@ const BulkEditProductsDialog = ({ open, onOpenChange, selectedIds, onDone }: Pro
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: categories } = useDbCategories();
+  const { data: allTags } = useTags();
 
   // Toggles — só campos marcados são aplicados
   const [useCategory, setUseCategory] = useState(false);
