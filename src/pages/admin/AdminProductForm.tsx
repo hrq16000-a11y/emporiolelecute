@@ -748,7 +748,7 @@ const AdminProductForm = () => {
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="price">Preço * <span className="text-xs text-muted-foreground font-normal">(por)</span></Label>
+                <Label htmlFor="price">Preço * <span className="text-xs text-muted-foreground font-normal">(de / normal)</span></Label>
                 <Input
                   id="price"
                   type="number"
@@ -760,21 +760,22 @@ const AdminProductForm = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="original_price">Preço promocional <span className="text-xs text-muted-foreground font-normal">(de)</span></Label>
+                <Label htmlFor="promotional_price">Preço promocional <span className="text-xs text-muted-foreground font-normal">(por)</span></Label>
                 <Input
-                  id="original_price"
+                  id="promotional_price"
                   type="number"
                   step="0.01"
-                  value={formData.original_price}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, original_price: e.target.value }))}
+                  value={formData.promotional_price}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, promotional_price: e.target.value }))}
                   placeholder="Opcional"
                 />
                 <p className="text-[11px] text-muted-foreground leading-tight">
-                  Preencha apenas se quiser mostrar o valor cheio riscado ao lado do preço final.
+                  Preencha para mostrar o "de/por": este passa a ser o valor cobrado e o normal aparece riscado.
                 </p>
-                {formData.original_price && parseFloat(formData.original_price) > 0 && parseFloat(formData.price) > 0 && parseFloat(formData.original_price) <= parseFloat(formData.price) && (
-                  <p className="text-[11px] text-destructive">O "de" precisa ser maior que o "por".</p>
+                {formData.promotional_price && parseFloat(formData.promotional_price) > 0 && parseFloat(formData.price) > 0 && parseFloat(formData.promotional_price) >= parseFloat(formData.price) && (
+                  <p className="text-[11px] text-destructive">O "por" precisa ser menor que o "de".</p>
                 )}
+              </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="min_quantity">Qtd. mínima</Label>
