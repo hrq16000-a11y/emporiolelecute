@@ -525,8 +525,9 @@ const ProductPage = () => {
         </div>
 
         {/* Product Detail */}
-        <div className="container mx-auto max-w-full px-4 overflow-x-hidden">
-          <div className="grid min-w-0 lg:grid-cols-2 gap-6 lg:gap-12 mb-12 lg:mb-16">
+        <div className="layout-commerce overflow-x-hidden">
+          <div className="grid min-w-0 lg:grid-cols-2 gap-6 lg:gap-10 mb-12 lg:mb-16">
+
             {/* Image Gallery - Horizontal layout with thumbnails below */}
             <div className="relative min-w-0 max-w-full overflow-hidden" data-testid="pdp-media-block">
               <ProductGallery
@@ -956,8 +957,9 @@ const ProductPage = () => {
             return (
               <div
                 key={s.section_key}
-                className={idx > 0 ? "border-t border-border/40 pt-10 md:border-0 md:pt-0" : undefined}
+                className={`max-w-3xl mx-auto ${idx > 0 ? "border-t border-border/40 pt-10 md:border-0 md:pt-0" : ""}`.trim()}
               >
+
                 {node}
                 {s.section_key === "description" &&
                   (() => {
@@ -1018,7 +1020,7 @@ const ProductPage = () => {
 
       {/* FAQ editorial por PDP — overrides do admin (product_faqs) ou fallback automático */}
       {dbProduct?.id && (
-        <section className="container mx-auto px-4">
+        <section className="layout-conversational">
           <ProductPdpFaq
             productId={dbProduct.id}
             productName={product.name}
