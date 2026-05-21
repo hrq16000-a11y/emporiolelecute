@@ -748,7 +748,50 @@ const UserAuditPanel = ({ email, statusBadge }: { email: string | null; statusBa
   );
 };
 
-// ============== Dialog: criar usuário ==============
+// ============== Histórico de mudanças de nome (admin) ==============
+const ProfileNameAuditPanel = ({ userId }: { userId: string }) => {
+  const authId = userId.replace(/^auth:/, "");
+  const isAuth = userId.startsWith("auth:");
+  const q = useQuery({
+    queryKey: ["profile-name-audit", authId],
+    enabled: isAuth,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("profile_change_audit")
+        .select("id, field, old_value, new_value, changed_by_email, created_at")
+        .eq("user_id", authId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+  });
+  if (!isAuth) return null;
+  return (
+    <div className="border rounded-md p-3 bg-muted/20">
+      <div className="text-xs uppercase text-muted-foreground font-medium flex items-center gap-1 mb-2">
+        <FileEdit className="h-3 w-3" /> Mudanças de nome
+      </div>
+      {q.isLoading ? <p className="text-xs text-muted-foreground">Carregando…</p>
+        : !q.data?.length ? <p className="text-xs text-muted-foreground">Nenhuma alteração registrada.</p>
+        : (
+          <ul className="space-y-1 text-xs">
+            {q.data.map((r: any) => (
+              <li key={r.id} className="flex flex-wrap gap-2 items-baseline">
+                <span className="text-muted-foreground whitespace-nowrap">
+                  {format(new Date(r.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                </span>
+                <span>“{r.old_value || "—"}” → <strong>“{r.new_value || "—"}”</strong></span>
+                <span className="text-muted-foreground italic">por {r.changed_by_email || "?"}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+    </div>
+  );
+};
+
+
 const CreateUserDialog = ({ open, onClose, onCreated }: { open: boolean; onClose: () => void; onCreated: () => void }) => {
   const [form, setForm] = useState({ email: "", full_name: "", whatsapp: "", password: "", roles: [] as string[], send_invite: false });
   const [loading, setLoading] = useState(false);
