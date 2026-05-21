@@ -180,6 +180,8 @@ const AdminProductForm = () => {
       } else {
         setBadgeOverride(null);
       }
+      setShowQuickSummary((existingProduct as any).show_quick_summary === true);
+      }
     }
   }, [existingProduct, isEditing]);
 
