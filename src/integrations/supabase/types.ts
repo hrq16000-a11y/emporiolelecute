@@ -6569,6 +6569,10 @@ export type Database = {
         }
         Returns: Json
       }
+      list_all_users: {
+        Args: { _role?: string; _search?: string }
+        Returns: Json
+      }
       list_cron_jobs: {
         Args: never
         Returns: {
@@ -6625,6 +6629,10 @@ export type Database = {
       }
       save_product_full: { Args: { _payload: Json }; Returns: Json }
       search_products: { Args: { _limit?: number; _q: string }; Returns: Json }
+      set_user_role: {
+        Args: { _action: string; _role: string; _user_id: string }
+        Returns: Json
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       unaccent: { Args: { "": string }; Returns: string }
