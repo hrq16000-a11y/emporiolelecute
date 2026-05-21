@@ -352,11 +352,38 @@ const AdminUsers = () => {
             <Button size="sm" variant="outline" onClick={exportAllCSV} disabled={!total || exporting}>
               <Download className="h-4 w-4 mr-2" /> {exporting ? "Exportando…" : "Exportar CSV"}
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => qc.invalidateQueries({ queryKey: ["users-pag"] })}>
-              <RefreshCw className="h-4 w-4 mr-2" /> Recarregar
+            <Button size="sm" variant="ghost" onClick={() => {
+              qc.invalidateQueries({ queryKey: ["users-pag"] });
+              qc.invalidateQueries({ queryKey: ["users-source-counts"] });
+              toast.success("Dados sincronizados.");
+            }}>
+              <RefreshCw className="h-4 w-4 mr-2" /> Sincronizar
             </Button>
           </div>
         </div>
+
+        {/* Contadores por fonte */}
+        {countsQ.data && (
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-2 pt-1">
+            {[
+              { k: "auth", lbl: "Com login", val: countsQ.data.auth, src: "auth" },
+              { k: "customer", lbl: "CRM", val: countsQ.data.customer, src: "customer" },
+              { k: "visitor", lbl: "Visitantes", val: countsQ.data.visitor, src: "visitor" },
+              { k: "order", lbl: "Pedidos (e-mails únicos)", val: countsQ.data.order, src: "order" },
+              { k: "admin", lbl: "Admins", val: countsQ.data.admin, src: null },
+              { k: "editor", lbl: "Editores", val: countsQ.data.editor, src: null },
+            ].map((c) => (
+              <button
+                key={c.k}
+                onClick={() => { if (c.src) { setSourceFilter(c.src); setPage(1); } }}
+                className={`text-left border rounded-md px-3 py-2 transition ${c.src ? "hover:bg-muted/40 cursor-pointer" : "cursor-default"} ${sourceFilter === c.src ? "border-primary bg-primary/5" : ""}`}
+              >
+                <div className="text-[10px] uppercase text-muted-foreground">{c.lbl}</div>
+                <div className="text-lg font-medium">{c.val ?? 0}</div>
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
           <Input placeholder="Buscar nome/e-mail…" value={search}
