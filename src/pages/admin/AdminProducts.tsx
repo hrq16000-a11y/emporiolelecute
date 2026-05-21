@@ -95,9 +95,24 @@ const AdminProducts = () => {
     }
   };
 
-  const filteredProducts = products?.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredProducts = useMemo(() => {
+    const base = products?.filter((p) => p.name.toLowerCase().includes(search.toLowerCase())) ?? [];
+    const dir = sortDir === 'asc' ? 1 : -1;
+    const sorted = [...base].sort((a, b) => {
+      switch (sortKey) {
+        case 'price':
+          return ((a.price ?? 0) - (b.price ?? 0)) * dir;
+        case 'tags':
+          return ((a.keywords?.length ?? 0) - (b.keywords?.length ?? 0)) * dir;
+        case 'status':
+          return ((a.is_active ? 1 : 0) - (b.is_active ? 1 : 0)) * dir;
+        case 'name':
+        default:
+          return a.name.localeCompare(b.name, 'pt-BR') * dir;
+      }
+    });
+    return sorted;
+  }, [products, search, sortKey, sortDir]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
