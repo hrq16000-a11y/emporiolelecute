@@ -55,12 +55,132 @@ const Carrinho = () => {
   });
   
   const [loadingCep, setLoadingCep] = useState(false);
+  const [loadingGeo, setLoadingGeo] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
   const [orderCode, setOrderCode] = useState('');
   const [couponInput, setCouponInput] = useState('');
   const [coupon, setCoupon] = useState<ValidCoupon | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
+
+  // Mapa nome do estado -> UF (fallback quando provedores retornam nome por extenso)
+  const STATE_NAME_TO_UF: Record<string, string> = {
+    'acre': 'AC', 'alagoas': 'AL', 'amapá': 'AP', 'amapa': 'AP', 'amazonas': 'AM',
+    'bahia': 'BA', 'ceará': 'CE', 'ceara': 'CE', 'distrito federal': 'DF',
+    'espírito santo': 'ES', 'espirito santo': 'ES', 'goiás': 'GO', 'goias': 'GO',
+    'maranhão': 'MA', 'maranhao': 'MA', 'mato grosso': 'MT', 'mato grosso do sul': 'MS',
+    'minas gerais': 'MG', 'pará': 'PA', 'para': 'PA', 'paraíba': 'PB', 'paraiba': 'PB',
+    'paraná': 'PR', 'parana': 'PR', 'pernambuco': 'PE', 'piauí': 'PI', 'piaui': 'PI',
+    'rio de janeiro': 'RJ', 'rio grande do norte': 'RN', 'rio grande do sul': 'RS',
+    'rondônia': 'RO', 'rondonia': 'RO', 'roraima': 'RR', 'santa catarina': 'SC',
+    'são paulo': 'SP', 'sao paulo': 'SP', 'sergipe': 'SE', 'tocantins': 'TO',
+  };
+
+  const normalizeUF = (value?: string): string => {
+    if (!value) return '';
+    const v = value.trim();
+    if (v.length === 2) return v.toUpperCase();
+    return STATE_NAME_TO_UF[v.toLowerCase()] || v.slice(0, 2).toUpperCase();
+  };
+
+  // Aplica resultado preenchendo o estado e disparando a busca por CEP se houver
+  const applyAddressResult = async (result: { cep?: string; city?: string; state?: string }) => {
+    const cleanCep = (result.cep || '').replace(/\D/g, '').slice(0, 8);
+    const uf = normalizeUF(result.state);
+    setAddress(prev => ({
+      cep: cleanCep || prev.cep,
+      city: result.city || prev.city,
+      state: uf || prev.state,
+    }));
+    if (cleanCep.length === 8) {
+      // valida e completa pelo ViaCEP (autoritativo no Brasil)
+      await handleCepChange(cleanCep);
+    }
+  };
+
+  // Reverse geocode usando Nominatim (OpenStreetMap) – sem chave, retorna CEP no Brasil
+  const reverseGeocode = async (lat: number, lon: number) => {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&accept-language=pt-BR&zoom=18&addressdetails=1`;
+    const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if (!r.ok) throw new Error('reverse geocode failed');
+    const data = await r.json();
+    const a = data.address || {};
+    return {
+      cep: a.postcode as string | undefined,
+      city: (a.city || a.town || a.village || a.municipality || a.suburb) as string | undefined,
+      state: (a.state_code || a.state) as string | undefined,
+    };
+  };
+
+  // Fallback por IP – ipwho.is é gratuito e sem chave, retorna postal/city/region_code
+  const ipFallback = async () => {
+    const r = await fetch('https://ipwho.is/?fields=success,city,region_code,region,postal,country_code');
+    const data = await r.json();
+    if (!data || data.success === false || data.country_code !== 'BR') {
+      throw new Error('ip lookup failed');
+    }
+    return {
+      cep: data.postal as string | undefined,
+      city: data.city as string | undefined,
+      state: (data.region_code || data.region) as string | undefined,
+    };
+  };
+
+  const handleAutoFillAddress = async () => {
+    if (loadingGeo) return;
+    setLoadingGeo(true);
+    const tryIpFallback = async (reason: string) => {
+      try {
+        const res = await ipFallback();
+        await applyAddressResult(res);
+        toast({
+          title: 'Endereço aproximado preenchido',
+          description: `${reason}. Usamos sua conexão de internet para estimar a região — confira e ajuste se necessário.`,
+        });
+      } catch {
+        toast({
+          title: 'Não foi possível detectar sua localização',
+          description: 'Preencha o CEP manualmente, por favor.',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoadingGeo(false);
+      }
+    };
+
+    if (!('geolocation' in navigator)) {
+      await tryIpFallback('Seu navegador não suporta GPS');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const res = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+          if (!res.cep && !res.city) {
+            await tryIpFallback('Não conseguimos identificar o endereço pelo GPS');
+            return;
+          }
+          await applyAddressResult(res);
+          toast({
+            title: 'Endereço preenchido por GPS',
+            description: 'Verifique se está correto antes de finalizar.',
+          });
+        } catch {
+          await tryIpFallback('Falha ao consultar o endereço pelo GPS');
+        } finally {
+          setLoadingGeo(false);
+        }
+      },
+      async (err) => {
+        const reason = err.code === err.PERMISSION_DENIED
+          ? 'Permissão de localização negada'
+          : 'GPS indisponível no momento';
+        await tryIpFallback(reason);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  };
 
   const discount = coupon?.discount_applied ?? 0;
   const totalWithDiscount = Math.max(0, total - discount);
