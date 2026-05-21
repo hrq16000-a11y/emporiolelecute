@@ -1029,10 +1029,8 @@ const ProductPage = () => {
         productSlug={product.slug}
         price={`R$ ${product.price.toFixed(2).replace(".", ",")}`}
         isVisible={showStickyCta}
-        onWhatsApp={() => openWhatsApp("sticky_cta")}
         onAddToCart={handleAddToCart}
         enabled={ctaConfig?.sticky?.enabled !== false}
-        buttonLabel={ctaConfig?.sticky?.buttonLabel}
       />
 
       {/* Exit intent popup — usa getWhatsappUrl para garantir estado fresco no clique */}
