@@ -1020,6 +1020,25 @@ const AdminProductForm = () => {
           );
         })()}
 
+        {/* Resumo rápido + CTA WhatsApp (exibição por produto) */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <CardTitle className="text-base">Resumo rápido + CTA WhatsApp</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Quando ativado, exibe a seção "Você está pedindo X unidades..." com botão de WhatsApp na página deste produto. Aplica-se apenas a produtos cujo CTA primário é o WhatsApp (personalizado ou sem estoque). Padrão: desativado.
+                </p>
+              </div>
+              <Switch
+                checked={showQuickSummary}
+                onCheckedChange={setShowQuickSummary}
+                aria-label="Exibir resumo rápido na PDP"
+              />
+            </div>
+          </CardHeader>
+        </Card>
+
         {/* Badge personalizado da PDP (override por produto) */}
         <Card>
           <CardHeader>
