@@ -186,7 +186,7 @@ const BulkEditProductsDialog = ({ open, onOpenChange, selectedIds, onDone }: Pro
               <Select value={categoryId} onValueChange={setCategoryId}>
                 <SelectTrigger><SelectValue placeholder="Selecione…" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">(Sem categoria)</SelectItem>
+                  <SelectItem value="__none__">(Sem categoria)</SelectItem>
                   {(categories ?? []).map((c: any) => (
                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}
