@@ -842,8 +842,8 @@ const ProductPage = () => {
                 );
                 return (
                   <>
-                    <div className="flex min-w-0 gap-2 sm:gap-3 mb-4">
-                      {isWaPrimary ? null : cartBtn(true)}
+                    <div className="flex min-w-0 items-stretch gap-2 sm:gap-3 mb-4">
+                      {cartBtn(true)}
                       {/* Favorite */}
                       <Button
                         variant="outline"
@@ -869,8 +869,6 @@ const ProductPage = () => {
                       </Button>
                     </div>
 
-                    {/* Para WhatsApp-first (personalizado): carrinho aparece como secundário sutil */}
-                    {isWaPrimary && <div className="mb-4">{cartBtn(false)}</div>}
 
                     {/* Go to Cart Button - Shows after adding to cart */}
                     {addedToCart && (
