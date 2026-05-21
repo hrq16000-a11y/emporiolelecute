@@ -734,18 +734,35 @@ const AdminProductForm = () => {
             <CardTitle className="text-lg font-display">Preços e Quantidades</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="price">Preço *</Label>
+                <Label htmlFor="price">Preço * <span className="text-xs text-muted-foreground font-normal">(por)</span></Label>
                 <Input
                   id="price"
                   type="number"
                   step="0.01"
                   value={formData.price}
                   onChange={(e) => setFormData((prev) => ({ ...prev, price: e.target.value }))}
-                  placeholder="0.00"
+                  placeholder="0,00"
                   required
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="original_price">Preço promocional <span className="text-xs text-muted-foreground font-normal">(de)</span></Label>
+                <Input
+                  id="original_price"
+                  type="number"
+                  step="0.01"
+                  value={formData.original_price}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, original_price: e.target.value }))}
+                  placeholder="Opcional"
+                />
+                <p className="text-[11px] text-muted-foreground leading-tight">
+                  Preencha apenas se quiser mostrar o valor cheio riscado ao lado do preço final.
+                </p>
+                {formData.original_price && parseFloat(formData.original_price) > 0 && parseFloat(formData.price) > 0 && parseFloat(formData.original_price) <= parseFloat(formData.price) && (
+                  <p className="text-[11px] text-destructive">O "de" precisa ser maior que o "por".</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="min_quantity">Qtd. mínima</Label>
