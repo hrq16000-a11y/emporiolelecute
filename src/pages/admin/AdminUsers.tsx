@@ -22,9 +22,11 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 interface UserRow {
+  source: "auth" | "customer" | "visitor" | "order";
   user_id: string;
   email: string | null;
   full_name: string | null;
+  whatsapp: string | null;
   created_at: string;
   last_sign_in_at: string | null;
   email_confirmed_at: string | null;
