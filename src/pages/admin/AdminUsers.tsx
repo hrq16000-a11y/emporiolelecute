@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useContactInfo } from "@/hooks/useContactInfo";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -19,7 +20,7 @@ import { toast } from "sonner";
 import {
   ShieldCheck, History, AlertCircle, CheckCircle2, Download, ShieldOff,
   Users, UserPlus, UserMinus, ExternalLink, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown,
-  Mail, Calendar, LogIn, User as UserIcon, Link2, Copy,
+  Mail, Calendar, LogIn, User as UserIcon, Link2, Copy, MessageCircle, FileEdit,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -70,20 +71,53 @@ const AdminUsers = () => {
   const { user: currentAuthUser } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // ====== Filters / paging state ======
-  const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");
-  const [sourceFilter, setSourceFilter] = useState("all");
-  const [whatsappFilter, setWhatsappFilter] = useState("");
-  const [ipFilter, setIpFilter] = useState("");
-  const [sortKey, setSortKey] = useState<SortKey>("created_at");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
+  // ====== Filters / paging state (inicializados da URL para persistir ao recarregar) ======
+  const initialUrl = searchParams;
+  const [search, setSearch] = useState(initialUrl.get("q") || "");
+  const [roleFilter, setRoleFilter] = useState(initialUrl.get("role") || "all");
+  const [sourceFilter, setSourceFilter] = useState(initialUrl.get("src") || "all");
+  const [whatsappFilter, setWhatsappFilter] = useState(initialUrl.get("wa") || "");
+  const [ipFilter, setIpFilter] = useState(initialUrl.get("ip") || "");
+  const [sortKey, setSortKey] = useState<SortKey>((initialUrl.get("sk") as SortKey) || "created_at");
+  const [sortDir, setSortDir] = useState<SortDir>((initialUrl.get("sd") as SortDir) || "desc");
+  const [page, setPage] = useState(Number(initialUrl.get("pg")) || 1);
+  const [pageSize, setPageSize] = useState(Number(initialUrl.get("ps")) || 25);
 
   const [selected, setSelected] = useState<UserRow | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [drawerTab, setDrawerTab] = useState<"perfil" | "auditoria">("perfil");
+  const { buildWhatsappUrl } = useContactInfo();
+
+  // Sincroniza filtros com a URL (mantém ao recarregar / compartilhar)
+  const syncRef = useRef(false);
+  useEffect(() => {
+    if (!syncRef.current) { syncRef.current = true; return; }
+    const next = new URLSearchParams(searchParams);
+    const setOrDel = (k: string, v: string, defVal?: string) => {
+      if (!v || v === defVal) next.delete(k); else next.set(k, v);
+    };
+    setOrDel("q", search);
+    setOrDel("role", roleFilter, "all");
+    setOrDel("src", sourceFilter, "all");
+    setOrDel("wa", whatsappFilter);
+    setOrDel("ip", ipFilter);
+    setOrDel("sk", sortKey, "created_at");
+    setOrDel("sd", sortDir, "desc");
+    setOrDel("pg", page > 1 ? String(page) : "");
+    setOrDel("ps", pageSize !== 25 ? String(pageSize) : "");
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, roleFilter, sourceFilter, whatsappFilter, ipFilter, sortKey, sortDir, page, pageSize]);
+
+  // Contadores por fonte
+  const countsQ = useQuery({
+    queryKey: ["users-source-counts"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc("users_source_counts");
+      if (error) throw error;
+      return data as Record<string, number>;
+    },
+  });
 
   // ====== Query: paginated users ======
   const usersQ = useQuery({
@@ -318,11 +352,38 @@ const AdminUsers = () => {
             <Button size="sm" variant="outline" onClick={exportAllCSV} disabled={!total || exporting}>
               <Download className="h-4 w-4 mr-2" /> {exporting ? "Exportando…" : "Exportar CSV"}
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => qc.invalidateQueries({ queryKey: ["users-pag"] })}>
-              <RefreshCw className="h-4 w-4 mr-2" /> Recarregar
+            <Button size="sm" variant="ghost" onClick={() => {
+              qc.invalidateQueries({ queryKey: ["users-pag"] });
+              qc.invalidateQueries({ queryKey: ["users-source-counts"] });
+              toast.success("Dados sincronizados.");
+            }}>
+              <RefreshCw className="h-4 w-4 mr-2" /> Sincronizar
             </Button>
           </div>
         </div>
+
+        {/* Contadores por fonte */}
+        {countsQ.data && (
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-2 pt-1">
+            {[
+              { k: "auth", lbl: "Com login", val: countsQ.data.auth, src: "auth" },
+              { k: "customer", lbl: "CRM", val: countsQ.data.customer, src: "customer" },
+              { k: "visitor", lbl: "Visitantes", val: countsQ.data.visitor, src: "visitor" },
+              { k: "order", lbl: "Pedidos (e-mails únicos)", val: countsQ.data.order, src: "order" },
+              { k: "admin", lbl: "Admins", val: countsQ.data.admin, src: null },
+              { k: "editor", lbl: "Editores", val: countsQ.data.editor, src: null },
+            ].map((c) => (
+              <button
+                key={c.k}
+                onClick={() => { if (c.src) { setSourceFilter(c.src); setPage(1); } }}
+                className={`text-left border rounded-md px-3 py-2 transition ${c.src ? "hover:bg-muted/40 cursor-pointer" : "cursor-default"} ${sourceFilter === c.src ? "border-primary bg-primary/5" : ""}`}
+              >
+                <div className="text-[10px] uppercase text-muted-foreground">{c.lbl}</div>
+                <div className="text-lg font-medium">{c.val ?? 0}</div>
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
           <Input placeholder="Buscar nome/e-mail…" value={search}
@@ -471,14 +532,29 @@ const AdminUsers = () => {
                 </TabsList>
 
                 <TabsContent value="perfil" className="mt-4 space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
                     <Badge variant="outline" className="text-[10px]">origem: {selected.source}</Badge>
-                    {selected.source !== "customer" && !selected.linked_customer_id && !selected.roles.includes("admin") && (
-                      <Button size="sm" variant="outline" onClick={() => handleMigrateToCustomer(selected)}>
-                        <Link2 className="h-3 w-3 mr-1" /> Migrar para cliente
-                      </Button>
-                    )}
+                    <div className="flex gap-2 flex-wrap">
+                      {selected.whatsapp && (
+                        <Button size="sm" variant="outline" asChild>
+                          <a
+                            href={buildWhatsappUrl(
+                              `Olá ${selected.full_name?.split(" ")[0] || ""}! Aqui é do Empório Lele Cute. Como podemos te ajudar?`
+                            )}
+                            target="_blank" rel="noopener noreferrer"
+                          >
+                            <MessageCircle className="h-3 w-3 mr-1" /> WhatsApp
+                          </a>
+                        </Button>
+                      )}
+                      {selected.source !== "customer" && !selected.linked_customer_id && !selected.roles.includes("admin") && (
+                        <Button size="sm" variant="outline" onClick={() => handleMigrateToCustomer(selected)}>
+                          <Link2 className="h-3 w-3 mr-1" /> Migrar para cliente
+                        </Button>
+                      )}
+                    </div>
                   </div>
+
 
                   {selected.source === "auth" ? (
                     <div className="space-y-1">
@@ -553,7 +629,8 @@ const AdminUsers = () => {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="auditoria" className="mt-4">
+                <TabsContent value="auditoria" className="mt-4 space-y-4">
+                  <ProfileNameAuditPanel userId={selected.user_id} />
                   <UserAuditPanel email={selected.email} statusBadge={statusBadge} />
                 </TabsContent>
               </Tabs>
@@ -671,7 +748,50 @@ const UserAuditPanel = ({ email, statusBadge }: { email: string | null; statusBa
   );
 };
 
-// ============== Dialog: criar usuário ==============
+// ============== Histórico de mudanças de nome (admin) ==============
+const ProfileNameAuditPanel = ({ userId }: { userId: string }) => {
+  const authId = userId.replace(/^auth:/, "");
+  const isAuth = userId.startsWith("auth:");
+  const q = useQuery({
+    queryKey: ["profile-name-audit", authId],
+    enabled: isAuth,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("profile_change_audit")
+        .select("id, field, old_value, new_value, changed_by_email, created_at")
+        .eq("user_id", authId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+  });
+  if (!isAuth) return null;
+  return (
+    <div className="border rounded-md p-3 bg-muted/20">
+      <div className="text-xs uppercase text-muted-foreground font-medium flex items-center gap-1 mb-2">
+        <FileEdit className="h-3 w-3" /> Mudanças de nome
+      </div>
+      {q.isLoading ? <p className="text-xs text-muted-foreground">Carregando…</p>
+        : !q.data?.length ? <p className="text-xs text-muted-foreground">Nenhuma alteração registrada.</p>
+        : (
+          <ul className="space-y-1 text-xs">
+            {q.data.map((r: any) => (
+              <li key={r.id} className="flex flex-wrap gap-2 items-baseline">
+                <span className="text-muted-foreground whitespace-nowrap">
+                  {format(new Date(r.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                </span>
+                <span>“{r.old_value || "—"}” → <strong>“{r.new_value || "—"}”</strong></span>
+                <span className="text-muted-foreground italic">por {r.changed_by_email || "?"}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+    </div>
+  );
+};
+
+
 const CreateUserDialog = ({ open, onClose, onCreated }: { open: boolean; onClose: () => void; onCreated: () => void }) => {
   const [form, setForm] = useState({ email: "", full_name: "", whatsapp: "", password: "", roles: [] as string[], send_invite: false });
   const [loading, setLoading] = useState(false);
