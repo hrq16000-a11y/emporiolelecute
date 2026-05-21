@@ -349,23 +349,26 @@ const AdminProductForm = () => {
 
       const result = await saveProduct.mutateAsync({
         id: isEditing && id ? id : null,
-        expected_updated_at: isEditing ? (existingProduct?.updated_at ?? null) : null,
+        expected_updated_at: isEditing ? expectedUpdatedAt : null,
         product: productPayload,
         occasion_ids: selectedOccasions,
         tag_ids: selectedTags,
         segment_ids: selectedSegments,
       });
 
-      // Após save bem-sucedido, sincroniza o expected_updated_at local
-      // para próximos saves sem precisar de refetch (cobre "salvar sequencial").
-      // O guard `hydratedRef` impede que o refetch do React Query pise no form.
-      // Fica registrado para o próximo lock otimista via existingProduct refetch.
-      void result;
+      // Sincroniza lock otimista local imediatamente — não depende do refetch
+      // assíncrono do React Query. Cobre o cenário "salvar duas vezes rápido".
+      setExpectedUpdatedAt(result.updated_at);
 
       toast({ title: isEditing ? 'Produto atualizado!' : 'Produto criado!' });
       usage.markSubmitted();
       if (!isEditing) {
         navigate('/admin/produtos');
+      } else if (result.slug !== routeParam) {
+        // Slug foi renomeado — atualiza a URL para o slug novo (replace para
+        // não poluir histórico). Evita que o próximo refetch resolva pelo
+        // alias antigo em product_slugs e perca o vínculo com o produto.
+        navigate(`/admin/produtos/${result.slug}`, { replace: true });
       }
     } catch (error) {
       const err = error as SaveProductError;
