@@ -266,6 +266,11 @@ const App = () => {
                     <Contato />
                   </Suspense>
                 } />
+                <Route path="/politica-de-privacidade" element={
+                  <Suspense fallback={<PageSkeleton />}>
+                    <PoliticaPrivacidade />
+                  </Suspense>
+                } />
                 <Route path="/depoimentos" element={
                   <Suspense fallback={<PageSkeleton />}>
                     <Depoimentos />
