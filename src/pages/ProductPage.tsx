@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  Star, 
-  Send, 
-  Truck, 
-  Shield, 
-  Clock, 
-  Heart, 
+import {
+  ArrowLeft,
+  Star,
+  Send,
+  Truck,
+  Shield,
+  Clock,
+  Heart,
   Package,
   CheckCircle2,
   Loader2,
@@ -19,7 +19,7 @@ import {
   ShoppingCart,
   Tag,
   Layers,
-  Calendar
+  Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,7 +53,13 @@ import { useDbProduct, useDbProducts } from "@/hooks/useProducts";
 import { useProductReviews, useProductReviewStats } from "@/hooks/useProductReviews";
 import ProductReviews from "@/components/ProductReviews";
 import { usePaymentConfig } from "@/hooks/useStoreSettings";
-import { trackProductView, trackInquiry, buildWhatsAppUrl, trackWhatsAppClick, trackFunnelEvent } from "@/lib/analytics";
+import {
+  trackProductView,
+  trackInquiry,
+  buildWhatsAppUrl,
+  trackWhatsAppClick,
+  trackFunnelEvent,
+} from "@/lib/analytics";
 import { useContactInfo } from "@/hooks/useContactInfo";
 import { toast as sonnerToast } from "sonner";
 import { useConversionCtaConfig } from "@/hooks/useConversionCtaConfig";
@@ -116,7 +122,7 @@ const ProductPage = () => {
             setShowStickyCta(rect.top < 0);
           }
         },
-        { threshold: 0, rootMargin: "0px 0px -10% 0px" }
+        { threshold: 0, rootMargin: "0px 0px -10% 0px" },
       );
       observer.observe(anchor);
       return () => observer.disconnect();
@@ -161,42 +167,44 @@ const ProductPage = () => {
   }, [dbProduct?.__slugMeta, dbProduct?.id, navigate]);
 
   // Convert to display format
-  const product = dbProduct ? {
-    id: dbProduct.id,
-    slug: dbProduct.slug,
-    name: dbProduct.name,
-    description: dbProduct.description || '',
-    longDescription: dbProduct.long_description || undefined,
-    price: dbProduct.price,
-    originalPrice: dbProduct.original_price,
-    images: dbProduct.images,
-    link: '',
-    badge: dbProduct.badge || undefined,
-    rating: Math.round(dbProduct.rating),
-    minQuantity: dbProduct.min_quantity,
-    pixDiscount: dbProduct.pix_discount,
-    productionDays: dbProduct.production_days,
-    weight: dbProduct.weight || 25,
-    keywords: dbProduct.keywords || [],
-  } : null;
+  const product = dbProduct
+    ? {
+        id: dbProduct.id,
+        slug: dbProduct.slug,
+        name: dbProduct.name,
+        description: dbProduct.description || "",
+        longDescription: dbProduct.long_description || undefined,
+        price: dbProduct.price,
+        originalPrice: dbProduct.original_price,
+        images: dbProduct.images,
+        link: "",
+        badge: dbProduct.badge || undefined,
+        rating: Math.round(dbProduct.rating),
+        minQuantity: dbProduct.min_quantity,
+        pixDiscount: dbProduct.pix_discount,
+        productionDays: dbProduct.production_days,
+        weight: dbProduct.weight || 25,
+        keywords: dbProduct.keywords || [],
+      }
+    : null;
 
   // Related products
   const relatedProducts: Product[] = (allProducts || [])
-    .filter(p => p.is_active && p.id !== dbProduct?.id)
+    .filter((p) => p.is_active && p.id !== dbProduct?.id)
     .slice(0, 4)
-    .map(p => ({
+    .map((p) => ({
       id: p.id,
       slug: p.slug,
       name: p.name,
-      description: p.description || '',
-      price: `R$ ${p.price.toFixed(2).replace('.', ',')}`,
-      originalPrice: p.original_price ? `R$ ${p.original_price.toFixed(2).replace('.', ',')}` : undefined,
-      image: p.images[0] || '/placeholder.svg',
+      description: p.description || "",
+      price: `R$ ${p.price.toFixed(2).replace(".", ",")}`,
+      originalPrice: p.original_price ? `R$ ${p.original_price.toFixed(2).replace(".", ",")}` : undefined,
+      image: p.images[0] || "/placeholder.svg",
       images: p.images,
-      link: '',
+      link: "",
       badge: p.badge || undefined,
       rating: Math.round(p.rating),
-      category: 'outros' as const,
+      category: "outros" as const,
       occasions: [],
       keywords: p.keywords,
     }));
@@ -221,13 +229,13 @@ const ProductPage = () => {
 
   const handleAddToCart = () => {
     if (!product) return;
-    
+
     addItem({
       id: product.id,
       slug: product.slug,
       name: product.name,
       price: product.price,
-      image: product.images[0] || '/placeholder.svg',
+      image: product.images[0] || "/placeholder.svg",
       personalization,
       minQuantity: product.minQuantity,
       quantity,
@@ -235,19 +243,18 @@ const ProductPage = () => {
     setAddedToCart(true);
   };
 
-
   const handleShare = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
       toast({
         title: "Link copiado!",
-        description: "O link do produto foi copiado para a área de transferência."
+        description: "O link do produto foi copiado para a área de transferência.",
       });
     } catch {
       toast({
         title: "Erro ao copiar",
         description: "Não foi possível copiar o link.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -276,8 +283,9 @@ const ProductPage = () => {
     const liveQty = normalizeQuantity(valuesRef.current.quantity);
     const livePersonalization = normalizePersonalization(valuesRef.current.personalization);
 
-    const template = ctaConfig?.whatsappTemplate?.template
-      || "Olá! Tenho interesse no produto *{produto}*.{contexto}\n\n📝 *Detalhes:*\n- Quantidade: {qtd} unidades\n{personalizacao_linha}- Link: {link}{imagem_linha}\n\nPoderia me ajudar com o valor do frete e prazos?";
+    const template =
+      ctaConfig?.whatsappTemplate?.template ||
+      "Olá! Tenho interesse no produto *{produto}*.{contexto}\n\n📝 *Detalhes:*\n- Quantidade: {qtd} unidades\n{personalizacao_linha}- Link: {link}{imagem_linha}\n\nPoderia me ajudar com o valor do frete e prazos?";
 
     const waMsg = renderWhatsAppMessage(template, {
       productName: product.name,
@@ -285,7 +293,7 @@ const ProductPage = () => {
       link: window.location.href,
       quantity: liveQty,
       personalization: livePersonalization,
-      price: `R$ ${product.price.toFixed(2).replace('.', ',')}`,
+      price: `R$ ${product.price.toFixed(2).replace(".", ",")}`,
       imageUrl: product.images?.[0],
       category: dbProduct?.category?.name,
       occasion: dbProduct?.occasions?.[0]?.name,
@@ -306,7 +314,7 @@ const ProductPage = () => {
   };
 
   const openWhatsApp = (
-    source: "product_page" | "sticky_cta" | "quick_summary" | "exit_popup" | "pdp_badge" = "product_page"
+    source: "product_page" | "sticky_cta" | "quick_summary" | "exit_popup" | "pdp_badge" = "product_page",
   ) => {
     if (!product) return;
     const { url, utmCampaign } = buildWhatsAppMessage();
@@ -327,10 +335,9 @@ const ProductPage = () => {
 
     // Confirmação visual + tracking pós-clique (reduz dúvida de "funcionou?")
     if (ctaConfig?.toast?.enabled !== false) {
-      sonnerToast.success(
-        ctaConfig?.toast?.message || "Abrindo o WhatsApp…",
-        { duration: ctaConfig?.toast?.durationMs ?? 4000 }
-      );
+      sonnerToast.success(ctaConfig?.toast?.message || "Abrindo o WhatsApp…", {
+        duration: ctaConfig?.toast?.durationMs ?? 4000,
+      });
     }
     trackFunnelEvent("whatsapp_click_confirmed", {
       source,
@@ -341,11 +348,10 @@ const ProductPage = () => {
     });
   };
 
-
   // Fase 1.5 — observabilidade canonical_mismatch (DEVE rodar antes de qualquer early-return
   // para manter contagem estável de hooks entre renders).
   const _slugMetaForEffect = dbProduct?.__slugMeta;
-  const _canonicalSlugForEffect = _slugMetaForEffect?.primarySlug ?? dbProduct?.slug ?? '';
+  const _canonicalSlugForEffect = _slugMetaForEffect?.primarySlug ?? dbProduct?.slug ?? "";
   useEffect(() => {
     if (!_slugMetaForEffect || _slugMetaForEffect.shouldRedirect || !_canonicalSlugForEffect) return;
     const expected = urls.product(_canonicalSlugForEffect);
@@ -395,9 +401,7 @@ const ProductPage = () => {
   const installments = paymentConfig?.installments ?? 3;
   const pixPrice = totalPrice * (1 - pixDiscountPercent / 100);
   const installmentValue = totalPrice / installments;
-  const discountPercent = product.originalPrice 
-    ? Math.round((1 - product.price / product.originalPrice) * 100) 
-    : null;
+  const discountPercent = product.originalPrice ? Math.round((1 - product.price / product.originalPrice) * 100) : null;
 
   // Generate product code from ID
   const productCode = product.id.slice(0, 8).toUpperCase();
@@ -424,10 +428,11 @@ const ProductPage = () => {
       <DynamicSEO
         title={`${product.name} | Empório LeleCute`}
         description={(() => {
-          const raw = product.description
-            || (product.longDescription ? product.longDescription.replace(/\s+/g, ' ').trim() : '')
-            || `Lembrancinha artesanal ${product.name}, feita à mão e personalizada para ocasiões especiais. Empório LeleCute envia para todo o Brasil.`;
-          return raw.length > 160 ? raw.slice(0, 157).trimEnd() + '…' : raw;
+          const raw =
+            product.description ||
+            (product.longDescription ? product.longDescription.replace(/\s+/g, " ").trim() : "") ||
+            `Lembrancinha artesanal ${product.name}, feita à mão e personalizada para ocasiões especiais. Empório LeleCute envia para todo o Brasil.`;
+          return raw.length > 160 ? raw.slice(0, 157).trimEnd() + "…" : raw;
         })()}
         image={product.images[0] || undefined}
         url={canonicalUrl}
@@ -454,31 +459,54 @@ const ProductPage = () => {
       />
       <BreadcrumbStructuredData
         items={[
-          { name: 'Início', url: 'https://emporiolelecute.com.br/' },
+          { name: "Início", url: "https://emporiolelecute.com.br/" },
           ...(dbProduct?.segments?.[0]
-            ? [{ name: dbProduct.segments[0].name, url: `https://emporiolelecute.com.br/segmento/${dbProduct.segments[0].slug}` }]
+            ? [
+                {
+                  name: dbProduct.segments[0].name,
+                  url: `https://emporiolelecute.com.br/segmento/${dbProduct.segments[0].slug}`,
+                },
+              ]
             : []),
           ...(dbProduct?.occasions?.[0]
-            ? [{ name: dbProduct.occasions[0].name, url: `https://emporiolelecute.com.br/ocasiao/${dbProduct.occasions[0].slug}` }]
+            ? [
+                {
+                  name: dbProduct.occasions[0].name,
+                  url: `https://emporiolelecute.com.br/ocasiao/${dbProduct.occasions[0].slug}`,
+                },
+              ]
             : []),
           ...(dbProduct?.category && !dbProduct?.segments?.[0] && !dbProduct?.occasions?.[0]
-            ? [{ name: dbProduct.category.name, url: `https://emporiolelecute.com.br/categoria/${dbProduct.category.slug}` }]
+            ? [
+                {
+                  name: dbProduct.category.name,
+                  url: `https://emporiolelecute.com.br/categoria/${dbProduct.category.slug}`,
+                },
+              ]
             : []),
           { name: product.name, url: canonicalUrl },
         ]}
       />
       <Header />
-      
+
       <main className="pt-20 md:pt-32 pb-16 max-w-full overflow-x-hidden">
         {/* Breadcrumb */}
         <div className="container mx-auto max-w-full px-4 py-1.5 md:py-3 overflow-hidden">
-          <nav className="flex max-w-full items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 text-xs sm:text-sm text-muted-foreground scrollbar-hide" aria-label="Breadcrumb">
-            <Link to="/" className="shrink-0 hover:text-primary transition-colors">Início</Link>
+          <nav
+            className="flex max-w-full items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 text-xs sm:text-sm text-muted-foreground scrollbar-hide"
+            aria-label="Breadcrumb"
+          >
+            <Link to="/" className="shrink-0 hover:text-primary transition-colors">
+              Início
+            </Link>
 
             {dbProduct?.segments?.[0] && (
               <>
                 <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" aria-hidden="true" />
-                <Link to={`/segmento/${dbProduct.segments[0].slug}`} className="shrink-0 hover:text-primary transition-colors">
+                <Link
+                  to={`/segmento/${dbProduct.segments[0].slug}`}
+                  className="shrink-0 hover:text-primary transition-colors"
+                >
                   {dbProduct.segments[0].name}
                 </Link>
               </>
@@ -487,7 +515,10 @@ const ProductPage = () => {
             {dbProduct?.occasions?.[0] && (
               <>
                 <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" aria-hidden="true" />
-                <Link to={`/ocasiao/${dbProduct.occasions[0].slug}`} className="shrink-0 hover:text-primary transition-colors">
+                <Link
+                  to={`/ocasiao/${dbProduct.occasions[0].slug}`}
+                  className="shrink-0 hover:text-primary transition-colors"
+                >
                   {dbProduct.occasions[0].name}
                 </Link>
               </>
@@ -516,22 +547,17 @@ const ProductPage = () => {
             {/* Image Gallery - Horizontal layout with thumbnails below */}
             <div className="relative min-w-0 max-w-full overflow-hidden" data-testid="pdp-media-block">
               <ProductGallery
-                images={product.images.length > 0 ? product.images : ['/placeholder.svg']}
+                images={product.images.length > 0 ? product.images : ["/placeholder.svg"]}
                 productName={product.name}
                 badge={product.badge}
                 layout="horizontal"
               />
-              
+
               {/* Resolve badge first so we can place favorite opposite to it */}
               {(() => {
-                const eff = resolveEffectiveBadge(
-                  ctaConfig?.pdpBadge,
-                  (dbProduct as any)?.pdp_badge_override
-                );
+                const eff = resolveEffectiveBadge(ctaConfig?.pdpBadge, (dbProduct as any)?.pdp_badge_override);
                 const badgeIsLeft = eff?.config.position?.endsWith("left") ?? true;
-                const favSideClass = badgeIsLeft
-                  ? "right-3 sm:right-4"
-                  : "left-3 sm:left-4";
+                const favSideClass = badgeIsLeft ? "right-3 sm:right-4" : "left-3 sm:left-4";
                 return (
                   <>
                     {/* Favorite Button — always opposite the badge, never covered */}
@@ -546,14 +572,14 @@ const ProductPage = () => {
                       <Heart
                         key={String(isFavorite)}
                         className={`h-6 w-6 transition-colors ${
-                          isFavorite
-                            ? "fill-primary text-primary animate-heart-pop"
-                            : "text-foreground"
+                          isFavorite ? "fill-primary text-primary animate-heart-pop" : "text-foreground"
                         }`}
                         strokeWidth={isFavorite ? 0 : 2.2}
                       />
                     </button>
-                    <span className="sr-only" aria-live="polite">{favoriteFeedback}</span>
+                    <span className="sr-only" aria-live="polite">
+                      {favoriteFeedback}
+                    </span>
 
                     {eff && (
                       <PdpBadge
@@ -589,14 +615,10 @@ const ProductPage = () => {
                     <span className="text-sm tabular-nums text-foreground">
                       {Number(reviewStats.avg_rating).toFixed(1)}
                     </span>
-                    <span className="text-xs text-muted-foreground/80">
-                      ({reviewStats.review_count})
-                    </span>
+                    <span className="text-xs text-muted-foreground/80">({reviewStats.review_count})</span>
                   </div>
                 ) : null}
               </div>
-
-
 
               {/* Trust row consolidado — linha editorial sutil, sem pílulas cromáticas */}
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-5 text-xs text-muted-foreground">
@@ -604,19 +626,21 @@ const ProductPage = () => {
                   <Package className="h-3.5 w-3.5" strokeWidth={1.5} />
                   Mínimo {product.minQuantity} un.
                 </span>
-                <span className="text-muted-foreground/40" aria-hidden="true">·</span>
+                <span className="text-muted-foreground/40" aria-hidden="true">
+                  ·
+                </span>
                 <span className="inline-flex items-center gap-1.5">
                   <Clock className="h-3.5 w-3.5" strokeWidth={1.5} />
                   Pronto em {product.productionDays} dias úteis
                 </span>
-                <span className="text-muted-foreground/40" aria-hidden="true">·</span>
+                <span className="text-muted-foreground/40" aria-hidden="true">
+                  ·
+                </span>
                 <span className="inline-flex items-center gap-1.5">
                   <Truck className="h-3.5 w-3.5" strokeWidth={1.5} />
                   Envio Brasil
                 </span>
               </div>
-
-
 
               {/* Category, Occasions & Tags — hierarquia suave: categoria com leve destaque, resto neutro */}
               <div className="flex flex-wrap gap-2 mb-4">
@@ -632,7 +656,8 @@ const ProductPage = () => {
                 )}
 
                 {/* Occasion Badges — neutras, sem cromia competitiva */}
-                {dbProduct?.occasions && dbProduct.occasions.length > 0 && (
+                {dbProduct?.occasions &&
+                  dbProduct.occasions.length > 0 &&
                   dbProduct.occasions.map((occasion) => (
                     <Link
                       key={occasion.id}
@@ -642,11 +667,11 @@ const ProductPage = () => {
                       <Calendar className="h-3.5 w-3.5" strokeWidth={1.5} />
                       {occasion.name}
                     </Link>
-                  ))
-                )}
+                  ))}
 
                 {/* Tags — neutras, ainda mais discretas */}
-                {dbProduct?.tags && dbProduct.tags.length > 0 && (
+                {dbProduct?.tags &&
+                  dbProduct.tags.length > 0 &&
                   dbProduct.tags.slice(0, 3).map((tag) => (
                     <Link
                       key={tag.id}
@@ -656,43 +681,48 @@ const ProductPage = () => {
                       <Tag className="h-3 w-3" strokeWidth={1.5} />
                       {tag.name}
                     </Link>
-                  ))
-                )}
+                  ))}
               </div>
 
               {/* Preço — hierarquia editorial (total primeiro, unitário e parcelas como apoio) */}
               <div className="mb-6 min-w-0">
                 <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1.5">Valor total</p>
                 <p className="font-display text-3xl sm:text-4xl font-light text-foreground break-words leading-none">
-                  R$ {totalPrice.toFixed(2).replace('.', ',')}
+                  R$ {totalPrice.toFixed(2).replace(".", ",")}
                 </p>
                 <p className="text-sm text-muted-foreground mt-2 break-words">
-                  R$ {product.price.toFixed(2).replace('.', ',')} / unidade
-                  <span className="text-muted-foreground/40 mx-2" aria-hidden="true">·</span>
+                  R$ {product.price.toFixed(2).replace(".", ",")} / unidade
+                  <span className="text-muted-foreground/40 mx-2" aria-hidden="true">
+                    ·
+                  </span>
                   {product.minQuantity} un. mín.
                 </p>
                 <p className="text-sm text-muted-foreground mt-1 break-words">
-                  {installments}x sem juros de R$ {installmentValue.toFixed(2).replace('.', ',')}
-                  <span className="text-muted-foreground/40 mx-2" aria-hidden="true">·</span>
-                  <span className="text-foreground">R$ {pixPrice.toFixed(2).replace('.', ',')}</span>
+                  {installments}x sem juros de R$ {installmentValue.toFixed(2).replace(".", ",")}
+                  <span className="text-muted-foreground/40 mx-2" aria-hidden="true">
+                    ·
+                  </span>
+                  <span className="text-foreground">R$ {pixPrice.toFixed(2).replace(".", ",")}</span>
                   <span className="text-muted-foreground"> no PIX (-{pixDiscountPercent}%)</span>
                 </p>
               </div>
 
-
               {/* Description */}
               <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-                {product.description || `Lembrancinha especial com sabonete artesanal. Perfeito para lembrancinhas de maternidade, batizado e eventos especiais.`}
+                {product.description ||
+                  `Lembrancinha especial com sabonete artesanal. Perfeito para lembrancinhas de maternidade, batizado e eventos especiais.`}
               </p>
 
               {/* Personalization Field - only show if enabled */}
               {dbProduct?.personalization_enabled !== false && (
                 <div className="rounded-lg border border-border/40 p-5 mb-6">
                   <h3 className="text-sm font-medium text-foreground mb-3 tracking-wide">
-                    {dbProduct?.personalization_label || 'Personalização'}
+                    {dbProduct?.personalization_label || "Personalização"}
                   </h3>
                   <Textarea
-                    placeholder={dbProduct?.personalization_placeholder || 'Digite o nome, data ou mensagem para personalização...'}
+                    placeholder={
+                      dbProduct?.personalization_placeholder || "Digite o nome, data ou mensagem para personalização..."
+                    }
                     value={personalization}
                     onChange={(e) => setPersonalization(e.target.value)}
                     className="min-h-[80px] resize-none border-border/40 focus-visible:ring-1"
@@ -700,16 +730,18 @@ const ProductPage = () => {
                 </div>
               )}
 
-
               {/* Quantity Selector */}
               <div className="mb-6">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                   <span className="font-medium text-foreground">Quantidade</span>
-                  <span className="text-sm text-muted-foreground">(Mínimo: {product.minQuantity})</span>
+                  <span className="text-sm text-muted-foreground">
+                    <Package className="h-3.5 w-3.5" strokeWidth={1.5} />
+                    (Mínimo: {product.minQuantity})
+                  </span>
                 </div>
                 <div className="flex items-center gap-4">
-                    <div className="flex items-center border border-border rounded-lg overflow-hidden max-w-full">
-                    <button 
+                  <div className="flex items-center border border-border rounded-lg overflow-hidden max-w-full">
+                    <button
                       type="button"
                       onClick={() => {
                         const next = Math.max(product.minQuantity, quantity - 1);
@@ -721,7 +753,7 @@ const ProductPage = () => {
                     >
                       <Minus className="h-4 w-4" />
                     </button>
-                    <input 
+                    <input
                       type="number"
                       inputMode="numeric"
                       value={quantityInput}
@@ -735,14 +767,15 @@ const ProductPage = () => {
                       }}
                       onBlur={() => {
                         const parsed = Number(quantityInput);
-                        const next = Number.isFinite(parsed) && parsed >= product.minQuantity ? parsed : product.minQuantity;
+                        const next =
+                          Number.isFinite(parsed) && parsed >= product.minQuantity ? parsed : product.minQuantity;
                         setQuantity(next);
                         setQuantityInput(String(next));
                       }}
                       className="w-20 text-center border-0 bg-transparent focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       min={product.minQuantity}
                     />
-                    <button 
+                    <button
                       type="button"
                       onClick={() => {
                         const next = quantity + 1;
@@ -770,8 +803,7 @@ const ProductPage = () => {
                 productName={product.name}
                 occasionName={dbProduct?.occasions?.[0]?.name}
                 enabled={
-                  resolvePrimaryAction(dbProduct).primary !== "cart" &&
-                  ctaConfig?.quickSummary?.enabled !== false
+                  resolvePrimaryAction(dbProduct).primary !== "cart" && ctaConfig?.quickSummary?.enabled !== false
                 }
                 title={ctaConfig?.quickSummary?.title}
                 minLabel={ctaConfig?.quickSummary?.minLabel}
@@ -786,14 +818,12 @@ const ProductPage = () => {
                 Frete calculado via WhatsApp após o pedido.
               </p>
 
-
-
               {/* Sprint 4 — CTA primário decidido por resolvePrimaryAction(product) */}
               {(() => {
                 const action = resolvePrimaryAction(dbProduct);
                 const isWaPrimary = action.primary === "whatsapp";
                 const cartBtn = (primary: boolean) => (
-                <Button
+                  <Button
                     size="lg"
                     className={`min-w-0 flex-1 rounded-lg px-3 py-5 text-sm sm:text-base font-medium shadow-sm hover:shadow-md transition-all ${
                       addedToCart
@@ -802,7 +832,6 @@ const ProductPage = () => {
                           ? "bg-primary hover:bg-primary-dark text-primary-foreground"
                           : "bg-card border border-primary/60 text-primary hover:bg-primary/5"
                     }`}
-
                     variant={primary ? "default" : "outline"}
                     onClick={handleAddToCart}
                   >
@@ -832,18 +861,24 @@ const ProductPage = () => {
                         aria-label={isFavorite ? "Remover dos favoritos" : "Favoritar produto"}
                         aria-pressed={isFavorite}
                       >
-                        <Heart className={`h-5 w-5 ${isFavorite ? "fill-primary text-primary animate-heart-pop" : ""}`} />
+                        <Heart
+                          className={`h-5 w-5 ${isFavorite ? "fill-primary text-primary animate-heart-pop" : ""}`}
+                        />
                       </Button>
                       {/* Share */}
-                      <Button variant="outline" size="lg" className="min-h-11 min-w-11 shrink-0 px-3 sm:px-4" onClick={handleShare} aria-label="Compartilhar produto">
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="min-h-11 min-w-11 shrink-0 px-3 sm:px-4"
+                        onClick={handleShare}
+                        aria-label="Compartilhar produto"
+                      >
                         <Share2 className="h-5 w-5" />
                       </Button>
                     </div>
 
                     {/* Para WhatsApp-first (personalizado): carrinho aparece como secundário sutil */}
-                    {isWaPrimary && (
-                      <div className="mb-4">{cartBtn(false)}</div>
-                    )}
+                    {isWaPrimary && <div className="mb-4">{cartBtn(false)}</div>}
 
                     {/* Go to Cart Button - Shows after adding to cart */}
                     {addedToCart && (
@@ -860,24 +895,30 @@ const ProductPage = () => {
                 );
               })()}
 
-
               {/* Payment Methods — discreto: oculto no mobile, micro no desktop */}
               <div className="hidden md:block mb-6">
                 <p className="text-[11px] text-muted-foreground/70">
                   Aceitamos
                   {paymentConfig?.accepted_methods?.pix ? <span className="text-muted-foreground"> PIX</span> : null}
-                  {paymentConfig?.accepted_methods?.credit_card ? <><span className="text-muted-foreground/40">,</span><span className="text-muted-foreground"> Cartão de Crédito</span></> : null}
-                  {paymentConfig?.accepted_methods?.boleto ? <><span className="text-muted-foreground/40">,</span><span className="text-muted-foreground"> Boleto Bancário</span></> : null}
+                  {paymentConfig?.accepted_methods?.credit_card ? (
+                    <>
+                      <span className="text-muted-foreground/40">,</span>
+                      <span className="text-muted-foreground"> Cartão de Crédito</span>
+                    </>
+                  ) : null}
+                  {paymentConfig?.accepted_methods?.boleto ? (
+                    <>
+                      <span className="text-muted-foreground/40">,</span>
+                      <span className="text-muted-foreground"> Boleto Bancário</span>
+                    </>
+                  ) : null}
                   .
                 </p>
               </div>
 
               {/* Trust badges 3-up removidos — informação já consolidada na linha editorial do topo */}
 
-
               {/* Trust Badges horizontais removidos — consolidados na linha editorial do topo. */}
-
-
 
               {/* Tags Section — oculto quando dbProduct.tags já renderizou chips acima (zero redundância) */}
               {product.keywords && product.keywords.length > 0 && !(dbProduct?.tags && dbProduct.tags.length > 0) && (
@@ -905,8 +946,7 @@ const ProductPage = () => {
                   evitando sensação de mini-checkout repetido. */}
               {(() => {
                 const quickSummaryActive =
-                  resolvePrimaryAction(dbProduct).primary !== "cart" &&
-                  ctaConfig?.quickSummary?.enabled !== false;
+                  resolvePrimaryAction(dbProduct).primary !== "cart" && ctaConfig?.quickSummary?.enabled !== false;
                 if (quickSummaryActive) return null;
                 const { url } = buildWhatsAppMessage();
                 return (
@@ -929,7 +969,6 @@ const ProductPage = () => {
               })()}
             </div>
           </div>
-
 
           {/* Seções gerenciadas via /admin/pdp-sections (ordem + visibilidade).
               Wrapper aplica cadência editorial: hairline mobile entre módulos (a partir do 2º). */}
@@ -963,7 +1002,7 @@ const ProductPage = () => {
                 themes: semanticCtx.themes,
                 combinations: semanticCtx.combinations,
                 posts: semanticCtx.posts,
-              }
+              },
             )
               .filter((l) => !usedPaths.has(l.path))
               .slice(0, 8); // hard cap absoluto
@@ -1006,7 +1045,7 @@ const ProductPage = () => {
       <StickyAddToCart
         productName={product.name}
         productSlug={product.slug}
-        price={`R$ ${product.price.toFixed(2).replace('.', ',')}`}
+        price={`R$ ${product.price.toFixed(2).replace(".", ",")}`}
         isVisible={showStickyCta}
         onWhatsApp={() => openWhatsApp("sticky_cta")}
         onAddToCart={handleAddToCart}
@@ -1032,7 +1071,6 @@ const ProductPage = () => {
         cooldownMinutes={ctaConfig?.exitPopup?.cooldownMinutes}
         armDelayMs={ctaConfig?.exitPopup?.armDelayMs}
       />
-
     </div>
   );
 };
@@ -1051,9 +1089,10 @@ function ProductPdpFaq({
   categoryName?: string | null;
 }) {
   const { data: pf = [] } = useProductFaqs(productId);
-  const items = pf.length > 0
-    ? pf.map((f) => ({ question: f.question, answer: f.answer }))
-    : buildAutoFaq({ productName, productionDays, personalizationEnabled, categoryName });
+  const items =
+    pf.length > 0
+      ? pf.map((f) => ({ question: f.question, answer: f.answer }))
+      : buildAutoFaq({ productName, productionDays, personalizationEnabled, categoryName });
   return <ProductFAQ productName={productName} items={items} />;
 }
 
