@@ -80,7 +80,7 @@ const AdminProductForm = () => {
     description: '',
     long_description: '',
     price: '',
-    original_price: '',
+    promotional_price: '',
     min_quantity: '1',
     pix_discount: '7',
     production_days: '7',
@@ -144,8 +144,11 @@ const AdminProductForm = () => {
       slug: existingProduct.slug,
       description: existingProduct.description || '',
       long_description: existingProduct.long_description || '',
-      price: existingProduct.price.toString(),
-      original_price: existingProduct.original_price ? existingProduct.original_price.toString() : '',
+      // Inverte semântica para o admin: campo "Preço" = valor normal (de),
+      // campo "Preço promocional" = novo valor cobrado (por). No DB continuamos
+      // gravando price = cobrado e original_price = riscado.
+      price: (existingProduct.original_price ?? existingProduct.price).toString(),
+      promotional_price: existingProduct.original_price ? existingProduct.price.toString() : '',
       min_quantity: existingProduct.min_quantity.toString(),
       pix_discount: existingProduct.pix_discount.toString(),
       production_days: existingProduct.production_days.toString(),
@@ -301,10 +304,19 @@ const AdminProductForm = () => {
         slug: formData.slug,
         description: formData.description || null,
         long_description: formData.long_description || null,
-        price: parseFloat(formData.price),
-        original_price: formData.original_price && parseFloat(formData.original_price) > 0
-          ? parseFloat(formData.original_price)
-          : null,
+        // Mapeamento DB ⇄ UI:
+        // - UI "Preço" (de/normal) ⇒ se houver promocional válido, vai p/ original_price; senão vai p/ price.
+        // - UI "Preço promocional" (por/cobrado) ⇒ vira o price quando preenchido e menor que o normal.
+        price: (() => {
+          const normal = parseFloat(formData.price);
+          const promo = formData.promotional_price ? parseFloat(formData.promotional_price) : NaN;
+          return Number.isFinite(promo) && promo > 0 && promo < normal ? promo : normal;
+        })(),
+        original_price: (() => {
+          const normal = parseFloat(formData.price);
+          const promo = formData.promotional_price ? parseFloat(formData.promotional_price) : NaN;
+          return Number.isFinite(promo) && promo > 0 && promo < normal ? normal : null;
+        })(),
         min_quantity: parseInt(formData.min_quantity) || 1,
         pix_discount: parseInt(formData.pix_discount) || 7,
         production_days: parseInt(formData.production_days) || 7,
@@ -736,7 +748,7 @@ const AdminProductForm = () => {
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="price">Preço * <span className="text-xs text-muted-foreground font-normal">(por)</span></Label>
+                <Label htmlFor="price">Preço * <span className="text-xs text-muted-foreground font-normal">(de / normal)</span></Label>
                 <Input
                   id="price"
                   type="number"
@@ -748,20 +760,20 @@ const AdminProductForm = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="original_price">Preço promocional <span className="text-xs text-muted-foreground font-normal">(de)</span></Label>
+                <Label htmlFor="promotional_price">Preço promocional <span className="text-xs text-muted-foreground font-normal">(por)</span></Label>
                 <Input
-                  id="original_price"
+                  id="promotional_price"
                   type="number"
                   step="0.01"
-                  value={formData.original_price}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, original_price: e.target.value }))}
+                  value={formData.promotional_price}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, promotional_price: e.target.value }))}
                   placeholder="Opcional"
                 />
                 <p className="text-[11px] text-muted-foreground leading-tight">
-                  Preencha apenas se quiser mostrar o valor cheio riscado ao lado do preço final.
+                  Preencha para mostrar o "de/por": este passa a ser o valor cobrado e o normal aparece riscado.
                 </p>
-                {formData.original_price && parseFloat(formData.original_price) > 0 && parseFloat(formData.price) > 0 && parseFloat(formData.original_price) <= parseFloat(formData.price) && (
-                  <p className="text-[11px] text-destructive">O "de" precisa ser maior que o "por".</p>
+                {formData.promotional_price && parseFloat(formData.promotional_price) > 0 && parseFloat(formData.price) > 0 && parseFloat(formData.promotional_price) >= parseFloat(formData.price) && (
+                  <p className="text-[11px] text-destructive">O "por" precisa ser menor que o "de".</p>
                 )}
               </div>
               <div className="space-y-2">
