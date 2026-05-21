@@ -690,33 +690,12 @@ const ProductPage = () => {
                 </p>
               </div>
 
-              {/* Description */}
+              {/* Description (resumo) — o CTA WhatsApp foi movido para baixo da descrição completa (seção PDP). */}
               <p className="text-muted-foreground text-sm leading-relaxed mb-6">
                 {product.description ||
                   `Lembrancinha especial com sabonete artesanal. Perfeito para lembrancinhas de maternidade, batizado e eventos especiais.`}
               </p>
 
-              {/* WhatsApp CTA — posicionado logo abaixo da descrição em todos os modos. */}
-              {(() => {
-                const { url } = buildWhatsAppMessage();
-                return (
-                  <div ref={ctaAnchorRef} className="mb-6">
-                    <a
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        openWhatsApp("product_page");
-                      }}
-                      className="flex max-w-full items-center justify-center gap-3 p-4 bg-foreground/95 hover:bg-foreground text-background rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-300"
-                    >
-                      <MessageCircle className="h-6 w-6 shrink-0" />
-                      <span className="min-w-0 truncate">Fazer Orçamento no WhatsApp</span>
-                    </a>
-                  </div>
-                );
-              })()}
 
 
               {/* Personalization Field - only show if enabled */}
@@ -965,9 +944,30 @@ const ProductPage = () => {
                 className={idx > 0 ? "border-t border-border/40 pt-10 md:border-0 md:pt-0" : undefined}
               >
                 {node}
+                {s.section_key === "description" && (() => {
+                  const { url } = buildWhatsAppMessage();
+                  return (
+                    <div ref={ctaAnchorRef} className="mt-6 mb-10 max-w-3xl">
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          openWhatsApp("product_page");
+                        }}
+                        className="flex max-w-full items-center justify-center gap-3 p-4 bg-foreground/95 hover:bg-foreground text-background rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-300"
+                      >
+                        <MessageCircle className="h-6 w-6 shrink-0" />
+                        <span className="min-w-0 truncate">Fazer Orçamento no WhatsApp</span>
+                      </a>
+                    </div>
+                  );
+                })()}
               </div>
             );
           })}
+
 
           {/* Fase 11.1 — Linking semântico contextual (SAFE MODE) */}
           {(() => {
