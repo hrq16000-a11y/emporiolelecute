@@ -89,11 +89,17 @@ Deno.serve(async (req) => {
           // Subpasta: id é null
           if (!entry.id) {
             const sub = prefix ? `${prefix}/${entry.name}` : entry.name;
+            // Ignora completamente a pasta "defaults" (assets globais de UI)
+            if (sub === "defaults" || sub.startsWith("defaults/")) continue;
             await walk(sub);
             continue;
           }
           analyzed++;
           const fullPath = prefix ? `${prefix}/${entry.name}` : entry.name;
+
+          // Assets globais da pasta defaults/ nunca entram no GC
+          if (fullPath === "defaults" || fullPath.startsWith("defaults/")) continue;
+
           const createdAt = entry.created_at ? new Date(entry.created_at) : null;
           if (!createdAt || createdAt > cutoff) continue; // dentro da janela de segurança
 
