@@ -444,6 +444,11 @@ const App = () => {
                       <AdminCustomers />
                     </Suspense>
                   } />
+                  <Route path="lgpd/banner" element={
+                    <Suspense fallback={<AdminSkeleton />}>
+                      <AdminCookieConsent />
+                    </Suspense>
+                  } />
                   <Route path="produtos" element={
                     <Suspense fallback={<AdminSkeleton />}>
                       <AdminProducts />
