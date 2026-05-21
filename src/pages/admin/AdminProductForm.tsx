@@ -23,8 +23,8 @@ import {
   useDbOccasions,
   useSaveProductFull,
   type SaveProductError,
-  } from '@/hooks/useProducts';
 } from '@/hooks/useProducts';
+
 
 import { useTags } from '@/hooks/useTags';
 import { useSlugAvailability } from '@/hooks/useSlugAvailability';
