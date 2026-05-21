@@ -685,6 +685,26 @@ const Carrinho = () => {
                 </h2>
 
                 <div className="space-y-3 text-sm">
+                  {(() => {
+                    const originalTotal = items.reduce(
+                      (sum, it) => sum + (it.originalPrice && it.originalPrice > it.price ? it.originalPrice : it.price) * it.quantity,
+                      0
+                    );
+                    const savings = originalTotal - total;
+                    if (savings <= 0) return null;
+                    return (
+                      <>
+                        <div className="flex justify-between text-muted-foreground">
+                          <span>De</span>
+                          <span className="line-through">R$ {originalTotal.toFixed(2).replace('.', ',')}</span>
+                        </div>
+                        <div className="flex justify-between text-green-700 font-medium">
+                          <span>Você economiza</span>
+                          <span>- R$ {savings.toFixed(2).replace('.', ',')}</span>
+                        </div>
+                      </>
+                    );
+                  })()}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal ({items.length} {items.length === 1 ? 'item' : 'itens'})</span>
                     <span className="text-foreground">R$ {total.toFixed(2).replace('.', ',')}</span>
