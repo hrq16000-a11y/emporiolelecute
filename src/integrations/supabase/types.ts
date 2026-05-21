@@ -467,6 +467,57 @@ export type Database = {
         }
         Relationships: []
       }
+      cookie_consent_config: {
+        Row: {
+          accept_label: string
+          delay_ms: number
+          id: string
+          is_enabled: boolean
+          message: string
+          policy_label: string
+          policy_url: string
+          position: string
+          reject_label: string
+          show_icon: boolean
+          title: string
+          updated_at: string
+          updated_by: string | null
+          variant: string
+        }
+        Insert: {
+          accept_label?: string
+          delay_ms?: number
+          id?: string
+          is_enabled?: boolean
+          message?: string
+          policy_label?: string
+          policy_url?: string
+          position?: string
+          reject_label?: string
+          show_icon?: boolean
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          variant?: string
+        }
+        Update: {
+          accept_label?: string
+          delay_ms?: number
+          id?: string
+          is_enabled?: boolean
+          message?: string
+          policy_label?: string
+          policy_url?: string
+          position?: string
+          reject_label?: string
+          show_icon?: boolean
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          variant?: string
+        }
+        Relationships: []
+      }
       cookie_consents: {
         Row: {
           accepted: boolean
