@@ -414,6 +414,15 @@ function classifySaveError(raw: unknown): SaveProductError {
   else if (code === '23503') kind = 'fk_missing';
   else if (code === '42501') kind = 'forbidden';
   else if (code === '23514') kind = 'invalid';
+  else if (code === '23502') {
+    // NOT NULL violation — tipicamente categoria obrigatória ausente.
+    kind = 'invalid';
+    const err = new Error('Categoria obrigatória ausente.') as SaveProductError;
+    err.kind = kind;
+    err.code = code;
+    err.hint = hint;
+    return err;
+  }
   const err = new Error(msg) as SaveProductError;
   err.kind = kind;
   err.code = code;
