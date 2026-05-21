@@ -725,30 +725,78 @@ const AdminUsers = () => {
 
               <div className="mt-6 space-y-5">
                 <section className="space-y-2">
-                  <h3 className="text-xs uppercase text-muted-foreground font-medium">Perfil</h3>
-                  <div className="grid gap-2 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      {selectedUser.email_confirmed_at ? (
-                        <span className="inline-flex items-center gap-1 text-emerald-600">
-                          <CheckCircle2 className="h-3.5 w-3.5" /> E-mail confirmado
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-amber-600">
-                          <AlertCircle className="h-3.5 w-3.5" /> E-mail pendente de confirmação
-                        </span>
-                      )}
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs uppercase text-muted-foreground font-medium">Perfil</h3>
+                    <Badge variant="outline" className="text-[10px]">
+                      origem: {selectedUser.source}
+                    </Badge>
+                  </div>
+
+                  {/* Edição de nome (somente perfis autenticados) */}
+                  {selectedUser.source === "auth" ? (
+                    <div className="space-y-1">
+                      <Label htmlFor="edit-name" className="text-xs">Nome completo</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="edit-name"
+                          value={editingName !== "" ? editingName : (selectedUser.full_name || "")}
+                          onChange={(e) => setEditingName(e.target.value)}
+                          placeholder="Nome do usuário"
+                        />
+                        <Button
+                          size="sm"
+                          disabled={updateName.isPending || !editingName.trim() || editingName.trim() === (selectedUser.full_name || "")}
+                          onClick={() => updateName.mutate({ user_id: selectedUser.user_id, full_name: editingName.trim() }, {
+                            onSuccess: () => setEditingName(""),
+                          })}
+                        >
+                          Salvar
+                        </Button>
+                      </div>
                     </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      Contato sem login. Para editar dados, use o{" "}
+                      <Link to="/admin/clientes" className="text-primary underline">CRM de clientes</Link>.
+                    </p>
+                  )}
+
+                  <div className="grid gap-2 text-sm pt-2">
+                    {selectedUser.email && (
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        {selectedUser.source === "auth" ? (
+                          selectedUser.email_confirmed_at ? (
+                            <span className="inline-flex items-center gap-1 text-emerald-600">
+                              <CheckCircle2 className="h-3.5 w-3.5" /> E-mail confirmado
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-amber-600">
+                              <AlertCircle className="h-3.5 w-3.5" /> E-mail pendente de confirmação
+                            </span>
+                          )
+                        ) : (
+                          <span className="text-muted-foreground break-all">{selectedUser.email}</span>
+                        )}
+                      </div>
+                    )}
+                    {selectedUser.whatsapp && (
+                      <div className="text-muted-foreground text-sm">
+                        WhatsApp: <strong className="text-foreground">{selectedUser.whatsapp}</strong>
+                      </div>
+                    )}
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Calendar className="h-4 w-4" />
                       Cadastro: {format(new Date(selectedUser.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                     </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <LogIn className="h-4 w-4" />
-                      Último login: {selectedUser.last_sign_in_at
-                        ? format(new Date(selectedUser.last_sign_in_at), "dd/MM/yyyy HH:mm", { locale: ptBR })
-                        : "nunca"}
-                    </div>
+                    {selectedUser.source === "auth" && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <LogIn className="h-4 w-4" />
+                        Último login: {selectedUser.last_sign_in_at
+                          ? format(new Date(selectedUser.last_sign_in_at), "dd/MM/yyyy HH:mm", { locale: ptBR })
+                          : "nunca"}
+                      </div>
+                    )}
                   </div>
                 </section>
 
