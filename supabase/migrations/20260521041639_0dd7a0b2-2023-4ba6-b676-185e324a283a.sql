@@ -1,0 +1,1 @@
+ALTER VIEW public.customer_overview SET (security_invoker = on);
