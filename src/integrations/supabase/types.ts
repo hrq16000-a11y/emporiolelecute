@@ -467,6 +467,36 @@ export type Database = {
         }
         Relationships: []
       }
+      cookie_consents: {
+        Row: {
+          accepted: boolean
+          categories: Json
+          created_at: string
+          id: string
+          ip: unknown
+          user_agent: string | null
+          visitor_id: string
+        }
+        Insert: {
+          accepted: boolean
+          categories?: Json
+          created_at?: string
+          id?: string
+          ip?: unknown
+          user_agent?: string | null
+          visitor_id: string
+        }
+        Update: {
+          accepted?: boolean
+          categories?: Json
+          created_at?: string
+          id?: string
+          ip?: unknown
+          user_agent?: string | null
+          visitor_id?: string
+        }
+        Relationships: []
+      }
       coupon_uses: {
         Row: {
           coupon_id: string
@@ -554,6 +584,57 @@ export type Database = {
           used_count?: number
           valid_from?: string | null
           valid_until?: string | null
+        }
+        Relationships: []
+      }
+      customers: {
+        Row: {
+          city: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          source: string | null
+          state: string | null
+          status: string
+          tags: string[] | null
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          source?: string | null
+          state?: string | null
+          status?: string
+          tags?: string[] | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          source?: string | null
+          state?: string | null
+          status?: string
+          tags?: string[] | null
+          updated_at?: string
+          whatsapp?: string | null
         }
         Relationships: []
       }
@@ -5972,6 +6053,300 @@ export type Database = {
         }
         Relationships: []
       }
+      visitor_pageviews: {
+        Row: {
+          id: string
+          path: string
+          product_id: string | null
+          referrer: string | null
+          scroll_depth_pct: number | null
+          session_id: string | null
+          time_on_page_seconds: number
+          title: string | null
+          viewed_at: string
+          visitor_id: string
+        }
+        Insert: {
+          id?: string
+          path: string
+          product_id?: string | null
+          referrer?: string | null
+          scroll_depth_pct?: number | null
+          session_id?: string | null
+          time_on_page_seconds?: number
+          title?: string | null
+          viewed_at?: string
+          visitor_id: string
+        }
+        Update: {
+          id?: string
+          path?: string
+          product_id?: string | null
+          referrer?: string | null
+          scroll_depth_pct?: number | null
+          session_id?: string | null
+          time_on_page_seconds?: number
+          title?: string | null
+          viewed_at?: string
+          visitor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visitor_pageviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visitor_pageviews_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "visitor_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visitor_pageviews_visitor_id_fkey"
+            columns: ["visitor_id"]
+            isOneToOne: false
+            referencedRelation: "visitors"
+            referencedColumns: ["visitor_id"]
+          },
+        ]
+      }
+      visitor_sessions: {
+        Row: {
+          created_at: string
+          duration_seconds: number
+          ended_at: string | null
+          id: string
+          ip: unknown
+          landing_path: string | null
+          pages_count: number
+          referrer: string | null
+          started_at: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          visitor_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number
+          ended_at?: string | null
+          id?: string
+          ip?: unknown
+          landing_path?: string | null
+          pages_count?: number
+          referrer?: string | null
+          started_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          visitor_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number
+          ended_at?: string | null
+          id?: string
+          ip?: unknown
+          landing_path?: string | null
+          pages_count?: number
+          referrer?: string | null
+          started_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          visitor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visitor_sessions_visitor_id_fkey"
+            columns: ["visitor_id"]
+            isOneToOne: false
+            referencedRelation: "visitors"
+            referencedColumns: ["visitor_id"]
+          },
+        ]
+      }
+      visitors: {
+        Row: {
+          browser_name: string | null
+          browser_version: string | null
+          color_depth: number | null
+          consent_at: string | null
+          consent_status: string
+          created_at: string
+          customer_id: string | null
+          device_brand: string | null
+          device_model: string | null
+          device_type: string | null
+          first_landing_path: string | null
+          first_referrer: string | null
+          first_seen_at: string
+          gps_accuracy: number | null
+          gps_captured_at: string | null
+          gps_lat: number | null
+          gps_lon: number | null
+          id: string
+          ip: unknown
+          ip_asn: string | null
+          ip_city: string | null
+          ip_country: string | null
+          ip_isp: string | null
+          ip_lat: number | null
+          ip_lon: number | null
+          ip_region: string | null
+          ip_timezone: string | null
+          language: string | null
+          languages: string[] | null
+          last_seen_at: string
+          os_name: string | null
+          os_version: string | null
+          pixel_ratio: number | null
+          screen_h: number | null
+          screen_w: number | null
+          timezone: string | null
+          total_pageviews: number
+          total_sessions: number
+          total_time_seconds: number
+          touch_support: boolean | null
+          updated_at: string
+          user_agent: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+          viewport_h: number | null
+          viewport_w: number | null
+          visitor_id: string
+          whatsapp_phone: string | null
+        }
+        Insert: {
+          browser_name?: string | null
+          browser_version?: string | null
+          color_depth?: number | null
+          consent_at?: string | null
+          consent_status?: string
+          created_at?: string
+          customer_id?: string | null
+          device_brand?: string | null
+          device_model?: string | null
+          device_type?: string | null
+          first_landing_path?: string | null
+          first_referrer?: string | null
+          first_seen_at?: string
+          gps_accuracy?: number | null
+          gps_captured_at?: string | null
+          gps_lat?: number | null
+          gps_lon?: number | null
+          id?: string
+          ip?: unknown
+          ip_asn?: string | null
+          ip_city?: string | null
+          ip_country?: string | null
+          ip_isp?: string | null
+          ip_lat?: number | null
+          ip_lon?: number | null
+          ip_region?: string | null
+          ip_timezone?: string | null
+          language?: string | null
+          languages?: string[] | null
+          last_seen_at?: string
+          os_name?: string | null
+          os_version?: string | null
+          pixel_ratio?: number | null
+          screen_h?: number | null
+          screen_w?: number | null
+          timezone?: string | null
+          total_pageviews?: number
+          total_sessions?: number
+          total_time_seconds?: number
+          touch_support?: boolean | null
+          updated_at?: string
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          viewport_h?: number | null
+          viewport_w?: number | null
+          visitor_id: string
+          whatsapp_phone?: string | null
+        }
+        Update: {
+          browser_name?: string | null
+          browser_version?: string | null
+          color_depth?: number | null
+          consent_at?: string | null
+          consent_status?: string
+          created_at?: string
+          customer_id?: string | null
+          device_brand?: string | null
+          device_model?: string | null
+          device_type?: string | null
+          first_landing_path?: string | null
+          first_referrer?: string | null
+          first_seen_at?: string
+          gps_accuracy?: number | null
+          gps_captured_at?: string | null
+          gps_lat?: number | null
+          gps_lon?: number | null
+          id?: string
+          ip?: unknown
+          ip_asn?: string | null
+          ip_city?: string | null
+          ip_country?: string | null
+          ip_isp?: string | null
+          ip_lat?: number | null
+          ip_lon?: number | null
+          ip_region?: string | null
+          ip_timezone?: string | null
+          language?: string | null
+          languages?: string[] | null
+          last_seen_at?: string
+          os_name?: string | null
+          os_version?: string | null
+          pixel_ratio?: number | null
+          screen_h?: number | null
+          screen_w?: number | null
+          timezone?: string | null
+          total_pageviews?: number
+          total_sessions?: number
+          total_time_seconds?: number
+          touch_support?: boolean | null
+          updated_at?: string
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          viewport_h?: number | null
+          viewport_w?: number | null
+          visitor_id?: string
+          whatsapp_phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visitors_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visitors_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       admin_audit_timeline: {
@@ -5985,6 +6360,29 @@ export type Database = {
           status: string | null
           target_email: string | null
           target_user_id: string | null
+        }
+        Relationships: []
+      }
+      customer_overview: {
+        Row: {
+          city: string | null
+          created_at: string | null
+          email: string | null
+          id: string | null
+          last_order_at: string | null
+          last_seen_at: string | null
+          name: string | null
+          notes: string | null
+          phone: string | null
+          source: string | null
+          state: string | null
+          status: string | null
+          tags: string[] | null
+          total_orders: number | null
+          total_spent: number | null
+          updated_at: string | null
+          visit_count: number | null
+          whatsapp: string | null
         }
         Relationships: []
       }
