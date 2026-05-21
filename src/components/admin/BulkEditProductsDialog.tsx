@@ -63,16 +63,25 @@ const BulkEditProductsDialog = ({ open, onOpenChange, selectedIds, onDone }: Pro
   const [useKeywords, setUseKeywords] = useState(false);
   const [keywords, setKeywords] = useState('');
 
+  type TagMode = 'add' | 'remove' | 'replace';
+  const [useTagsField, setUseTagsField] = useState(false);
+  const [tagMode, setTagMode] = useState<TagMode>('add');
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const toggleTagId = (id: string) =>
+    setSelectedTagIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+
   const [busy, setBusy] = useState(false);
 
   const reset = () => {
     setUseCategory(false); setUseProductionDays(false); setUseMinQuantity(false);
     setUsePixDiscount(false); setUseBadge(false); setUsePrice(false); setUseKeywords(false);
+    setUseTagsField(false); setSelectedTagIds([]); setTagMode('add');
   };
 
   const anyChecked =
     useCategory || useProductionDays || useMinQuantity || usePixDiscount ||
-    useBadge || usePrice || useKeywords;
+    useBadge || usePrice || useKeywords || useTagsField;
+
 
   const handleApply = async () => {
     if (!anyChecked || selectedIds.length === 0) return;
