@@ -5,13 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Users, UserPlus, Search, Calendar, Edit, Trash2,
   Eye, Globe, Smartphone, Monitor, Tablet, Bot, ShieldCheck,
-  ChevronLeft, ChevronRight, X,
+  ChevronLeft, ChevronRight, X, ArrowUpDown,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -26,6 +27,20 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { VisitorFilters, applyVisitorFilters, defaultFilters, type VisitorFilterState, type DatePreset, type DeviceFilter } from "@/components/admin/customers/VisitorFilters";
 import { VisitorCard } from "@/components/admin/customers/VisitorCard";
 import { CustomerCard } from "@/components/admin/customers/CustomerCard";
+
+// ============ Ordenação (Visitantes) ============
+type VisitorSort = "last_seen" | "time" | "pageviews";
+const SORT_COLUMN: Record<VisitorSort, string> = {
+  last_seen: "last_seen_at",
+  time: "total_time_seconds",
+  pageviews: "total_pageviews",
+};
+const SORT_LABEL: Record<VisitorSort, string> = {
+  last_seen: "Últimos vistos",
+  time: "Maior tempo no site",
+  pageviews: "Mais pageviews",
+};
+
 
 // ============ Types ============
 interface CustomerRow {
