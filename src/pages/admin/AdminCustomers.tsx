@@ -493,10 +493,30 @@ const AdminCustomers = () => {
         </div>
 
         {tab === "visitors" && (
-          <div className="mb-4 p-3 bg-muted/30 rounded-lg border border-border">
+          <div className="mb-4 p-3 bg-muted/30 rounded-lg border border-border space-y-3">
             <VisitorFilters value={visitorFilters} onChange={setVisitorFilters} osOptions={osOptions} />
+            <div className="flex items-center gap-2">
+              <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Ordenar por:</span>
+              <Select value={sort} onValueChange={(v) => setSort(v as VisitorSort)}>
+                <SelectTrigger className="h-8 w-auto min-w-[180px] text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(SORT_LABEL) as VisitorSort[]).map((k) => (
+                    <SelectItem key={k} value={k}>{SORT_LABEL[k]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {hourFilterActive && (
+                <span className="text-[11px] text-muted-foreground ml-auto">
+                  Filtro de hora ativo — janela de até 1.000 registros.
+                </span>
+              )}
+            </div>
           </div>
         )}
+
 
         {/* ============ CUSTOMERS ============ */}
         <TabsContent value="customers">
