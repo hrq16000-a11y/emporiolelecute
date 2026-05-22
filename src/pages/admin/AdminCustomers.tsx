@@ -521,7 +521,8 @@ const AdminCustomers = () => {
         {/* ============ CUSTOMERS ============ */}
         <TabsContent value="customers">
           {customersQ.isLoading ? (
-            <div className="py-16 text-center text-muted-foreground">Carregando…</div>
+            isMobile ? <MobileCardsSkeleton /> : <div className="py-16 text-center text-muted-foreground">Carregando…</div>
+
           ) : filteredCustomers.length === 0 ? (
             <EmptyState icon={Users} text="Nenhum cliente cadastrado." />
           ) : isMobile ? (
