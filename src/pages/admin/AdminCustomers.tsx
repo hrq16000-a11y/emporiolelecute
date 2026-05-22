@@ -469,7 +469,7 @@ const AdminCustomers = () => {
             Clientes ({customersQ.data?.length ?? 0})
           </TabsTrigger>
           <TabsTrigger value="visitors">
-            Visitantes ({visitorsQ.data?.length ?? "—"})
+            Visitantes ({tab === "visitors" ? totalVisitors : "—"})
           </TabsTrigger>
         </TabsList>
 
