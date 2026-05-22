@@ -396,31 +396,30 @@ const AdminCustomers = () => {
       c.city?.toLowerCase().includes(s));
   }, [customersQ.data, search]);
 
-  const osOptions = useMemo(() => {
-    const set = new Set<string>();
-    (visitorsQ.data || []).forEach((v) => v.os_name && set.add(v.os_name));
-    return Array.from(set).sort();
-  }, [visitorsQ.data]);
+  const osOptions = osOptionsQ.data || [];
+
+  // Filtragem local apenas para faixa horária (e re-aplicação completa fallback).
+  const visitorRowsRaw = visitorsQ.data?.rows || [];
+  const totalCountRaw = visitorsQ.data?.totalCount || 0;
 
   const filteredVisitors = useMemo(() => {
-    const s = search.toLowerCase();
-    const base = (visitorsQ.data || []).filter((v) => !s ||
-      v.visitor_id.toLowerCase().includes(s) ||
-      v.ip?.toLowerCase().includes(s) ||
-      v.ip_city?.toLowerCase().includes(s) ||
-      v.ip_country?.toLowerCase().includes(s) ||
-      v.device_model?.toLowerCase().includes(s) ||
-      v.os_name?.toLowerCase().includes(s));
-    return applyVisitorFilters(base, visitorFilters);
-  }, [visitorsQ.data, search, visitorFilters]);
+    if (!hourFilterActive) return visitorRowsRaw;
+    return applyVisitorFilters(visitorRowsRaw, visitorFilters);
+  }, [visitorRowsRaw, hourFilterActive, visitorFilters]);
 
   // ====== Pagination ======
-  const activeList = tab === "customers" ? filteredCustomers : filteredVisitors;
-  const totalPages = Math.max(1, Math.ceil(activeList.length / perPage));
+  const totalCustomers = filteredCustomers.length;
+  const totalVisitors = hourFilterActive ? filteredVisitors.length : totalCountRaw;
+  const totalForActive = tab === "customers" ? totalCustomers : totalVisitors;
+  const totalPages = Math.max(1, Math.ceil(totalForActive / perPage));
   const safePage = Math.min(page, totalPages);
   const startIdx = (safePage - 1) * perPage;
   const pagedCustomers = filteredCustomers.slice(startIdx, startIdx + perPage);
-  const pagedVisitors = filteredVisitors.slice(startIdx, startIdx + perPage);
+  // Quando paginação é server-side, rows já vêm paginadas; se hour filter, fatiamos local.
+  const pagedVisitors = hourFilterActive
+    ? filteredVisitors.slice(startIdx, startIdx + perPage)
+    : filteredVisitors;
+
 
   const handleInvite = async (c: CustomerRow) => {
     if (!c.email) return;
