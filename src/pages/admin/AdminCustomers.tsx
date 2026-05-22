@@ -161,6 +161,10 @@ const AdminCustomers = () => {
     os: searchParams.get("os") || defaultFilters.os,
   }), [searchParams]);
 
+  const sort: VisitorSort = (["last_seen", "time", "pageviews"].includes(searchParams.get("sort") || "")
+    ? (searchParams.get("sort") as VisitorSort)
+    : "last_seen");
+
   const patchParams = (patch: Record<string, string | number | null>) => {
     const next = new URLSearchParams(searchParams);
     for (const [k, v] of Object.entries(patch)) {
@@ -174,6 +178,7 @@ const AdminCustomers = () => {
   const setSearch = (v: string) => patchParams({ q: v || null, page: null });
   const setPage = (n: number) => patchParams({ page: n <= 1 ? null : n });
   const setPerPage = (n: PageSize) => patchParams({ per: n === 25 ? null : n, page: null });
+  const setSort = (s: VisitorSort) => patchParams({ sort: s === "last_seen" ? null : s, page: null });
   const setVisitorFilters = (f: VisitorFilterState) => patchParams({
     dp: f.datePreset === "all" ? null : f.datePreset,
     df: f.dateFrom,
@@ -184,6 +189,7 @@ const AdminCustomers = () => {
     os: f.os === "all" ? null : f.os,
     page: null,
   });
+
 
   // ============ Estado UI (não persiste) ============
   const [editing, setEditing] = useState<CustomerRow | null>(null);
