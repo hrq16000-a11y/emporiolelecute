@@ -1,12 +1,42 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+
+const supabaseAdmin = createClient(
+  Deno.env.get("SUPABASE_URL") ?? "",
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// --- Simple in-memory per-IP rate limiter (best-effort, per warm instance) ---
+const rateBucket = new Map<string, { count: number; reset: number }>();
+function rateLimit(ip: string, max = 5, windowMs = 60_000): boolean {
+  const now = Date.now();
+  const entry = rateBucket.get(ip);
+  if (!entry || entry.reset < now) {
+    rateBucket.set(ip, { count: 1, reset: now + windowMs });
+    return true;
+  }
+  if (entry.count >= max) return false;
+  entry.count += 1;
+  return true;
+}
+function clientIp(req: Request): string {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    req.headers.get("cf-connecting-ip") ||
+    "unknown"
+  );
+}
+function isValidEmail(s: unknown): s is string {
+  return typeof s === "string" && s.length <= 320 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+}
 
 interface OrderItem {
   name: string;
