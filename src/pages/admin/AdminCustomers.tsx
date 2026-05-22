@@ -596,10 +596,11 @@ const AdminCustomers = () => {
               </div>
             </div>
           )}
-          {filteredCustomers.length > 0 && (
+          {!customersQ.isLoading && filteredCustomers.length > 0 && (
             <Pagination
               page={safePage} totalPages={totalPages} perPage={perPage}
-              total={filteredCustomers.length}
+              total={totalCustomers}
+
               onPage={setPage} onPerPage={setPerPage}
             />
           )}
