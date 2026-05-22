@@ -609,7 +609,8 @@ const AdminCustomers = () => {
         {/* ============ VISITORS ============ */}
         <TabsContent value="visitors">
           {visitorsQ.isLoading ? (
-            <div className="py-16 text-center text-muted-foreground">Carregando…</div>
+            isMobile ? <MobileCardsSkeleton /> : <div className="py-16 text-center text-muted-foreground">Carregando…</div>
+
           ) : filteredVisitors.length === 0 ? (
             <EmptyState icon={Globe} text="Nenhum visitante encontrado com os filtros atuais." />
           ) : isMobile ? (
