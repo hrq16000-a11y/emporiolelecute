@@ -5,13 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Users, UserPlus, Search, Calendar, Edit, Trash2,
   Eye, Globe, Smartphone, Monitor, Tablet, Bot, ShieldCheck,
-  ChevronLeft, ChevronRight, X,
+  ChevronLeft, ChevronRight, X, ArrowUpDown,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -26,6 +27,20 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { VisitorFilters, applyVisitorFilters, defaultFilters, type VisitorFilterState, type DatePreset, type DeviceFilter } from "@/components/admin/customers/VisitorFilters";
 import { VisitorCard } from "@/components/admin/customers/VisitorCard";
 import { CustomerCard } from "@/components/admin/customers/CustomerCard";
+
+// ============ Ordenação (Visitantes) ============
+type VisitorSort = "last_seen" | "time" | "pageviews";
+const SORT_COLUMN: Record<VisitorSort, string> = {
+  last_seen: "last_seen_at",
+  time: "total_time_seconds",
+  pageviews: "total_pageviews",
+};
+const SORT_LABEL: Record<VisitorSort, string> = {
+  last_seen: "Últimos vistos",
+  time: "Maior tempo no site",
+  pageviews: "Mais pageviews",
+};
+
 
 // ============ Types ============
 interface CustomerRow {
@@ -146,6 +161,10 @@ const AdminCustomers = () => {
     os: searchParams.get("os") || defaultFilters.os,
   }), [searchParams]);
 
+  const sort: VisitorSort = (["last_seen", "time", "pageviews"].includes(searchParams.get("sort") || "")
+    ? (searchParams.get("sort") as VisitorSort)
+    : "last_seen");
+
   const patchParams = (patch: Record<string, string | number | null>) => {
     const next = new URLSearchParams(searchParams);
     for (const [k, v] of Object.entries(patch)) {
@@ -159,6 +178,7 @@ const AdminCustomers = () => {
   const setSearch = (v: string) => patchParams({ q: v || null, page: null });
   const setPage = (n: number) => patchParams({ page: n <= 1 ? null : n });
   const setPerPage = (n: PageSize) => patchParams({ per: n === 25 ? null : n, page: null });
+  const setSort = (s: VisitorSort) => patchParams({ sort: s === "last_seen" ? null : s, page: null });
   const setVisitorFilters = (f: VisitorFilterState) => patchParams({
     dp: f.datePreset === "all" ? null : f.datePreset,
     df: f.dateFrom,
@@ -169,6 +189,7 @@ const AdminCustomers = () => {
     os: f.os === "all" ? null : f.os,
     page: null,
   });
+
 
   // ============ Estado UI (não persiste) ============
   const [editing, setEditing] = useState<CustomerRow | null>(null);
@@ -190,19 +211,87 @@ const AdminCustomers = () => {
     },
   });
 
+  // Faixa horária é o único filtro que não dá pra empurrar pro PostgREST de forma simples;
+  // quando estiver ativo, caímos no modo "janela + filtro local" pra manter consistência.
+  const hourFilterActive = visitorFilters.hourFrom !== 0 || visitorFilters.hourTo !== 23;
+  const sortColumn = SORT_COLUMN[sort];
+
+  // Range de datas derivado do preset (server-side).
+  const dateRange = useMemo(() => {
+    const now = new Date();
+    const f = visitorFilters;
+    let from: Date | null = null;
+    let to: Date | null = null;
+    if (f.datePreset === "today") {
+      from = new Date(now); from.setHours(0, 0, 0, 0);
+      to = new Date(now); to.setHours(23, 59, 59, 999);
+    } else if (f.datePreset === "yesterday") {
+      from = new Date(now); from.setDate(from.getDate() - 1); from.setHours(0, 0, 0, 0);
+      to = new Date(from); to.setHours(23, 59, 59, 999);
+    } else if (f.datePreset === "7d") {
+      from = new Date(now); from.setDate(from.getDate() - 7);
+    } else if (f.datePreset === "30d") {
+      from = new Date(now); from.setDate(from.getDate() - 30);
+    } else if (f.datePreset === "custom" && f.dateFrom && f.dateTo) {
+      from = new Date(f.dateFrom + "T00:00:00");
+      to = new Date(f.dateTo + "T23:59:59");
+    }
+    return { from, to };
+  }, [visitorFilters]);
+
   const visitorsQ = useQuery({
-    queryKey: ["admin-visitors"],
+    queryKey: ["admin-visitors", { search, page, perPage, sort, hourFilterActive, visitorFilters }],
+    queryFn: async () => {
+      let q = supabase
+        .from("visitors")
+        .select("*", { count: "exact" })
+        .order(sortColumn, { ascending: false, nullsFirst: false });
+
+      if (dateRange.from) q = q.gte("last_seen_at", dateRange.from.toISOString());
+      if (dateRange.to) q = q.lte("last_seen_at", dateRange.to.toISOString());
+      if (visitorFilters.device !== "all") q = q.eq("device_type", visitorFilters.device);
+      if (visitorFilters.os !== "all") q = q.eq("os_name", visitorFilters.os);
+      if (search) {
+        const term = `%${search}%`;
+        q = q.or(
+          `visitor_id.ilike.${term},ip_city.ilike.${term},ip_country.ilike.${term},device_model.ilike.${term},os_name.ilike.${term}`
+        );
+      }
+
+      if (!hourFilterActive) {
+        const from = (page - 1) * perPage;
+        q = q.range(from, from + perPage - 1);
+      } else {
+        // janela maior pra filtrar localmente sem perder muitos registros
+        q = q.limit(1000);
+      }
+
+      const { data, error, count } = await q;
+      if (error) throw error;
+      return { rows: (data || []) as VisitorRow[], totalCount: count ?? (data?.length || 0) };
+    },
+    enabled: tab === "visitors",
+    placeholderData: (prev) => prev,
+  });
+
+  // Lista distinta de OS pra alimentar o filtro (sem depender da página atual).
+  const osOptionsQ = useQuery({
+    queryKey: ["admin-visitors-os-options"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("visitors")
-        .select("*")
-        .order("last_seen_at", { ascending: false })
-        .limit(500);
+        .select("os_name")
+        .not("os_name", "is", null)
+        .limit(1000);
       if (error) throw error;
-      return (data || []) as VisitorRow[];
+      const set = new Set<string>();
+      (data || []).forEach((v: { os_name: string | null }) => v.os_name && set.add(v.os_name));
+      return Array.from(set).sort();
     },
     enabled: tab === "visitors",
+    staleTime: 5 * 60 * 1000,
   });
+
 
   const pageviewsQ = useQuery({
     queryKey: ["visitor-pageviews", viewVisitor?.visitor_id],
@@ -307,31 +396,30 @@ const AdminCustomers = () => {
       c.city?.toLowerCase().includes(s));
   }, [customersQ.data, search]);
 
-  const osOptions = useMemo(() => {
-    const set = new Set<string>();
-    (visitorsQ.data || []).forEach((v) => v.os_name && set.add(v.os_name));
-    return Array.from(set).sort();
-  }, [visitorsQ.data]);
+  const osOptions = osOptionsQ.data || [];
+
+  // Filtragem local apenas para faixa horária (e re-aplicação completa fallback).
+  const visitorRowsRaw = visitorsQ.data?.rows || [];
+  const totalCountRaw = visitorsQ.data?.totalCount || 0;
 
   const filteredVisitors = useMemo(() => {
-    const s = search.toLowerCase();
-    const base = (visitorsQ.data || []).filter((v) => !s ||
-      v.visitor_id.toLowerCase().includes(s) ||
-      v.ip?.toLowerCase().includes(s) ||
-      v.ip_city?.toLowerCase().includes(s) ||
-      v.ip_country?.toLowerCase().includes(s) ||
-      v.device_model?.toLowerCase().includes(s) ||
-      v.os_name?.toLowerCase().includes(s));
-    return applyVisitorFilters(base, visitorFilters);
-  }, [visitorsQ.data, search, visitorFilters]);
+    if (!hourFilterActive) return visitorRowsRaw;
+    return applyVisitorFilters(visitorRowsRaw, visitorFilters);
+  }, [visitorRowsRaw, hourFilterActive, visitorFilters]);
 
   // ====== Pagination ======
-  const activeList = tab === "customers" ? filteredCustomers : filteredVisitors;
-  const totalPages = Math.max(1, Math.ceil(activeList.length / perPage));
+  const totalCustomers = filteredCustomers.length;
+  const totalVisitors = hourFilterActive ? filteredVisitors.length : totalCountRaw;
+  const totalForActive = tab === "customers" ? totalCustomers : totalVisitors;
+  const totalPages = Math.max(1, Math.ceil(totalForActive / perPage));
   const safePage = Math.min(page, totalPages);
   const startIdx = (safePage - 1) * perPage;
   const pagedCustomers = filteredCustomers.slice(startIdx, startIdx + perPage);
-  const pagedVisitors = filteredVisitors.slice(startIdx, startIdx + perPage);
+  // Quando paginação é server-side, rows já vêm paginadas; se hour filter, fatiamos local.
+  const pagedVisitors = hourFilterActive
+    ? filteredVisitors.slice(startIdx, startIdx + perPage)
+    : filteredVisitors;
+
 
   const handleInvite = async (c: CustomerRow) => {
     if (!c.email) return;
@@ -381,7 +469,7 @@ const AdminCustomers = () => {
             Clientes ({customersQ.data?.length ?? 0})
           </TabsTrigger>
           <TabsTrigger value="visitors">
-            Visitantes ({visitorsQ.data?.length ?? "—"})
+            Visitantes ({tab === "visitors" ? totalVisitors : "—"})
           </TabsTrigger>
         </TabsList>
 
@@ -405,15 +493,36 @@ const AdminCustomers = () => {
         </div>
 
         {tab === "visitors" && (
-          <div className="mb-4 p-3 bg-muted/30 rounded-lg border border-border">
+          <div className="mb-4 p-3 bg-muted/30 rounded-lg border border-border space-y-3">
             <VisitorFilters value={visitorFilters} onChange={setVisitorFilters} osOptions={osOptions} />
+            <div className="flex items-center gap-2">
+              <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Ordenar por:</span>
+              <Select value={sort} onValueChange={(v) => setSort(v as VisitorSort)}>
+                <SelectTrigger className="h-8 w-auto min-w-[180px] text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(SORT_LABEL) as VisitorSort[]).map((k) => (
+                    <SelectItem key={k} value={k}>{SORT_LABEL[k]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {hourFilterActive && (
+                <span className="text-[11px] text-muted-foreground ml-auto">
+                  Filtro de hora ativo — janela de até 1.000 registros.
+                </span>
+              )}
+            </div>
           </div>
         )}
+
 
         {/* ============ CUSTOMERS ============ */}
         <TabsContent value="customers">
           {customersQ.isLoading ? (
-            <div className="py-16 text-center text-muted-foreground">Carregando…</div>
+            isMobile ? <MobileCardsSkeleton /> : <div className="py-16 text-center text-muted-foreground">Carregando…</div>
+
           ) : filteredCustomers.length === 0 ? (
             <EmptyState icon={Users} text="Nenhum cliente cadastrado." />
           ) : isMobile ? (
@@ -487,10 +596,11 @@ const AdminCustomers = () => {
               </div>
             </div>
           )}
-          {filteredCustomers.length > 0 && (
+          {!customersQ.isLoading && filteredCustomers.length > 0 && (
             <Pagination
               page={safePage} totalPages={totalPages} perPage={perPage}
-              total={filteredCustomers.length}
+              total={totalCustomers}
+
               onPage={setPage} onPerPage={setPerPage}
             />
           )}
@@ -499,7 +609,8 @@ const AdminCustomers = () => {
         {/* ============ VISITORS ============ */}
         <TabsContent value="visitors">
           {visitorsQ.isLoading ? (
-            <div className="py-16 text-center text-muted-foreground">Carregando…</div>
+            isMobile ? <MobileCardsSkeleton /> : <div className="py-16 text-center text-muted-foreground">Carregando…</div>
+
           ) : filteredVisitors.length === 0 ? (
             <EmptyState icon={Globe} text="Nenhum visitante encontrado com os filtros atuais." />
           ) : isMobile ? (
@@ -572,10 +683,11 @@ const AdminCustomers = () => {
               </div>
             </div>
           )}
-          {filteredVisitors.length > 0 && (
+          {!visitorsQ.isLoading && filteredVisitors.length > 0 && (
             <Pagination
               page={safePage} totalPages={totalPages} perPage={perPage}
-              total={filteredVisitors.length}
+              total={totalVisitors}
+
               onPage={setPage} onPerPage={setPerPage}
             />
           )}
@@ -727,7 +839,26 @@ const AdminCustomers = () => {
   );
 };
 
+const MobileCardsSkeleton = () => (
+  <div className="grid grid-cols-1 gap-3" aria-busy="true" aria-label="Carregando">
+    {Array.from({ length: 4 }).map((_, i) => (
+      <div key={i} className="p-4 rounded-xl border border-border bg-card space-y-3">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-9 w-9 rounded-full" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-2/3" />
+            <Skeleton className="h-3 w-1/3" />
+          </div>
+        </div>
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-3 w-4/5" />
+      </div>
+    ))}
+  </div>
+);
+
 const EmptyState = ({ icon: Icon, text }: { icon: typeof Users; text: string }) => (
+
   <div className="text-center py-16 bg-card rounded-xl border border-border">
     <Icon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
     <p className="text-muted-foreground">{text}</p>
