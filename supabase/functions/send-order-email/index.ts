@@ -1,12 +1,42 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+
+const supabaseAdmin = createClient(
+  Deno.env.get("SUPABASE_URL") ?? "",
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// --- Simple in-memory per-IP rate limiter (best-effort, per warm instance) ---
+const rateBucket = new Map<string, { count: number; reset: number }>();
+function rateLimit(ip: string, max = 5, windowMs = 60_000): boolean {
+  const now = Date.now();
+  const entry = rateBucket.get(ip);
+  if (!entry || entry.reset < now) {
+    rateBucket.set(ip, { count: 1, reset: now + windowMs });
+    return true;
+  }
+  if (entry.count >= max) return false;
+  entry.count += 1;
+  return true;
+}
+function clientIp(req: Request): string {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    req.headers.get("cf-connecting-ip") ||
+    "unknown"
+  );
+}
+function isValidEmail(s: unknown): s is string {
+  return typeof s === "string" && s.length <= 320 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+}
 
 interface OrderItem {
   name: string;
@@ -511,107 +541,159 @@ function generateStatusUpdateEmailHtml(data: StatusUpdateRequest): string {
   `;
 }
 
+const STORE_INBOX = "emporiolelecute@gmail.com";
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const requestData = await req.json();
-    
-    // Check if it's a status update
-    if (requestData.type === 'status_update') {
-      const statusData = requestData as StatusUpdateRequest;
-      
-      console.log("Processing status update:", statusData.orderCode, statusData.newStatus);
+  // Rate-limit anonymous/public invocations per IP
+  const ip = clientIp(req);
+  if (!rateLimit(ip)) {
+    return new Response(JSON.stringify({ success: false, error: "Too many requests" }), {
+      status: 429,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+  }
 
+  try {
+    const requestData = await req.json().catch(() => ({}));
+
+    // ---------------- Status update (admin-triggered) ----------------
+    if (requestData.type === "status_update") {
+      const orderCode = clampStr(requestData.orderCode, 32);
+      const customerEmail = clampStr(requestData.customerEmail, 320);
+      if (!orderCode || !isValidEmail(customerEmail)) {
+        return new Response(JSON.stringify({ success: false, error: "Invalid payload" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+
+      // Verify order exists and email matches what's on file (anti-phishing)
+      const { data: order } = await supabaseAdmin
+        .from("orders")
+        .select("order_code, customer_email")
+        .eq("order_code", orderCode)
+        .maybeSingle();
+      if (!order || order.customer_email?.toLowerCase() !== customerEmail.toLowerCase()) {
+        return new Response(JSON.stringify({ success: false, error: "Order not found" }), {
+          status: 404,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+
+      const statusData = requestData as StatusUpdateRequest;
       const statusEmailHtml = generateStatusUpdateEmailHtml(statusData);
-      const emailResponse = await resend.emails.send({
+      await resend.emails.send({
         from: "Empório LeleCute <onboarding@resend.dev>",
-        to: [statusData.customerEmail],
-        subject: `📦 Atualização do Pedido ${statusData.orderCode} - ${statusData.statusLabel}`,
+        to: [customerEmail],
+        subject: `📦 Atualização do Pedido ${orderCode} - ${escapeHtml(statusData.statusLabel || "")}`,
         html: statusEmailHtml,
       });
-
-      console.log("Status update email sent:", emailResponse);
 
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
-    
-    // Check if it's a new order format (has orderCode)
+
+    // ---------------- New order confirmation ----------------
     if (requestData.orderCode) {
       const order = requestData as OrderRequest;
-      
-      console.log("Processing order:", order.orderCode);
+      const orderCode = clampStr(order.orderCode, 32);
 
-      // Send email to store
+      // Verify the order actually exists in DB before sending any email.
+      // This prevents arbitrary phishing via fake orderCode + recipient email.
+      const { data: dbOrder } = await supabaseAdmin
+        .from("orders")
+        .select("order_code, customer_email")
+        .eq("order_code", orderCode)
+        .maybeSingle();
+      if (!dbOrder) {
+        return new Response(JSON.stringify({ success: false, error: "Order not found" }), {
+          status: 404,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+
       const storeEmailHtml = generateOrderEmailHtml(order);
-      const storeEmailResponse = await resend.emails.send({
+      await resend.emails.send({
         from: "Empório LeleCute <onboarding@resend.dev>",
-        to: ["emporiolelecute@gmail.com"],
-        subject: `🛒 Novo Pedido ${order.orderCode} - ${order.customer.name}`,
+        to: [STORE_INBOX],
+        subject: `🛒 Novo Pedido ${orderCode} - ${escapeHtml(order.customer?.name || "")}`,
         html: storeEmailHtml,
       });
 
-      console.log("Store email sent:", storeEmailResponse);
-
-      // Send confirmation email to customer
-      if (order.customer.email) {
+      // Always use the canonical email from DB (not client-supplied) to send confirmation
+      const recipient = dbOrder.customer_email;
+      if (recipient && isValidEmail(recipient)) {
         const customerEmailHtml = generateCustomerEmailHtml(order);
-        const customerEmailResponse = await resend.emails.send({
+        await resend.emails.send({
           from: "Empório LeleCute <onboarding@resend.dev>",
-          to: [order.customer.email],
-          subject: `✨ Pedido ${order.orderCode} recebido - Empório LeleCute`,
+          to: [recipient],
+          subject: `✨ Pedido ${orderCode} recebido - Empório LeleCute`,
           html: customerEmailHtml,
         });
-
-        console.log("Customer email sent:", customerEmailResponse);
       }
 
-      return new Response(JSON.stringify({ success: true, orderCode: order.orderCode }), {
+      return new Response(JSON.stringify({ success: true, orderCode }), {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
-    // Legacy quote format
+    // ---------------- Legacy quote / contact form ----------------
     const quoteData = requestData as QuoteRequest;
-    
-    console.log("Processing quote request:", quoteData.type);
+    // Validate inputs strictly
+    const name = clampStr(quoteData.name, 120);
+    const whatsapp = clampStr(quoteData.whatsapp, 40);
+    const email = clampStr(quoteData.email, 320);
+    if (!name || !whatsapp || !isValidEmail(email)) {
+      return new Response(JSON.stringify({ success: false, error: "Invalid payload" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    // Clamp optional fields
+    const cleanQuote: QuoteRequest = {
+      type: quoteData.type === "product" ? "product" : "quote",
+      name,
+      email,
+      whatsapp,
+      product: clampStr(quoteData.product, 200),
+      occasion: clampStr(quoteData.occasion, 120),
+      quantity: clampStr(quoteData.quantity, 40),
+      message: clampStr(quoteData.message, 2000),
+    };
 
-    const subject = quoteData.type === "product" 
-      ? `🎁 Novo Pedido de Produto - ${escapeHtml(quoteData.product || '')}` 
-      : `💬 Nova Solicitação de Orçamento - ${escapeHtml(quoteData.occasion || 'Geral')}`;
+    const subject = cleanQuote.type === "product"
+      ? `🎁 Novo Pedido de Produto - ${escapeHtml(cleanQuote.product || "")}`
+      : `💬 Nova Solicitação de Orçamento - ${escapeHtml(cleanQuote.occasion || "Geral")}`;
 
-    const htmlContent = generateQuoteEmailHtml(quoteData);
-
-    const emailResponse = await resend.emails.send({
+    await resend.emails.send({
       from: "Empório LeleCute <onboarding@resend.dev>",
-      to: ["emporiolelecute@gmail.com"],
-      subject: subject,
-      html: htmlContent,
+      to: [STORE_INBOX], // Always to store inbox — never to client-supplied address
+      subject,
+      html: generateQuoteEmailHtml(cleanQuote),
     });
 
-    console.log("Quote email sent successfully:", emailResponse);
-
-    return new Response(JSON.stringify({ success: true, data: emailResponse }), {
+    return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
-
   } catch (error: any) {
     console.error("Error in send-order-email function:", error);
     return new Response(
       JSON.stringify({ success: false, error: "Erro ao processar solicitação" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } },
     );
   }
 };
+
+function clampStr(s: unknown, max: number): string {
+  return typeof s === "string" ? s.slice(0, max) : "";
+}
 
 serve(handler);
