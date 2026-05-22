@@ -211,19 +211,87 @@ const AdminCustomers = () => {
     },
   });
 
+  // Faixa horária é o único filtro que não dá pra empurrar pro PostgREST de forma simples;
+  // quando estiver ativo, caímos no modo "janela + filtro local" pra manter consistência.
+  const hourFilterActive = visitorFilters.hourFrom !== 0 || visitorFilters.hourTo !== 23;
+  const sortColumn = SORT_COLUMN[sort];
+
+  // Range de datas derivado do preset (server-side).
+  const dateRange = useMemo(() => {
+    const now = new Date();
+    const f = visitorFilters;
+    let from: Date | null = null;
+    let to: Date | null = null;
+    if (f.datePreset === "today") {
+      from = new Date(now); from.setHours(0, 0, 0, 0);
+      to = new Date(now); to.setHours(23, 59, 59, 999);
+    } else if (f.datePreset === "yesterday") {
+      from = new Date(now); from.setDate(from.getDate() - 1); from.setHours(0, 0, 0, 0);
+      to = new Date(from); to.setHours(23, 59, 59, 999);
+    } else if (f.datePreset === "7d") {
+      from = new Date(now); from.setDate(from.getDate() - 7);
+    } else if (f.datePreset === "30d") {
+      from = new Date(now); from.setDate(from.getDate() - 30);
+    } else if (f.datePreset === "custom" && f.dateFrom && f.dateTo) {
+      from = new Date(f.dateFrom + "T00:00:00");
+      to = new Date(f.dateTo + "T23:59:59");
+    }
+    return { from, to };
+  }, [visitorFilters]);
+
   const visitorsQ = useQuery({
-    queryKey: ["admin-visitors"],
+    queryKey: ["admin-visitors", { search, page, perPage, sort, hourFilterActive, visitorFilters }],
+    queryFn: async () => {
+      let q = supabase
+        .from("visitors")
+        .select("*", { count: "exact" })
+        .order(sortColumn, { ascending: false, nullsFirst: false });
+
+      if (dateRange.from) q = q.gte("last_seen_at", dateRange.from.toISOString());
+      if (dateRange.to) q = q.lte("last_seen_at", dateRange.to.toISOString());
+      if (visitorFilters.device !== "all") q = q.eq("device_type", visitorFilters.device);
+      if (visitorFilters.os !== "all") q = q.eq("os_name", visitorFilters.os);
+      if (search) {
+        const term = `%${search}%`;
+        q = q.or(
+          `visitor_id.ilike.${term},ip_city.ilike.${term},ip_country.ilike.${term},device_model.ilike.${term},os_name.ilike.${term}`
+        );
+      }
+
+      if (!hourFilterActive) {
+        const from = (page - 1) * perPage;
+        q = q.range(from, from + perPage - 1);
+      } else {
+        // janela maior pra filtrar localmente sem perder muitos registros
+        q = q.limit(1000);
+      }
+
+      const { data, error, count } = await q;
+      if (error) throw error;
+      return { rows: (data || []) as VisitorRow[], totalCount: count ?? (data?.length || 0) };
+    },
+    enabled: tab === "visitors",
+    placeholderData: (prev) => prev,
+  });
+
+  // Lista distinta de OS pra alimentar o filtro (sem depender da página atual).
+  const osOptionsQ = useQuery({
+    queryKey: ["admin-visitors-os-options"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("visitors")
-        .select("*")
-        .order("last_seen_at", { ascending: false })
-        .limit(500);
+        .select("os_name")
+        .not("os_name", "is", null)
+        .limit(1000);
       if (error) throw error;
-      return (data || []) as VisitorRow[];
+      const set = new Set<string>();
+      (data || []).forEach((v: { os_name: string | null }) => v.os_name && set.add(v.os_name));
+      return Array.from(set).sort();
     },
     enabled: tab === "visitors",
+    staleTime: 5 * 60 * 1000,
   });
+
 
   const pageviewsQ = useQuery({
     queryKey: ["visitor-pageviews", viewVisitor?.visitor_id],
