@@ -633,8 +633,13 @@ const Carrinho = () => {
             Finalizar Pedido
           </h1>
 
-          <div className="mb-8 rounded-lg border border-border bg-card p-3 md:p-4">
-            <CheckoutSteps current={items.length > 0 ? 2 : 1} />
+          <div
+            className="sticky top-14 md:top-20 z-30 -mx-4 md:mx-0 mb-6 px-3 md:px-4 py-1.5 bg-background/85 backdrop-blur border-y md:border md:rounded-full border-border shadow-sm"
+          >
+            <CheckoutSteps
+              current={items.length > 0 ? 2 : 1}
+              sectionIds={["step-cart", "step-data", "step-checkout"]}
+            />
           </div>
 
 
@@ -642,7 +647,8 @@ const Carrinho = () => {
             {/* Left Column - Form */}
             <div className="lg:col-span-2 space-y-6">
               {/* Cart Items */}
-              <div className="bg-card rounded-xl border border-border p-4 md:p-6">
+              <div id="step-cart" className="bg-card rounded-xl border border-border p-4 md:p-6 scroll-mt-32">
+
                 <h2 className="font-display text-xl text-foreground mb-4 flex items-center gap-2">
                   <Package className="h-5 w-5 text-primary" />
                   Produtos ({items.length})
@@ -721,7 +727,8 @@ const Carrinho = () => {
               </div>
 
               {/* Customer Data */}
-              <div className="bg-card rounded-xl border border-border p-4 md:p-6">
+              <div id="step-data" className="bg-card rounded-xl border border-border p-4 md:p-6 scroll-mt-32">
+
                 <h2 className="font-display text-xl text-foreground mb-4 flex items-center gap-2">
                   <User className="h-5 w-5 text-primary" />
                   Dados Pessoais
@@ -871,7 +878,7 @@ const Carrinho = () => {
 
             {/* Right Column - Summary */}
             <div className="lg:col-span-1">
-              <div className="bg-card rounded-xl border border-border p-6 sticky top-28">
+              <div id="step-checkout" className="bg-card rounded-xl border border-border p-6 sticky top-28 scroll-mt-32">
                 <h2 className="font-display text-xl text-foreground mb-4">
                   Resumo do Pedido
                 </h2>
