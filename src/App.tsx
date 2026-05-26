@@ -262,6 +262,7 @@ const App = () => {
           <BrowserRouter>
             <AnalyticsWrapper>
               <ScrollToTop />
+              <LastShopPathTracker />
               <RedirectHandler />
               <CanonicalNormalizer />
               <TrackingScripts />
