@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, Instagram, Facebook, ShoppingCart, LogIn, Search } from "lucide-react";
+import MiniCart from "@/components/MiniCart";
 import { Button } from "@/components/ui/button";
 import SearchBar from "@/components/SearchBar";
 import { useCart } from "@/contexts/CartContext";
@@ -166,18 +167,8 @@ const Header = () => {
               ))}
             </div>
 
-            <Link
-              to="/carrinho"
-              className="relative p-2 text-foreground/80 hover:text-primary transition-colors group/cart"
-              aria-label="Carrinho de compras"
-            >
-              <ShoppingCart className="h-5 w-5 transition-transform group-hover/cart:scale-110" />
-              {itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center animate-in zoom-in duration-300">
-                  {itemCount > 99 ? '99+' : itemCount}
-                </span>
-              )}
-            </Link>
+            <MiniCart />
+
 
             {/* Conectar (login) */}
             <Link to="/admin/login">
@@ -206,18 +197,8 @@ const Header = () => {
               {isMobileSearchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
             </button>
 
-            <Link
-              to="/carrinho"
-              className="relative p-2 text-foreground/80 hover:text-primary transition-colors"
-              aria-label="Carrinho de compras"
-            >
-              <ShoppingCart className="h-5 w-5" />
-              {itemCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
-                  {itemCount > 99 ? '99+' : itemCount}
-                </span>
-              )}
-            </Link>
+            <MiniCart compact />
+
 
             <button
               className="p-2 text-foreground hover:text-primary transition-colors"

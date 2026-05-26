@@ -21,6 +21,7 @@ import ShippingCalculator from "@/components/ShippingCalculator";
 import FreeShippingProgress from "@/components/FreeShippingProgress";
 import { formatPhoneBR, isValidPhoneBR } from "@/lib/phoneMask";
 import { loadCustomer, saveCustomer, loadAddress, saveAddress } from "@/lib/customerCache";
+import CheckoutSteps from "@/components/CheckoutSteps";
 
 interface AddressData {
   cep: string;
@@ -410,7 +411,7 @@ const Carrinho = () => {
     // Coleta todos os campos vazios para destacar com efeito pulsante
     const missing = new Set<string>();
     if (!customer.name.trim()) missing.add('name');
-    if (!customer.email.trim()) missing.add('email');
+    if (!customer.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email)) missing.add('email');
     if (!customer.phone.trim() || !isValidPhoneBR(customer.phone)) missing.add('phone');
     if (!address.cep) missing.add('cep');
     if (!address.city) missing.add('city');
@@ -613,18 +614,29 @@ const Carrinho = () => {
       
       <main className="pt-24 pb-16">
         <div className="container mx-auto px-4">
-          {/* Back Link */}
-          <Link 
-            to="/produtos" 
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary mb-8 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Continuar comprando
-          </Link>
+          {/* Back Link — volta para a última rota pública visitada */}
+          {(() => {
+            const last = typeof window !== 'undefined' ? sessionStorage.getItem('lc_last_shop_path') : null;
+            const target = last && last !== '/' ? last : '/produtos';
+            return (
+              <Link
+                to={target}
+                className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary mb-8 transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Continuar comprando
+              </Link>
+            );
+          })()}
 
-          <h1 className="font-display text-3xl md:text-4xl text-foreground mb-8">
+          <h1 className="font-display text-3xl md:text-4xl text-foreground mb-4">
             Finalizar Pedido
           </h1>
+
+          <div className="mb-8 rounded-lg border border-border bg-card p-3 md:p-4">
+            <CheckoutSteps current={items.length > 0 ? 2 : 1} />
+          </div>
+
 
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Left Column - Form */}
@@ -722,6 +734,8 @@ const Carrinho = () => {
                       placeholder="Seu nome completo"
                       value={customer.name}
                       onChange={(e) => { setCustomer(prev => ({ ...prev, name: e.target.value })); clearInvalid('name'); }}
+                      onBlur={() => { if (!customer.name.trim()) setInvalidFields(prev => new Set(prev).add('name')); }}
+                      aria-invalid={invalidFields.has('name')}
                       className={fieldClass('name')}
                     />
                   </div>
@@ -733,8 +747,17 @@ const Carrinho = () => {
                       placeholder="seu@email.com"
                       value={customer.email}
                       onChange={(e) => { setCustomer(prev => ({ ...prev, email: e.target.value })); clearInvalid('email'); }}
+                      onBlur={() => {
+                        const v = customer.email.trim();
+                        const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+                        if (v && !ok) setInvalidFields(prev => new Set(prev).add('email'));
+                      }}
+                      aria-invalid={invalidFields.has('email')}
                       className={fieldClass('email')}
                     />
+                    {invalidFields.has('email') && customer.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email) && (
+                      <p className="mt-1 text-xs text-destructive">Informe um email válido.</p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="phone">WhatsApp *</Label>
