@@ -78,6 +78,60 @@ const Carrinho = () => {
   const [couponLoading, setCouponLoading] = useState(false);
   const [invalidFields, setInvalidFields] = useState<Set<string>>(new Set());
 
+  // Cadastro de cliente pós-pedido (reaproveita os dados já preenchidos no checkout)
+  const [signupPassword, setSignupPassword] = useState('');
+  const [signupShowPassword, setSignupShowPassword] = useState(false);
+  const [signupLoading, setSignupLoading] = useState(false);
+  const [signupDone, setSignupDone] = useState(false);
+  const [signupError, setSignupError] = useState<string | null>(null);
+  const [signupDismissed, setSignupDismissed] = useState(false);
+
+  const handleCustomerSignup = async () => {
+    setSignupError(null);
+    if (!customer.email || !signupPassword) {
+      setSignupError('Informe uma senha para criar sua conta.');
+      return;
+    }
+    if (signupPassword.length < 6) {
+      setSignupError('A senha precisa ter pelo menos 6 caracteres.');
+      return;
+    }
+    setSignupLoading(true);
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+      const { error } = await supabase.auth.signUp({
+        email: customer.email,
+        password: signupPassword,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            full_name: customer.name || null,
+            phone: customer.phone || null,
+            cep: address.cep || null,
+            city: address.city || null,
+            state: address.state || null,
+          },
+        },
+      });
+      if (error) {
+        const msg = /registered|exists/i.test(error.message)
+          ? 'Este e-mail já possui uma conta. Faça login normalmente.'
+          : error.message;
+        setSignupError(msg);
+        return;
+      }
+      setSignupDone(true);
+      toast({
+        title: 'Conta criada! ✉️',
+        description: 'Enviamos um link de confirmação para o seu e-mail.',
+      });
+    } catch (e: any) {
+      setSignupError(e?.message || 'Erro inesperado. Tente novamente.');
+    } finally {
+      setSignupLoading(false);
+    }
+  };
+
   // Classe aplicada nos inputs vazios após tentativa de submit — contorno pulsante
   const errorRing = "ring-2 ring-destructive ring-offset-2 animate-pulse border-destructive";
   const fieldClass = (field: string, base = "mt-1") =>
