@@ -58,7 +58,8 @@ const ProductReviews = ({ productId, initialLimit = 3, variant = 'default' }: Pr
 
   return (
     <section
-      className={isCompact ? 'mt-6' : 'mb-16'}
+      id={isCompact ? undefined : 'product-reviews'}
+      className={isCompact ? 'mt-6' : 'mb-16 scroll-mt-24'}
       aria-labelledby={`product-reviews-title-${productId}`}
     >
       <div className="flex items-end justify-between gap-4 mb-4 flex-wrap">
