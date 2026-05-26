@@ -59,7 +59,7 @@ export default function ShippingCalculator({ items, state, initialCep = "", onSe
   const [options, setOptions] = useState<ShippingOption[] | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [moduleEnabled, setModuleEnabled] = useState<boolean | null>(null);
-  const [quoteMeta, setQuoteMeta] = useState<{ estimated?: boolean; local?: boolean }>({});
+  const [quoteMeta, setQuoteMeta] = useState<{ estimated?: boolean; local?: boolean; is_fallback?: boolean }>({});
 
   // Verifica se o módulo de frete está habilitado no admin
   useEffect(() => {
