@@ -85,6 +85,9 @@ const AdminProductForm = () => {
     pix_discount: '7',
     production_days: '7',
     weight: '',
+    length_cm: '',
+    width_cm: '',
+    height_cm: '',
     category_id: '',
     badge: '',
     rating: '5.0',
@@ -159,6 +162,9 @@ const AdminProductForm = () => {
       pix_discount: existingProduct.pix_discount.toString(),
       production_days: existingProduct.production_days.toString(),
       weight: existingProduct.weight?.toString() || '',
+      length_cm: (existingProduct as any).length_cm?.toString() || '',
+      width_cm: (existingProduct as any).width_cm?.toString() || '',
+      height_cm: (existingProduct as any).height_cm?.toString() || '',
       category_id: existingProduct.category_id || '',
       badge: existingProduct.badge || '',
       rating: existingProduct.rating.toString(),
@@ -327,6 +333,9 @@ const AdminProductForm = () => {
         pix_discount: parseInt(formData.pix_discount) || 7,
         production_days: parseInt(formData.production_days) || 7,
         weight: formData.weight ? parseFloat(formData.weight) : null,
+        length_cm: formData.length_cm ? parseFloat(formData.length_cm) : null,
+        width_cm: formData.width_cm ? parseFloat(formData.width_cm) : null,
+        height_cm: formData.height_cm ? parseFloat(formData.height_cm) : null,
         category_id: formData.category_id || null,
         badge: formData.badge || null,
         rating: parseFloat(formData.rating) || 5.0,
@@ -815,30 +824,81 @@ const AdminProductForm = () => {
                   placeholder="7"
                 />
               </div>
-              <div className={`space-y-2 rounded-md p-2 -m-2 transition-colors ${
-                (!formData.weight || parseFloat(formData.weight) <= 0)
-                  ? 'bg-destructive/5 ring-1 ring-destructive/40'
-                  : 'bg-emerald-500/5 ring-1 ring-emerald-500/30'
-              }`}>
-                <Label htmlFor="weight" className="flex items-center gap-1">
-                  Peso (kg) <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="weight"
-                  type="number"
-                  step="0.001"
-                  min="0.001"
-                  required={!isEditing}
-                  value={formData.weight}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, weight: e.target.value }))}
-                  placeholder="0.100"
-                  aria-invalid={!formData.weight || parseFloat(formData.weight) <= 0}
-                />
+            </div>
+
+            {/* Agrupamento: Peso e Dimensões para Frete */}
+            <div className="mt-6 rounded-lg border border-border/60 bg-muted/20 p-4">
+              <div className="mb-3">
+                <h3 className="text-sm font-semibold text-foreground">Peso e Dimensões para Frete</h3>
                 <p className="text-xs text-muted-foreground">
-                  Obrigatório para o cálculo de frete (Melhor Envio).
+                  Usados pelas transportadoras (ex: Melhor Envio) para cotação em tempo real.
                 </p>
               </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className={`space-y-1.5 rounded-md p-2 transition-colors ${
+                  (!formData.weight || parseFloat(formData.weight) <= 0)
+                    ? 'bg-destructive/5 ring-1 ring-destructive/40'
+                    : 'bg-emerald-500/5 ring-1 ring-emerald-500/30'
+                }`}>
+                  <Label htmlFor="weight" className="flex items-center gap-1 text-xs">
+                    Peso (kg) <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="weight"
+                    type="number"
+                    step="0.001"
+                    min="0.001"
+                    required={!isEditing}
+                    value={formData.weight}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, weight: e.target.value }))}
+                    placeholder="0.100"
+                    aria-invalid={!formData.weight || parseFloat(formData.weight) <= 0}
+                  />
+                </div>
+                <div className="space-y-1.5 rounded-md p-2">
+                  <Label htmlFor="length_cm" className="text-xs">Comprimento (cm)</Label>
+                  <Input
+                    id="length_cm"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    value={formData.length_cm}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, length_cm: e.target.value }))}
+                    placeholder="16"
+                  />
+                </div>
+                <div className="space-y-1.5 rounded-md p-2">
+                  <Label htmlFor="width_cm" className="text-xs">Largura (cm)</Label>
+                  <Input
+                    id="width_cm"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    value={formData.width_cm}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, width_cm: e.target.value }))}
+                    placeholder="11"
+                  />
+                </div>
+                <div className="space-y-1.5 rounded-md p-2">
+                  <Label htmlFor="height_cm" className="text-xs">Altura (cm)</Label>
+                  <Input
+                    id="height_cm"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    value={formData.height_cm}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, height_cm: e.target.value }))}
+                    placeholder="6"
+                  />
+                </div>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-3">
+                Obrigatório para o cálculo de frete (Melhor Envio).
+              </p>
             </div>
+
+
+
 
             {/* Sprint 2 — Discovery editorial */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t mt-4">
