@@ -23,7 +23,7 @@ const ItemSchema = z.object({
 
 const BodySchema = z.object({
   cep_destino: z.string().regex(/^\d{5}-?\d{3}$/, 'CEP de destino inválido'),
-  state: z.string().length(2).optional(),
+  state: z.string().trim().length(2).optional().or(z.literal('')).transform((v) => (v ? v.toUpperCase() : undefined)),
   items: z.array(ItemSchema).min(1).max(100),
 });
 
