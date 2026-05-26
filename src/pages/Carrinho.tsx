@@ -21,6 +21,7 @@ import ShippingCalculator from "@/components/ShippingCalculator";
 import FreeShippingProgress from "@/components/FreeShippingProgress";
 import { formatPhoneBR, isValidPhoneBR } from "@/lib/phoneMask";
 import { loadCustomer, saveCustomer, loadAddress, saveAddress } from "@/lib/customerCache";
+import CheckoutSteps from "@/components/CheckoutSteps";
 
 interface AddressData {
   cep: string;
@@ -622,9 +623,14 @@ const Carrinho = () => {
             Continuar comprando
           </Link>
 
-          <h1 className="font-display text-3xl md:text-4xl text-foreground mb-8">
+          <h1 className="font-display text-3xl md:text-4xl text-foreground mb-4">
             Finalizar Pedido
           </h1>
+
+          <div className="mb-8 rounded-lg border border-border bg-card p-3 md:p-4">
+            <CheckoutSteps current={items.length > 0 ? 2 : 1} />
+          </div>
+
 
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Left Column - Form */}
