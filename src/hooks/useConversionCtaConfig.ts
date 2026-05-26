@@ -133,6 +133,12 @@ export const DEFAULT_CONVERSION_CTA: ConversionCtaConfig = {
     offsetX: 12,
     offsetY: 12,
   },
+  inlineCta: {
+    enabled: true,
+    label: "Fazer Orçamento no WhatsApp",
+    showIcon: true,
+    variant: "dark",
+  },
 };
 
 function mergeConfig(raw: any): ConversionCtaConfig {
@@ -144,6 +150,7 @@ function mergeConfig(raw: any): ConversionCtaConfig {
     whatsappTemplate: { ...DEFAULT_CONVERSION_CTA.whatsappTemplate, ...(r.whatsappTemplate || {}) },
     toast: { ...DEFAULT_CONVERSION_CTA.toast, ...(r.toast || {}) },
     pdpBadge: { ...DEFAULT_CONVERSION_CTA.pdpBadge, ...(r.pdpBadge || {}) },
+    inlineCta: { ...DEFAULT_CONVERSION_CTA.inlineCta, ...(r.inlineCta || {}) },
   };
 }
 
