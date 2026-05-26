@@ -308,6 +308,21 @@ const Carrinho = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Pula auto-fill por IP/GPS se já existe endereço em cache (evita chamadas repetidas)
+  useEffect(() => {
+    if (address.cep || address.city) autoFilledRef.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persiste dados do cliente e endereço no localStorage (debounced via efeito)
+  useEffect(() => {
+    saveCustomer({ name: customer.name, email: customer.email, phone: customer.phone });
+  }, [customer.name, customer.email, customer.phone]);
+
+  useEffect(() => {
+    saveAddress({ cep: address.cep, city: address.city, state: address.state });
+  }, [address.cep, address.city, address.state]);
+
   const discount = coupon?.discount_applied ?? 0;
   const totalWithDiscount = Math.max(0, total - discount);
 
