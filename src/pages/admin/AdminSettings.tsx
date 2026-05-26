@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Settings, Save, Phone, Mail, MapPin, Instagram, Facebook, ShoppingBag, Truck, Loader2, CreditCard, Percent, Plus, X, FileText } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Settings, Save, Phone, Mail, MapPin, Instagram, Facebook, ShoppingBag, Truck, Loader2, CreditCard, Percent, Plus, X, FileText, ExternalLink } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -416,7 +417,7 @@ const AdminSettings = () => {
               <Truck className="w-5 h-5 text-primary" />
               Política de Frete
             </CardTitle>
-            <CardDescription>Configurações de entrega</CardDescription>
+            <CardDescription>Mensagem ao cliente e meta de frete grátis</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -436,6 +437,44 @@ const AdminSettings = () => {
               <p className="text-xs text-muted-foreground">
                 Esta mensagem será exibida na página do produto e no carrinho
               </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="free-shipping-threshold">Valor mínimo para frete grátis (R$)</Label>
+              <Input
+                id="free-shipping-threshold"
+                type="number"
+                min={0}
+                step="0.01"
+                value={settings.shipping_policy.free_shipping_threshold || 0}
+                onChange={(e) => setSettings({
+                  ...settings,
+                  shipping_policy: {
+                    ...settings.shipping_policy,
+                    free_shipping_threshold: Number(e.target.value) || 0,
+                  },
+                })}
+                placeholder="0 (desativado)"
+              />
+              <p className="text-xs text-muted-foreground">
+                Exibe a barra progressiva "Faltam R$ X para frete grátis" no carrinho. Deixe em <strong>0</strong> para desativar.
+              </p>
+            </div>
+
+            <div className="rounded-md border border-border bg-muted/40 p-3 text-sm">
+              <p className="text-foreground font-medium mb-1 flex items-center gap-2">
+                <Truck className="h-4 w-4 text-primary" />
+                Configurações avançadas de frete
+              </p>
+              <p className="text-muted-foreground text-xs mb-2">
+                Origem, provedores (Melhor Envio), regras por região/peso e auditoria de cálculos ficam em <strong>Gestão de Fretes</strong>.
+              </p>
+              <Button asChild variant="outline" size="sm" className="gap-2">
+                <Link to="/admin/fretes">
+                  Abrir Gestão de Fretes
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
