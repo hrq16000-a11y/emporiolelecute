@@ -725,12 +725,13 @@ const Carrinho = () => {
               </div>
 
               {/* Customer Data */}
-              <div id="step-data" className="bg-card rounded-xl border border-border p-4 md:p-6 scroll-mt-32">
+              <div id="step-data" className="bg-card rounded-xl border border-border p-3 md:p-6 scroll-mt-32">
 
-                <h2 className="font-display text-xl text-foreground mb-4 flex items-center gap-2">
+                <h2 className="font-display text-lg md:text-xl text-foreground mb-3 md:mb-4 flex items-center gap-2">
                   <User className="h-5 w-5 text-primary" />
                   Dados Pessoais
                 </h2>
+
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
                     <Label htmlFor="name">Nome completo *</Label>
