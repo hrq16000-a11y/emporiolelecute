@@ -526,7 +526,7 @@ const Carrinho = () => {
                       <div className="flex-1 min-w-0">
                         <Link 
                           to={urls.product(item.slug)}
-                          className="font-semibold text-sm text-foreground hover:text-primary transition-colors line-clamp-2"
+                          className="font-semibold text-sm text-foreground hover:text-primary transition-colors"
                         >
                           {item.name}
                         </Link>
