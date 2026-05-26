@@ -728,6 +728,8 @@ const Carrinho = () => {
                       placeholder="Seu nome completo"
                       value={customer.name}
                       onChange={(e) => { setCustomer(prev => ({ ...prev, name: e.target.value })); clearInvalid('name'); }}
+                      onBlur={() => { if (!customer.name.trim()) setInvalidFields(prev => new Set(prev).add('name')); }}
+                      aria-invalid={invalidFields.has('name')}
                       className={fieldClass('name')}
                     />
                   </div>
@@ -739,8 +741,17 @@ const Carrinho = () => {
                       placeholder="seu@email.com"
                       value={customer.email}
                       onChange={(e) => { setCustomer(prev => ({ ...prev, email: e.target.value })); clearInvalid('email'); }}
+                      onBlur={() => {
+                        const v = customer.email.trim();
+                        const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+                        if (v && !ok) setInvalidFields(prev => new Set(prev).add('email'));
+                      }}
+                      aria-invalid={invalidFields.has('email')}
                       className={fieldClass('email')}
                     />
+                    {invalidFields.has('email') && customer.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email) && (
+                      <p className="mt-1 text-xs text-destructive">Informe um email válido.</p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="phone">WhatsApp *</Label>
