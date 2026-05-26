@@ -22,6 +22,7 @@ import FreeShippingProgress from "@/components/FreeShippingProgress";
 import { formatPhoneBR, isValidPhoneBR } from "@/lib/phoneMask";
 import { loadCustomer, saveCustomer, loadAddress, saveAddress } from "@/lib/customerCache";
 import CheckoutSteps from "@/components/CheckoutSteps";
+import CheckoutStepsBar from "@/components/CheckoutStepsBar";
 
 interface AddressData {
   cep: string;
