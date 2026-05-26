@@ -39,6 +39,10 @@ export default function ShippingSettingsTab() {
         default_box_height_cm: Number(form.default_box_height_cm),
         handling_fee: Number(form.handling_fee),
         shipping_markup_percentage: Number(form.shipping_markup_percentage),
+        pickup_enabled: !!form.pickup_enabled,
+        pickup_label: String(form.pickup_label ?? "").trim() || "Retirada no ateliê",
+        pickup_address: String(form.pickup_address ?? "").trim(),
+        pickup_instructions: String(form.pickup_instructions ?? "").trim(),
       });
       draft.clear();
       toast({ title: "Configurações salvas" });
