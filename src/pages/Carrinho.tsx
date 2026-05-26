@@ -99,20 +99,49 @@ const Carrinho = () => {
     return STATE_NAME_TO_UF[v.toLowerCase()] || v.slice(0, 2).toUpperCase();
   };
 
+  // Busca um CEP representativo da cidade via ViaCEP (logradouro "centro")
+  const lookupCepByCity = async (uf: string, city: string): Promise<string | undefined> => {
+    if (!uf || !city) return undefined;
+    const tries = ['centro', 'rua', 'avenida'];
+    for (const term of tries) {
+      try {
+        const url = `https://viacep.com.br/ws/${encodeURIComponent(uf)}/${encodeURIComponent(city)}/${encodeURIComponent(term)}/json/`;
+        const r = await fetch(url);
+        if (!r.ok) continue;
+        const list = await r.json();
+        if (Array.isArray(list) && list.length > 0 && list[0].cep) {
+          return String(list[0].cep).replace(/\D/g, '').slice(0, 8);
+        }
+      } catch {
+        // tenta próximo termo
+      }
+    }
+    return undefined;
+  };
+
   // Aplica resultado preenchendo o estado e disparando a busca por CEP se houver
   const applyAddressResult = async (result: { cep?: string; city?: string; state?: string }) => {
-    const cleanCep = (result.cep || '').replace(/\D/g, '').slice(0, 8);
+    let cleanCep = (result.cep || '').replace(/\D/g, '').slice(0, 8);
     const uf = normalizeUF(result.state);
+    const city = result.city || '';
+
+    // Se não veio CEP do provedor, tenta deduzir pela cidade+UF
+    if (cleanCep.length !== 8 && uf && city) {
+      const found = await lookupCepByCity(uf, city);
+      if (found && found.length === 8) cleanCep = found;
+    }
+
     setAddress(prev => ({
       cep: cleanCep || prev.cep,
-      city: result.city || prev.city,
+      city: city || prev.city,
       state: uf || prev.state,
     }));
     if (cleanCep.length === 8) {
-      // valida e completa pelo ViaCEP (autoritativo no Brasil)
       await handleCepChange(cleanCep);
     }
   };
+
+
 
   // Reverse geocode usando Nominatim (OpenStreetMap) – sem chave, retorna CEP no Brasil
   const reverseGeocode = async (lat: number, lon: number) => {
