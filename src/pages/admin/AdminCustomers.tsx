@@ -27,6 +27,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { VisitorFilters, applyVisitorFilters, defaultFilters, type VisitorFilterState, type DatePreset, type DeviceFilter } from "@/components/admin/customers/VisitorFilters";
 import { VisitorCard } from "@/components/admin/customers/VisitorCard";
 import { CustomerCard } from "@/components/admin/customers/CustomerCard";
+import { useAdminWorkspaceStore } from "@/stores/adminWorkspaceStore";
 
 // ============ Ordenação (Visitantes) ============
 type VisitorSort = "last_seen" | "time" | "pageviews";
