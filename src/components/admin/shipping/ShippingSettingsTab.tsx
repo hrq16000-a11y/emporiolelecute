@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useShippingSettings } from "@/hooks/useShippingAdmin";
 import { useToast } from "@/hooks/use-toast";
 import { useFormDraft } from "@/hooks/useFormDraft";
-import { Loader2, Power, Store } from "lucide-react";
+import { Loader2, Power, Store, Gift } from "lucide-react";
 
 export default function ShippingSettingsTab() {
   const { data, isLoading, update } = useShippingSettings();
