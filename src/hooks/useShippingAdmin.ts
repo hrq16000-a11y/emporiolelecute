@@ -15,6 +15,8 @@ export type ShippingSettings = {
   pickup_label: string;
   pickup_address: string;
   pickup_instructions: string;
+  free_shipping_enabled: boolean;
+  free_shipping_threshold: number;
 };
 
 export type ShippingProvider = {
