@@ -270,6 +270,8 @@ const App = () => {
               <TrackingScripts />
               <VisitorTracker />
               <CookieConsentBanner />
+              <SocialProofToast />
+
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={
