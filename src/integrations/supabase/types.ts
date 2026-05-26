@@ -6650,6 +6650,14 @@ export type Database = {
         Args: { _fallback?: string; _prefix: string; _slug: string }
         Returns: string
       }
+      get_unified_profile: {
+        Args: { _id: string; _kind: string }
+        Returns: Json
+      }
+      get_unified_timeline: {
+        Args: { _limit?: number; _visitor_ids: string[] }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -6751,6 +6759,7 @@ export type Database = {
         Args: { _visitor_id: string }
         Returns: Json
       }
+      normalize_phone_digits: { Args: { _v: string }; Returns: string }
       normalize_search: { Args: { _s: string }; Returns: string }
       normalize_slug: { Args: { _s: string }; Returns: string }
       pdp_badge_stats: { Args: { _from?: string; _to?: string }; Returns: Json }
