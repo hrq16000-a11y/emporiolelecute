@@ -499,10 +499,10 @@ const AdminCustomers = () => {
         <div>
           <h1 className="text-2xl lg:text-3xl font-display text-foreground flex items-center gap-3">
             <Users className="h-7 w-7 lg:h-8 lg:w-8 text-primary" />
-            Clientes & Visitantes
+            Clientes, Visitantes e Leads
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            <strong>Visitante</strong>: anônimo (IP/dispositivo). <strong>Cliente</strong>: criado no pedido de orçamento. <strong>Usuário</strong>: login interno.
+            <strong>Cliente (CRM)</strong>: cadastro completo. <strong>Visitante Humano</strong>: anônimo navegando. <strong>Lead</strong>: visitante que demonstrou interesse (clicou em WhatsApp, carrinho ou enviou orçamento).
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
