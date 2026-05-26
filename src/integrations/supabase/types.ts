@@ -5939,27 +5939,39 @@ export type Database = {
           created_at: string
           destination_zip: string | null
           error_message: string | null
+          estimated: boolean | null
+          event_type: string
           http_status: number | null
           id: string
+          melhor_envio_has_key: boolean | null
           provider_name: string | null
+          total_weight_kg: number | null
         }
         Insert: {
           cart_snapshot?: Json | null
           created_at?: string
           destination_zip?: string | null
           error_message?: string | null
+          estimated?: boolean | null
+          event_type?: string
           http_status?: number | null
           id?: string
+          melhor_envio_has_key?: boolean | null
           provider_name?: string | null
+          total_weight_kg?: number | null
         }
         Update: {
           cart_snapshot?: Json | null
           created_at?: string
           destination_zip?: string | null
           error_message?: string | null
+          estimated?: boolean | null
+          event_type?: string
           http_status?: number | null
           id?: string
+          melhor_envio_has_key?: boolean | null
           provider_name?: string | null
+          total_weight_kg?: number | null
         }
         Relationships: []
       }

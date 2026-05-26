@@ -5,6 +5,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@3.23.8';
+import { packCart, buildMelhorEnvioPayload, quoteCorreiosEstimate, round2 } from './lib.ts';
 
 const TIMEOUT_MS = 5000;
 
@@ -63,27 +64,33 @@ Deno.serve(async (req) => {
     const ORIGIN_CEP = String(settings.origin_zip_code).replace(/\D/g, '');
     if (ORIGIN_CEP.length !== 8) return json({ error: 'CEP de origem inválido' }, 422);
 
-    // Filtra itens que exigem frete
-    const shippable = items.filter((it) => it.requires_shipping !== false);
+    // Empacotamento (lib) + filtro de itens que exigem frete
+    const defaultItemWeight = Number(settings.default_box_weight_kg) || 0.3;
+    const { shippable, totalWeight, subtotal } = packCart(items as any, defaultItemWeight);
     if (shippable.length === 0) {
       return json({ options: [{ provider: 'Digital', service_name: 'Sem envio', price: 0, estimated_delivery_days: '0' }] });
     }
 
-    // Empacotamento: peso real somado (sem default por item) + valor declarado
-    const defaultItemWeight = Number(settings.default_box_weight_kg) || 0.3;
-    const totalWeight = round2(shippable.reduce(
-      (acc, it) => acc + (it.weight_kg ?? defaultItemWeight) * it.quantity,
-      0,
-    ));
-    const subtotal = round2(shippable.reduce((acc, it) => acc + (it.unit_price ?? 0) * it.quantity, 0));
-
     // Diagnóstico: token Melhor Envio configurado?
     const meProvider = (providers ?? []).find((p: any) => p.provider_code === 'melhor_envio');
+    const meHasKey = !!meProvider?.api_key && !!meProvider?.endpoint_url;
     console.log('[calculate-shipping]', {
       destino, totalWeight, subtotal, items_count: shippable.length,
       melhor_envio_active: !!meProvider,
-      melhor_envio_has_key: !!meProvider?.api_key,
+      melhor_envio_has_key: meHasKey,
     });
+
+    // Alerta de credenciais ausentes (provedor ativo, mas sem token)
+    if (meProvider && !meHasKey) {
+      await sb.from('shipping_audit_logs').insert({
+        event_type: 'missing_credentials',
+        destination_zip: destino,
+        provider_name: meProvider.provider_name,
+        error_message: 'Provedor ativo sem api_key/endpoint_url configurados',
+        total_weight_kg: totalWeight,
+        melhor_envio_has_key: false,
+      });
+    }
 
     // Entrega local: mesmo CEP
     if (destino === ORIGIN_CEP) {
@@ -106,6 +113,18 @@ Deno.serve(async (req) => {
     if (options.length === 0) {
       estimated = true;
       options = quoteCorreiosEstimate({ totalWeight, destino, origin: ORIGIN_CEP });
+      await sb.from('shipping_audit_logs').insert({
+        event_type: 'estimate_fallback',
+        destination_zip: destino,
+        cart_snapshot: { items: shippable, subtotal },
+        provider_name: meProvider?.provider_name ?? null,
+        error_message: meHasKey
+          ? 'Provedores ativos não retornaram cotação — usando estimativa'
+          : 'Token Melhor Envio ausente — usando estimativa',
+        total_weight_kg: totalWeight,
+        melhor_envio_has_key: meHasKey,
+        estimated: true,
+      });
     }
 
     // Markup + handling (não aplicar em frete grátis)
@@ -124,7 +143,7 @@ Deno.serve(async (req) => {
     if (options.length === 0) {
       return json({ error: 'Não foi possível calcular o frete para este CEP.' }, 422);
     }
-    return json({ options, estimated });
+    return json({ options, estimated, melhor_envio_has_key: meHasKey });
   } catch (err) {
     console.error('[calculate-shipping] unexpected', err);
     return json({ error: 'Erro interno', message: String(err) }, 500);
@@ -148,11 +167,14 @@ async function quoteProvider(p: any, ctx: any): Promise<ShippingOption[]> {
   } catch (err: any) {
     console.error('[calculate-shipping] provider error', p.provider_name, err?.message);
     await ctx.sb.from('shipping_audit_logs').insert({
+      event_type: 'provider_error',
       destination_zip: ctx.destino,
       cart_snapshot: { items: ctx.items },
       provider_name: p.provider_name,
       error_message: String(err?.message ?? err),
       http_status: err?.status ?? null,
+      total_weight_kg: ctx.totalWeight,
+      melhor_envio_has_key: !!p.api_key,
     });
     return [];
   }
@@ -161,26 +183,16 @@ async function quoteProvider(p: any, ctx: any): Promise<ShippingOption[]> {
 async function quoteMelhorEnvio(p: any, ctx: any, signal: AbortSignal): Promise<ShippingOption[]> {
   if (!p.api_key || !p.endpoint_url) throw new Error('Credenciais Melhor Envio ausentes');
 
-  // EMPACOTAMENTO: consolida o carrinho inteiro em UMA caixa (default_box).
-  // Soma pesos reais; dimensões da caixa entram UMA vez (não por linha).
-  const boxW = Number(ctx.settings.default_box_width_cm) || 16;
-  const boxH = Number(ctx.settings.default_box_height_cm) || 11;
-  const boxL = Number(ctx.settings.default_box_length_cm) || 20;
-
-  const payload = {
-    from: { postal_code: ctx.origin },
-    to: { postal_code: ctx.destino },
-    products: [{
-      id: 'cart-package',
-      width: boxW,
-      height: boxH,
-      length: boxL,
-      weight: Math.max(0.1, ctx.totalWeight),
-      insurance_value: ctx.subtotal,
-      quantity: 1,
-    }],
-    options: { receipt: false, own_hand: false, insurance_value: ctx.subtotal },
-  };
+  // EMPACOTAMENTO consolidado em 1 caixa (lib).
+  const payload = buildMelhorEnvioPayload({
+    origin: ctx.origin,
+    destino: ctx.destino,
+    totalWeight: ctx.totalWeight,
+    subtotal: ctx.subtotal,
+    boxW: Number(ctx.settings.default_box_width_cm) || 16,
+    boxH: Number(ctx.settings.default_box_height_cm) || 11,
+    boxL: Number(ctx.settings.default_box_length_cm) || 20,
+  });
 
   const res = await fetch(p.endpoint_url, {
     method: 'POST',
@@ -208,30 +220,9 @@ async function quoteMelhorEnvio(p: any, ctx: any, signal: AbortSignal): Promise<
     }));
 }
 
-// Fallback estimado por faixa de CEP (região). Valores conservadores para
-// pacote pequeno; não substitui cotação real, apenas evita carrinho vazio.
-function quoteCorreiosEstimate(ctx: { totalWeight: number; destino: string; origin: string }): ShippingOption[] {
-  const w = Math.max(0.1, ctx.totalWeight);
-  const destPrefix = Number(ctx.destino.slice(0, 2)); // 01-99 → região do CEP
-  const originPrefix = Number(ctx.origin.slice(0, 2));
+// (quoteCorreiosEstimate movido para ./lib.ts)
 
-  // Fator de distância simples por diferença de prefixo (proxy de região).
-  const diff = Math.abs(destPrefix - originPrefix);
-  let zoneFactor = 1.0;
-  if (diff <= 3) zoneFactor = 0.85;       // mesma região
-  else if (diff <= 15) zoneFactor = 1.0;  // regiões próximas
-  else if (diff <= 35) zoneFactor = 1.25; // distante
-  else zoneFactor = 1.5;                  // muito distante
 
-  // Base realista: PAC ~ R$ 18 + R$ 6/kg; SEDEX ~ 1.6x PAC. Cap superior.
-  const pac = Math.min(60, Math.max(15, round2((18 + w * 6) * zoneFactor)));
-  const sedex = Math.min(95, round2(pac * 1.6));
-
-  return [
-    { provider: 'Correios', service_name: 'PAC (estimado)', price: pac, estimated_delivery_days: '5-9' },
-    { provider: 'Correios', service_name: 'SEDEX (estimado)', price: sedex, estimated_delivery_days: '2-4' },
-  ];
-}
 
 // --- Regras ---
 function applyRules(opts: ShippingOption[], ctx: { subtotal: number; state?: string; destino: string }, rules: any[]): ShippingOption[] {
@@ -276,4 +267,4 @@ function json(body: unknown, status = 200) {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
 }
-function round2(n: number) { return Math.round(n * 100) / 100; }
+

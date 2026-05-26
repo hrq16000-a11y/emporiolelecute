@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, Truck } from "lucide-react";
+import { Loader2, Truck, Info, MapPin } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/format";
 
@@ -49,6 +50,7 @@ export default function ShippingCalculator({ items, state, initialCep = "", onSe
   const [options, setOptions] = useState<ShippingOption[] | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [moduleEnabled, setModuleEnabled] = useState<boolean | null>(null);
+  const [quoteMeta, setQuoteMeta] = useState<{ estimated?: boolean; local?: boolean }>({});
 
   // Verifica se o módulo de frete está habilitado no admin
   useEffect(() => {
@@ -68,6 +70,7 @@ export default function ShippingCalculator({ items, state, initialCep = "", onSe
     setError(null);
     setOptions(null);
     setSelected(null);
+    setQuoteMeta({});
     onSelect?.(null);
     const clean = cep.replace(/\D/g, "");
     if (clean.length !== 8) {
@@ -86,6 +89,7 @@ export default function ShippingCalculator({ items, state, initialCep = "", onSe
         return;
       }
       setOptions(opts);
+      setQuoteMeta({ estimated: !!data?.estimated, local: !!data?.local_delivery });
       const cheapest = opts[0];
       setSelected(optionKey(cheapest));
       onSelect?.(cheapest);
@@ -136,6 +140,30 @@ export default function ShippingCalculator({ items, state, initialCep = "", onSe
         </div>
       )}
 
+      {options && options.length > 0 && (quoteMeta.estimated || quoteMeta.local) && (
+        <div
+          role="status"
+          className={`flex items-start gap-2 text-xs rounded-md p-2.5 border ${
+            quoteMeta.estimated
+              ? "bg-amber-50 border-amber-200 text-amber-900 dark:bg-amber-950/40 dark:border-amber-900/50 dark:text-amber-200"
+              : "bg-primary/5 border-primary/20 text-foreground"
+          }`}
+        >
+          {quoteMeta.estimated ? <Info className="h-4 w-4 mt-0.5 shrink-0" /> : <MapPin className="h-4 w-4 mt-0.5 shrink-0" />}
+          <div>
+            {quoteMeta.estimated ? (
+              <>
+                <strong>Valor estimado.</strong> Confirmamos o frete real antes de fechar o pedido pelo WhatsApp.
+              </>
+            ) : (
+              <>
+                <strong>Entrega local.</strong> Mesma cidade do nosso ateliê — retirada ou entrega combinada.
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {options && options.length > 0 && (
         <RadioGroup
           value={selected ?? ""}
@@ -164,9 +192,14 @@ export default function ShippingCalculator({ items, state, initialCep = "", onSe
                     </p>
                   </div>
                 </div>
-                <span className="font-semibold text-foreground">
-                  {o.price === 0 ? "Grátis" : formatBRL(o.price)}
-                </span>
+                <div className="flex items-center gap-2">
+                  {!quoteMeta.estimated && !quoteMeta.local && o.price > 0 && (
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">cotação real</Badge>
+                  )}
+                  <span className="font-semibold text-foreground">
+                    {o.price === 0 ? "Grátis" : formatBRL(o.price)}
+                  </span>
+                </div>
               </Label>
             );
           })}
