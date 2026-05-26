@@ -39,9 +39,25 @@ const AdminPageForm = () => {
   });
 
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+
+  // Rascunho global: persiste em localStorage e sobrevive à navegação
+  const draft = useFormDraft(formData, hydrated);
+
+  // Hidratação inicial: prioriza rascunho local
+  useEffect(() => {
+    if (hydrated) return;
+    const saved = draft.hydrate<typeof formData>();
+    if (saved) {
+      setFormData(saved);
+      setHydrated(true);
+      return;
+    }
+    if (!isEditing) setHydrated(true);
+  }, [hydrated, isEditing, draft]);
 
   useEffect(() => {
-    if (existingPage) {
+    if (existingPage && !hydrated) {
       setFormData({
         title: existingPage.title,
         slug: existingPage.slug,
@@ -54,8 +70,9 @@ const AdminPageForm = () => {
         status: existingPage.status,
         internal_notes: existingPage.internal_notes || '',
       });
+      setHydrated(true);
     }
-  }, [existingPage]);
+  }, [existingPage, hydrated]);
 
   const generateSlug = (title: string) => {
     return title
