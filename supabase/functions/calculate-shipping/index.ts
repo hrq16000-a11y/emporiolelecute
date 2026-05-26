@@ -69,11 +69,21 @@ Deno.serve(async (req) => {
       return json({ options: [{ provider: 'Digital', service_name: 'Sem envio', price: 0, estimated_delivery_days: '0' }] });
     }
 
-    const totalWeight = shippable.reduce(
-      (acc, it) => acc + (it.weight_kg ?? Number(settings.default_box_weight_kg)) * it.quantity,
+    // Empacotamento: peso real somado (sem default por item) + valor declarado
+    const defaultItemWeight = Number(settings.default_box_weight_kg) || 0.3;
+    const totalWeight = round2(shippable.reduce(
+      (acc, it) => acc + (it.weight_kg ?? defaultItemWeight) * it.quantity,
       0,
-    );
-    const subtotal = shippable.reduce((acc, it) => acc + (it.unit_price ?? 0) * it.quantity, 0);
+    ));
+    const subtotal = round2(shippable.reduce((acc, it) => acc + (it.unit_price ?? 0) * it.quantity, 0));
+
+    // Diagnóstico: token Melhor Envio configurado?
+    const meProvider = (providers ?? []).find((p: any) => p.provider_code === 'melhor_envio');
+    console.log('[calculate-shipping]', {
+      destino, totalWeight, subtotal, items_count: shippable.length,
+      melhor_envio_active: !!meProvider,
+      melhor_envio_has_key: !!meProvider?.api_key,
+    });
 
     // Entrega local: mesmo CEP
     if (destino === ORIGIN_CEP) {
@@ -90,8 +100,15 @@ Deno.serve(async (req) => {
       (providers ?? []).map((p) => quoteProvider(p, { origin: ORIGIN_CEP, destino, items: shippable, totalWeight, subtotal, settings, sb })),
     );
     let options: ShippingOption[] = quotes.flat();
+    let estimated = false;
 
-    // Markup + handling
+    // Fallback: se nenhum provedor real retornou, usa estimativa por região
+    if (options.length === 0) {
+      estimated = true;
+      options = quoteCorreiosEstimate({ totalWeight, destino, origin: ORIGIN_CEP });
+    }
+
+    // Markup + handling (não aplicar em frete grátis)
     const markup = Number(settings.shipping_markup_percentage) || 0;
     const fee = Number(settings.handling_fee) || 0;
     options = options.map((o) => ({
@@ -107,7 +124,7 @@ Deno.serve(async (req) => {
     if (options.length === 0) {
       return json({ error: 'Não foi possível calcular o frete para este CEP.' }, 422);
     }
-    return json({ options });
+    return json({ options, estimated });
   } catch (err) {
     console.error('[calculate-shipping] unexpected', err);
     return json({ error: 'Erro interno', message: String(err) }, 500);
@@ -123,15 +140,13 @@ async function quoteProvider(p: any, ctx: any): Promise<ShippingOption[]> {
       if (p.provider_code === 'melhor_envio') {
         return await quoteMelhorEnvio(p, ctx, ctrl.signal);
       }
-      if (p.provider_code === 'correios_estimate') {
-        return quoteCorreiosEstimate(ctx);
-      }
-      // Provedor custom: tenta POST genérico
+      // 'correios_estimate' é fallback, tratado fora do loop
       return [];
     } finally {
       clearTimeout(t);
     }
   } catch (err: any) {
+    console.error('[calculate-shipping] provider error', p.provider_name, err?.message);
     await ctx.sb.from('shipping_audit_logs').insert({
       destination_zip: ctx.destino,
       cart_snapshot: { items: ctx.items },
@@ -145,20 +160,28 @@ async function quoteProvider(p: any, ctx: any): Promise<ShippingOption[]> {
 
 async function quoteMelhorEnvio(p: any, ctx: any, signal: AbortSignal): Promise<ShippingOption[]> {
   if (!p.api_key || !p.endpoint_url) throw new Error('Credenciais Melhor Envio ausentes');
+
+  // EMPACOTAMENTO: consolida o carrinho inteiro em UMA caixa (default_box).
+  // Soma pesos reais; dimensões da caixa entram UMA vez (não por linha).
+  const boxW = Number(ctx.settings.default_box_width_cm) || 16;
+  const boxH = Number(ctx.settings.default_box_height_cm) || 11;
+  const boxL = Number(ctx.settings.default_box_length_cm) || 20;
+
   const payload = {
     from: { postal_code: ctx.origin },
     to: { postal_code: ctx.destino },
-    products: ctx.items.map((it: any, i: number) => ({
-      id: String(it.product_id ?? i),
-      width: it.width ?? Number(ctx.settings.default_box_width_cm),
-      height: it.height ?? Number(ctx.settings.default_box_height_cm),
-      length: it.length ?? Number(ctx.settings.default_box_length_cm),
-      weight: it.weight_kg ?? Number(ctx.settings.default_box_weight_kg),
-      insurance_value: it.unit_price ?? 0,
-      quantity: it.quantity,
-    })),
+    products: [{
+      id: 'cart-package',
+      width: boxW,
+      height: boxH,
+      length: boxL,
+      weight: Math.max(0.1, ctx.totalWeight),
+      insurance_value: ctx.subtotal,
+      quantity: 1,
+    }],
     options: { receipt: false, own_hand: false, insurance_value: ctx.subtotal },
   };
+
   const res = await fetch(p.endpoint_url, {
     method: 'POST',
     signal,
@@ -185,12 +208,28 @@ async function quoteMelhorEnvio(p: any, ctx: any, signal: AbortSignal): Promise<
     }));
 }
 
-function quoteCorreiosEstimate(ctx: any): ShippingOption[] {
-  const w = ctx.totalWeight;
-  const est = (factor: number) => Math.max(12, Math.round((15 + w * 18) * factor * 100) / 100);
+// Fallback estimado por faixa de CEP (região). Valores conservadores para
+// pacote pequeno; não substitui cotação real, apenas evita carrinho vazio.
+function quoteCorreiosEstimate(ctx: { totalWeight: number; destino: string; origin: string }): ShippingOption[] {
+  const w = Math.max(0.1, ctx.totalWeight);
+  const destPrefix = Number(ctx.destino.slice(0, 2)); // 01-99 → região do CEP
+  const originPrefix = Number(ctx.origin.slice(0, 2));
+
+  // Fator de distância simples por diferença de prefixo (proxy de região).
+  const diff = Math.abs(destPrefix - originPrefix);
+  let zoneFactor = 1.0;
+  if (diff <= 3) zoneFactor = 0.85;       // mesma região
+  else if (diff <= 15) zoneFactor = 1.0;  // regiões próximas
+  else if (diff <= 35) zoneFactor = 1.25; // distante
+  else zoneFactor = 1.5;                  // muito distante
+
+  // Base realista: PAC ~ R$ 18 + R$ 6/kg; SEDEX ~ 1.6x PAC. Cap superior.
+  const pac = Math.min(60, Math.max(15, round2((18 + w * 6) * zoneFactor)));
+  const sedex = Math.min(95, round2(pac * 1.6));
+
   return [
-    { provider: 'Correios', service_name: 'PAC (estimado)', price: est(1.0), estimated_delivery_days: '5-9' },
-    { provider: 'Correios', service_name: 'SEDEX (estimado)', price: est(1.8), estimated_delivery_days: '2-4' },
+    { provider: 'Correios', service_name: 'PAC (estimado)', price: pac, estimated_delivery_days: '5-9' },
+    { provider: 'Correios', service_name: 'SEDEX (estimado)', price: sedex, estimated_delivery_days: '2-4' },
   ];
 }
 
@@ -200,7 +239,6 @@ function applyRules(opts: ShippingOption[], ctx: { subtotal: number; state?: str
   for (const r of rules) {
     if (!matchesCondition(r, ctx)) continue;
     if (r.discount_type === 'free_shipping') {
-      // Zera a opção mais barata
       result.sort((a, b) => a.price - b.price);
       if (result[0]) result[0] = { ...result[0], price: 0, service_name: result[0].service_name + ' (Frete Grátis)' };
     } else if (r.discount_type === 'fixed_discount') {
