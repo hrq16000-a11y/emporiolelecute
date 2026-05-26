@@ -228,10 +228,21 @@ const AdminLayout = () => {
         </nav>
 
         <div className="shrink-0 p-3 border-t border-border/50 space-y-1.5 bg-card/80 backdrop-blur-sm">
-          <Link to="/" className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-all text-sm">
-            <Home className="w-4 h-4" />
-            <span>Ver site</span>
-          </Link>
+          <div className="flex items-center gap-1.5">
+            <Link to="/" className="flex-1 flex items-center gap-2.5 px-3 py-2 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-all text-sm">
+              <Home className="w-4 h-4" />
+              <span>Ver site</span>
+            </Link>
+            <Link
+              to="/admin/fretes"
+              title="Gestão de Fretes"
+              aria-label="Ir para Gestão de Fretes"
+              onClick={() => trackAdminEvent('nav_click', 'shortcut_shipping')}
+              className="p-2 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-all"
+            >
+              <Truck className="w-4 h-4" />
+            </Link>
+          </div>
           <Button
             variant="ghost"
             className="w-full justify-start gap-2.5 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-lg py-2 h-auto text-sm"
