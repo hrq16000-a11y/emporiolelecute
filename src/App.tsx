@@ -3,6 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import StaleBundleOverlay from "@/components/StaleBundleOverlay";
 import PwaInstallPrompt from "@/components/PwaInstallPrompt";
+import SocialProofToast from "@/components/SocialProofToast";
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useParams, useLocation } from "react-router-dom";
 import { lazy, Suspense, useEffect } from "react";
@@ -268,6 +270,8 @@ const App = () => {
               <TrackingScripts />
               <VisitorTracker />
               <CookieConsentBanner />
+              <SocialProofToast />
+
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={
