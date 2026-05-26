@@ -650,12 +650,12 @@ const Carrinho = () => {
                 <div className="grid md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="cep">CEP *</Label>
-                    <div className="relative mt-1">
+                    <div className={`relative mt-1 ${invalidFields.has('cep') ? 'rounded-md ' + errorRing : ''}`}>
                       <Input
                         id="cep"
                         placeholder="00000-000"
                         value={address.cep}
-                        onChange={(e) => handleCepChange(e.target.value)}
+                        onChange={(e) => { handleCepChange(e.target.value); clearInvalid('cep'); }}
                         maxLength={9}
                       />
                       {loadingCep && (
@@ -669,8 +669,8 @@ const Carrinho = () => {
                       id="city"
                       placeholder="Cidade"
                       value={address.city}
-                      onChange={(e) => setAddress(prev => ({ ...prev, city: e.target.value }))}
-                      className="mt-1"
+                      onChange={(e) => { setAddress(prev => ({ ...prev, city: e.target.value })); clearInvalid('city'); }}
+                      className={fieldClass('city')}
                     />
                   </div>
                   <div>
@@ -679,8 +679,8 @@ const Carrinho = () => {
                       id="state"
                       placeholder="UF"
                       value={address.state}
-                      onChange={(e) => setAddress(prev => ({ ...prev, state: e.target.value }))}
-                      className="mt-1"
+                      onChange={(e) => { setAddress(prev => ({ ...prev, state: e.target.value })); clearInvalid('state'); }}
+                      className={fieldClass('state')}
                       maxLength={2}
                     />
                   </div>
