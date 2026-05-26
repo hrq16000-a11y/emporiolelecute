@@ -65,6 +65,19 @@ const Carrinho = () => {
   const [couponInput, setCouponInput] = useState('');
   const [coupon, setCoupon] = useState<ValidCoupon | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
+  const [invalidFields, setInvalidFields] = useState<Set<string>>(new Set());
+
+  // Classe aplicada nos inputs vazios após tentativa de submit — contorno pulsante
+  const errorRing = "ring-2 ring-destructive ring-offset-2 animate-pulse border-destructive";
+  const fieldClass = (field: string, base = "mt-1") =>
+    `${base} ${invalidFields.has(field) ? errorRing : ""}`;
+  const clearInvalid = (field: string) =>
+    setInvalidFields(prev => {
+      if (!prev.has(field)) return prev;
+      const next = new Set(prev);
+      next.delete(field);
+      return next;
+    });
 
   // Mapa nome do estado -> UF (fallback quando provedores retornam nome por extenso)
   const STATE_NAME_TO_UF: Record<string, string> = {
@@ -269,24 +282,35 @@ const Carrinho = () => {
   };
 
   const handleSubmitOrder = async () => {
-    // Validation
-    if (!customer.name.trim() || !customer.email.trim() || !customer.phone.trim()) {
+    // Coleta todos os campos vazios para destacar com efeito pulsante
+    const missing = new Set<string>();
+    if (!customer.name.trim()) missing.add('name');
+    if (!customer.email.trim()) missing.add('email');
+    if (!customer.phone.trim()) missing.add('phone');
+    if (!address.cep) missing.add('cep');
+    if (!address.city) missing.add('city');
+    if (!address.state) missing.add('state');
+
+    if (missing.size > 0) {
+      setInvalidFields(missing);
       toast({
         title: "Dados incompletos",
-        description: "Preencha todos os dados pessoais",
+        description: "Preencha os campos destacados para continuar.",
         variant: "destructive",
       });
+      // Faz scroll suave até o primeiro campo inválido
+      const firstId = ['name','email','phone','cep','city','state'].find(f => missing.has(f));
+      if (firstId) {
+        const el = document.getElementById(firstId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => el.focus(), 300);
+        }
+      }
       return;
     }
 
-    if (!address.cep || !address.city || !address.state) {
-      toast({
-        title: "Dados incompletos",
-        description: "Preencha CEP, cidade e estado",
-        variant: "destructive",
-      });
-      return;
-    }
+    setInvalidFields(new Set());
 
     setIsSubmitting(true);
     const code = generateOrderCode();
@@ -572,8 +596,8 @@ const Carrinho = () => {
                       id="name"
                       placeholder="Seu nome completo"
                       value={customer.name}
-                      onChange={(e) => setCustomer(prev => ({ ...prev, name: e.target.value }))}
-                      className="mt-1"
+                      onChange={(e) => { setCustomer(prev => ({ ...prev, name: e.target.value })); clearInvalid('name'); }}
+                      className={fieldClass('name')}
                     />
                   </div>
                   <div>
@@ -583,8 +607,8 @@ const Carrinho = () => {
                       type="email"
                       placeholder="seu@email.com"
                       value={customer.email}
-                      onChange={(e) => setCustomer(prev => ({ ...prev, email: e.target.value }))}
-                      className="mt-1"
+                      onChange={(e) => { setCustomer(prev => ({ ...prev, email: e.target.value })); clearInvalid('email'); }}
+                      className={fieldClass('email')}
                     />
                   </div>
                   <div>
@@ -593,8 +617,8 @@ const Carrinho = () => {
                       id="phone"
                       placeholder="(41) 99999-9999"
                       value={customer.phone}
-                      onChange={(e) => setCustomer(prev => ({ ...prev, phone: e.target.value }))}
-                      className="mt-1"
+                      onChange={(e) => { setCustomer(prev => ({ ...prev, phone: e.target.value })); clearInvalid('phone'); }}
+                      className={fieldClass('phone')}
                     />
                   </div>
                 </div>
@@ -626,12 +650,12 @@ const Carrinho = () => {
                 <div className="grid md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="cep">CEP *</Label>
-                    <div className="relative mt-1">
+                    <div className={`relative mt-1 ${invalidFields.has('cep') ? 'rounded-md ' + errorRing : ''}`}>
                       <Input
                         id="cep"
                         placeholder="00000-000"
                         value={address.cep}
-                        onChange={(e) => handleCepChange(e.target.value)}
+                        onChange={(e) => { handleCepChange(e.target.value); clearInvalid('cep'); }}
                         maxLength={9}
                       />
                       {loadingCep && (
@@ -645,8 +669,8 @@ const Carrinho = () => {
                       id="city"
                       placeholder="Cidade"
                       value={address.city}
-                      onChange={(e) => setAddress(prev => ({ ...prev, city: e.target.value }))}
-                      className="mt-1"
+                      onChange={(e) => { setAddress(prev => ({ ...prev, city: e.target.value })); clearInvalid('city'); }}
+                      className={fieldClass('city')}
                     />
                   </div>
                   <div>
@@ -655,8 +679,8 @@ const Carrinho = () => {
                       id="state"
                       placeholder="UF"
                       value={address.state}
-                      onChange={(e) => setAddress(prev => ({ ...prev, state: e.target.value }))}
-                      className="mt-1"
+                      onChange={(e) => { setAddress(prev => ({ ...prev, state: e.target.value })); clearInvalid('state'); }}
+                      className={fieldClass('state')}
                       maxLength={2}
                     />
                   </div>
