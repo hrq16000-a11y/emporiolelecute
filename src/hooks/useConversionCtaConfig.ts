@@ -65,6 +65,20 @@ export interface PdpBadgeConfig {
   offsetY: number;
 }
 
+/** Variante visual do botão CTA inline (dentro do bloco de descrição da PDP). */
+export type InlineCtaVariant = "dark" | "primary" | "whatsapp" | "outline";
+
+export interface InlineCtaConfig {
+  /** Renderiza o botão dentro do bloco de descrição da PDP. */
+  enabled: boolean;
+  /** Texto do botão. */
+  label: string;
+  /** Mostra o ícone do WhatsApp à esquerda do texto. */
+  showIcon: boolean;
+  /** Estilo visual do botão. */
+  variant: InlineCtaVariant;
+}
+
 export interface ConversionCtaConfig {
   sticky: StickyCtaConfig;
   quickSummary: QuickSummaryConfig;
@@ -72,6 +86,7 @@ export interface ConversionCtaConfig {
   whatsappTemplate: WhatsAppTemplateConfig;
   toast: ToastConfig;
   pdpBadge: PdpBadgeConfig;
+  inlineCta: InlineCtaConfig;
 }
 
 export const DEFAULT_CONVERSION_CTA: ConversionCtaConfig = {
