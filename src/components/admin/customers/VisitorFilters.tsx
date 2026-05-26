@@ -198,6 +198,52 @@ export function VisitorFilters({ value, onChange, osOptions, countryOptions = []
         </Select>
       )}
 
+      {/* País */}
+      {countryOptions.length > 0 && (
+        <Select value={value.country} onValueChange={(v) => onChange({ ...value, country: v })}>
+          <SelectTrigger className="w-auto min-w-[130px] h-9">
+            <Globe className="w-4 h-4 mr-1.5" />
+            <SelectValue placeholder="País" />
+          </SelectTrigger>
+          <SelectContent className="max-h-72">
+            <SelectItem value="all">Todos países</SelectItem>
+            {countryOptions.map((c) => (
+              <SelectItem key={c} value={c}>{c}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
+      {/* Estado/Região */}
+      {regionOptions.length > 0 && (
+        <Select value={value.region} onValueChange={(v) => onChange({ ...value, region: v })}>
+          <SelectTrigger className="w-auto min-w-[130px] h-9">
+            <SelectValue placeholder="Estado" />
+          </SelectTrigger>
+          <SelectContent className="max-h-72">
+            <SelectItem value="all">Todos estados</SelectItem>
+            {regionOptions.map((r) => (
+              <SelectItem key={r} value={r}>{r}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
+      {/* Cidade */}
+      {cityOptions.length > 0 && (
+        <Select value={value.city} onValueChange={(v) => onChange({ ...value, city: v })}>
+          <SelectTrigger className="w-auto min-w-[140px] h-9">
+            <SelectValue placeholder="Cidade" />
+          </SelectTrigger>
+          <SelectContent className="max-h-72">
+            <SelectItem value="all">Todas cidades</SelectItem>
+            {cityOptions.map((c) => (
+              <SelectItem key={c} value={c}>{c}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
       {activeCount > 0 && (
         <Button variant="ghost" size="sm" onClick={reset} className="h-9 text-muted-foreground">
           <X className="w-3.5 h-3.5 mr-1" />
