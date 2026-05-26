@@ -239,6 +239,13 @@ const pdpBadgeSchema = z.object({
   offsetY: z.coerce.number().int().min(0).max(80),
 });
 
+const inlineCtaSchema = z.object({
+  enabled: z.boolean(),
+  label: z.string().trim().min(1, "Texto do botão obrigatório").max(60),
+  showIcon: z.boolean(),
+  variant: z.enum(["dark", "primary", "whatsapp", "outline"]),
+});
+
 export const conversionCtaConfigSchema = z.object({
   sticky: stickySchema,
   quickSummary: quickSummarySchema,
@@ -246,6 +253,7 @@ export const conversionCtaConfigSchema = z.object({
   whatsappTemplate: whatsappTemplateSchema,
   toast: toastSchema,
   pdpBadge: pdpBadgeSchema,
+  inlineCta: inlineCtaSchema,
 });
 
 /** Valida (e normaliza) o config. Lança Error com mensagem amigável se inválido. */
