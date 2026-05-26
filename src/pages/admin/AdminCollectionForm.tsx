@@ -59,6 +59,10 @@ export default function AdminCollectionForm() {
   const [productIds, setProductIds] = useState<string[]>([]);
   const [productSearch, setProductSearch] = useState("");
   const [saving, setSaving] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+
+  // Rascunho global: persiste em localStorage e sobrevive à navegação
+  const draft = useFormDraft({ form, productIds }, hydrated);
 
   const { data: existing, isLoading } = useQuery({
     queryKey: ["admin-collection", id],
@@ -74,8 +78,26 @@ export default function AdminCollectionForm() {
     },
   });
 
+  // Hidratação inicial: prioriza rascunho local; só usa servidor se não houver rascunho
   useEffect(() => {
-    if (!existing) return;
+    if (hydrated) return;
+    const saved = draft.hydrate<{ form: typeof form; productIds: string[] }>();
+    if (saved?.form) {
+      setForm(saved.form);
+      setProductIds(saved.productIds ?? []);
+      setHydrated(true);
+      return;
+    }
+    // Modo "nova": já marca como hidratado (não há servidor para esperar)
+    if (!isEdit) {
+      setHydrated(true);
+      return;
+    }
+    // Modo edição: aguarda servidor abaixo
+  }, [hydrated, isEdit, draft]);
+
+  useEffect(() => {
+    if (!existing || hydrated) return;
     setForm({
       name: existing.name ?? "",
       slug: existing.slug ?? "",
@@ -91,7 +113,8 @@ export default function AdminCollectionForm() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rows = (existing.collection_products || []) as { product_id: string; position: number }[];
     setProductIds(rows.sort((a, b) => a.position - b.position).map((r) => r.product_id));
-  }, [existing]);
+    setHydrated(true);
+  }, [existing, hydrated]);
 
   const productMap = useMemo(() => {
     const m = new Map<string, { id: string; name: string; slug: string; images: string[] }>();
