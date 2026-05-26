@@ -52,6 +52,7 @@ import { useProductFaqs, buildAutoFaq } from "@/hooks/useProductFaqs";
 import { useDbProduct, useDbProducts } from "@/hooks/useProducts";
 import { useProductReviews, useProductReviewStats } from "@/hooks/useProductReviews";
 import ProductReviews from "@/components/ProductReviews";
+import ProductRatingBadge from "@/components/ProductRatingBadge";
 import { usePaymentConfig } from "@/hooks/useStoreSettings";
 import {
   trackProductView,
@@ -98,6 +99,8 @@ const ProductPage = () => {
   const [showStickyCta, setShowStickyCta] = useState(false);
   const [favoriteFeedback, setFavoriteFeedback] = useState("");
   const ctaAnchorRef = useRef<HTMLDivElement | null>(null);
+  // Ref no wrapper do CTA primário — alvo do IntersectionObserver do sticky mobile.
+  const primaryCtaRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
 
   // Ref sempre fresco com estado atual — garante que callbacks (sticky, popup, summary)
@@ -106,18 +109,34 @@ const ProductPage = () => {
   const valuesRef = useRef({ quantity, personalization });
   valuesRef.current = { quantity, personalization };
 
-  // Sticky CTA: aparece quando o CTA principal sai do viewport (qualquer altura de tela)
-  // e some quando o usuário volta para ele. Fallback por scroll caso o ref não exista.
+  // Sticky CTA: gatilho via IntersectionObserver no botão de compra principal.
+  // - Aparece quando o CTA primário sai do viewport (rolagem para baixo).
+  // - Esconde suavemente quando o CTA volta a ficar visível.
+  // - Fallback por scroll caso o ref ainda não esteja montado (hidratação inicial).
   useEffect(() => {
-    // Gatilho por scroll: aparece quando rolou ~15% da altura da viewport.
-    const ratio = ctaConfig?.sticky?.scrollViewportRatio ?? 0.15;
-    const onScroll = () => {
-      const threshold = Math.max(80, window.innerHeight * ratio);
-      setShowStickyCta(window.scrollY > threshold);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
+    const target = primaryCtaRef.current;
+    if (!target || typeof IntersectionObserver === "undefined") {
+      // Fallback determinístico: aparece após ~25% da viewport rolada.
+      const ratio = ctaConfig?.sticky?.scrollViewportRatio ?? 0.25;
+      const onScroll = () => {
+        const threshold = Math.max(120, window.innerHeight * ratio);
+        setShowStickyCta(window.scrollY > threshold);
+      };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+      return () => window.removeEventListener("scroll", onScroll);
+    }
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        // Sticky aparece somente quando o CTA principal NÃO está visível.
+        setShowStickyCta(!entry.isIntersecting);
+      },
+      // rootMargin negativo no topo evita "flicker" próximo ao header fixo.
+      { threshold: 0, rootMargin: "-64px 0px 0px 0px" },
+    );
+    io.observe(target);
+    return () => io.disconnect();
   }, [dbProduct?.id, ctaConfig?.sticky?.scrollViewportRatio]);
 
   // Fase 1 — Replace controlado para slug primário.
@@ -591,20 +610,16 @@ const ProductPage = () => {
             {/* Info Section - Reference Style (cap editorial em desktop p/ preservar proximidade) */}
             <div className="flex min-w-0 w-full lg:max-w-[560px] flex-col overflow-hidden">
 
-              {/* Product Name + Social Proof (estrelas só quando há avaliações reais) */}
-              <div className="flex items-start justify-between gap-3 sm:gap-4 mb-3">
+              {/* Product Name */}
+              <div className="flex items-start justify-between gap-3 sm:gap-4 mb-2">
                 <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-light text-foreground leading-tight tracking-tight min-w-0 break-words">
                   {product.name}
                 </h1>
-                {reviewStats?.review_count && reviewStats?.avg_rating ? (
-                  <div className="flex items-center gap-1.5 flex-shrink-0 pt-1.5 text-muted-foreground">
-                    <Star className="h-3.5 w-3.5 text-foreground" strokeWidth={1.5} />
-                    <span className="text-sm tabular-nums text-foreground">
-                      {Number(reviewStats.avg_rating).toFixed(1)}
-                    </span>
-                    <span className="text-xs text-muted-foreground/80">({reviewStats.review_count})</span>
-                  </div>
-                ) : null}
+              </div>
+
+              {/* Prova social acima da dobra — clicável, faz scroll até a seção completa de reviews */}
+              <div className="mb-4">
+                <ProductRatingBadge productId={dbProduct?.id} />
               </div>
 
               {/* Trust row consolidado — linha editorial sutil, sem pílulas cromáticas */}
@@ -859,7 +874,7 @@ const ProductPage = () => {
                 );
                 return (
                   <>
-                    <div className="flex min-w-0 items-stretch gap-2 sm:gap-3 mb-4 lg:max-w-[420px]">
+                    <div ref={primaryCtaRef} className="flex min-w-0 items-stretch gap-2 sm:gap-3 mb-4 lg:max-w-[420px]">
                       {cartBtn(true)}
                       {/* Favorite */}
                       <Button
@@ -1048,9 +1063,17 @@ const ProductPage = () => {
       <StickyAddToCart
         productName={product.name}
         productSlug={product.slug}
-        price={`R$ ${product.price.toFixed(2).replace(".", ",")}`}
+        price={`R$ ${totalPrice.toFixed(2).replace(".", ",")}`}
+        installments={
+          installments > 1
+            ? `${installments}x sem juros de R$ ${installmentValue.toFixed(2).replace(".", ",")}`
+            : undefined
+        }
+        imageUrl={product.images?.[0]}
         isVisible={showStickyCta}
         onAddToCart={handleAddToCart}
+        onWhatsApp={() => openWhatsApp("sticky_cta")}
+        primaryAction={resolvePrimaryAction(dbProduct).primary}
         enabled={ctaConfig?.sticky?.enabled !== false}
       />
 
