@@ -76,6 +76,7 @@ const AdminRedirects = lazyWithRetry(() => import("./pages/admin/AdminRedirects"
 const AdminRobots = lazyWithRetry(() => import("./pages/admin/AdminRobots"), "AdminRobots");
 const AdminTracking = lazyWithRetry(() => import("./pages/admin/AdminTracking"), "AdminTracking");
 const AdminConversionCTA = lazyWithRetry(() => import("./pages/admin/AdminConversionCTA"), "AdminConversionCTA");
+const AdminShipping = lazyWithRetry(() => import("./pages/admin/AdminShipping"), "AdminShipping");
 const AdminSEODashboard = lazyWithRetry(() => import("./pages/admin/AdminSEODashboard"), "AdminSEODashboard");
 const AdminTelemetry = lazyWithRetry(() => import("./pages/admin/AdminTelemetry"), "AdminTelemetry");
 const AdminUsage = lazyWithRetry(() => import("./pages/admin/AdminUsage"), "AdminUsage");
