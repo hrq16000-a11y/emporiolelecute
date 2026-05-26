@@ -282,24 +282,35 @@ const Carrinho = () => {
   };
 
   const handleSubmitOrder = async () => {
-    // Validation
-    if (!customer.name.trim() || !customer.email.trim() || !customer.phone.trim()) {
+    // Coleta todos os campos vazios para destacar com efeito pulsante
+    const missing = new Set<string>();
+    if (!customer.name.trim()) missing.add('name');
+    if (!customer.email.trim()) missing.add('email');
+    if (!customer.phone.trim()) missing.add('phone');
+    if (!address.cep) missing.add('cep');
+    if (!address.city) missing.add('city');
+    if (!address.state) missing.add('state');
+
+    if (missing.size > 0) {
+      setInvalidFields(missing);
       toast({
         title: "Dados incompletos",
-        description: "Preencha todos os dados pessoais",
+        description: "Preencha os campos destacados para continuar.",
         variant: "destructive",
       });
+      // Faz scroll suave até o primeiro campo inválido
+      const firstId = ['name','email','phone','cep','city','state'].find(f => missing.has(f));
+      if (firstId) {
+        const el = document.getElementById(firstId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => el.focus(), 300);
+        }
+      }
       return;
     }
 
-    if (!address.cep || !address.city || !address.state) {
-      toast({
-        title: "Dados incompletos",
-        description: "Preencha CEP, cidade e estado",
-        variant: "destructive",
-      });
-      return;
-    }
+    setInvalidFields(new Set());
 
     setIsSubmitting(true);
     const code = generateOrderCode();
