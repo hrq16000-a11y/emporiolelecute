@@ -20,6 +20,7 @@ const WhatsAppButton = ({ message, ariaLabel }: Props = {}) => {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={() => markLead("whatsapp_float")}
       className="whatsapp-float"
       aria-label={ariaLabel || "Contato via WhatsApp"}
     >
