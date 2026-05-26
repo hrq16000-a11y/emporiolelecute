@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useDbProducts } from "@/hooks/useProducts";
+import { useFormDraft } from "@/hooks/useFormDraft";
 
 interface CollectionRow {
   id: string;
