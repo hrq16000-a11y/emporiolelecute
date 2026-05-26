@@ -2115,10 +2115,12 @@ export type Database = {
           featured_weight: number
           features: string[] | null
           google_product_category: string | null
+          height_cm: number | null
           id: string
           images: string[] | null
           is_active: boolean | null
           keywords: string[] | null
+          length_cm: number | null
           long_description: string | null
           min_quantity: number | null
           name: string
@@ -2132,6 +2134,7 @@ export type Database = {
           production_days: number | null
           production_speed: string | null
           rating: number | null
+          requires_shipping: boolean
           search_text: string | null
           seo_noindex: boolean
           show_min_quantity: boolean
@@ -2139,6 +2142,8 @@ export type Database = {
           slug: string
           updated_at: string
           weight: number | null
+          weight_kg: number | null
+          width_cm: number | null
         }
         Insert: {
           badge?: string | null
@@ -2150,10 +2155,12 @@ export type Database = {
           featured_weight?: number
           features?: string[] | null
           google_product_category?: string | null
+          height_cm?: number | null
           id?: string
           images?: string[] | null
           is_active?: boolean | null
           keywords?: string[] | null
+          length_cm?: number | null
           long_description?: string | null
           min_quantity?: number | null
           name: string
@@ -2167,6 +2174,7 @@ export type Database = {
           production_days?: number | null
           production_speed?: string | null
           rating?: number | null
+          requires_shipping?: boolean
           search_text?: string | null
           seo_noindex?: boolean
           show_min_quantity?: boolean
@@ -2174,6 +2182,8 @@ export type Database = {
           slug: string
           updated_at?: string
           weight?: number | null
+          weight_kg?: number | null
+          width_cm?: number | null
         }
         Update: {
           badge?: string | null
@@ -2185,10 +2195,12 @@ export type Database = {
           featured_weight?: number
           features?: string[] | null
           google_product_category?: string | null
+          height_cm?: number | null
           id?: string
           images?: string[] | null
           is_active?: boolean | null
           keywords?: string[] | null
+          length_cm?: number | null
           long_description?: string | null
           min_quantity?: number | null
           name?: string
@@ -2202,6 +2214,7 @@ export type Database = {
           production_days?: number | null
           production_speed?: string | null
           rating?: number | null
+          requires_shipping?: boolean
           search_text?: string | null
           seo_noindex?: boolean
           show_min_quantity?: boolean
@@ -2209,6 +2222,8 @@ export type Database = {
           slug?: string
           updated_at?: string
           weight?: number | null
+          weight_kg?: number | null
+          width_cm?: number | null
         }
         Relationships: [
           {
@@ -5918,6 +5933,156 @@ export type Database = {
         }
         Relationships: []
       }
+      shipping_audit_logs: {
+        Row: {
+          cart_snapshot: Json | null
+          created_at: string
+          destination_zip: string | null
+          error_message: string | null
+          http_status: number | null
+          id: string
+          provider_name: string | null
+        }
+        Insert: {
+          cart_snapshot?: Json | null
+          created_at?: string
+          destination_zip?: string | null
+          error_message?: string | null
+          http_status?: number | null
+          id?: string
+          provider_name?: string | null
+        }
+        Update: {
+          cart_snapshot?: Json | null
+          created_at?: string
+          destination_zip?: string | null
+          error_message?: string | null
+          http_status?: number | null
+          id?: string
+          provider_name?: string | null
+        }
+        Relationships: []
+      }
+      shipping_providers: {
+        Row: {
+          api_key: string | null
+          api_secret: string | null
+          config_json: Json
+          created_at: string
+          endpoint_url: string | null
+          id: string
+          is_active: boolean
+          provider_code: string
+          provider_name: string
+          updated_at: string
+        }
+        Insert: {
+          api_key?: string | null
+          api_secret?: string | null
+          config_json?: Json
+          created_at?: string
+          endpoint_url?: string | null
+          id?: string
+          is_active?: boolean
+          provider_code: string
+          provider_name: string
+          updated_at?: string
+        }
+        Update: {
+          api_key?: string | null
+          api_secret?: string | null
+          config_json?: Json
+          created_at?: string
+          endpoint_url?: string | null
+          id?: string
+          is_active?: boolean
+          provider_code?: string
+          provider_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      shipping_rules: {
+        Row: {
+          condition_type: Database["public"]["Enums"]["shipping_condition_type"]
+          condition_value: Json
+          created_at: string
+          discount_type: Database["public"]["Enums"]["shipping_discount_type"]
+          discount_value: number
+          id: string
+          is_active: boolean
+          priority: number
+          rule_name: string
+          updated_at: string
+        }
+        Insert: {
+          condition_type: Database["public"]["Enums"]["shipping_condition_type"]
+          condition_value?: Json
+          created_at?: string
+          discount_type: Database["public"]["Enums"]["shipping_discount_type"]
+          discount_value?: number
+          id?: string
+          is_active?: boolean
+          priority?: number
+          rule_name: string
+          updated_at?: string
+        }
+        Update: {
+          condition_type?: Database["public"]["Enums"]["shipping_condition_type"]
+          condition_value?: Json
+          created_at?: string
+          discount_type?: Database["public"]["Enums"]["shipping_discount_type"]
+          discount_value?: number
+          id?: string
+          is_active?: boolean
+          priority?: number
+          rule_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      shipping_settings: {
+        Row: {
+          created_at: string
+          default_box_height_cm: number
+          default_box_length_cm: number
+          default_box_weight_kg: number
+          default_box_width_cm: number
+          handling_fee: number
+          id: string
+          origin_zip_code: string
+          shipping_markup_percentage: number
+          singleton: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_box_height_cm?: number
+          default_box_length_cm?: number
+          default_box_weight_kg?: number
+          default_box_width_cm?: number
+          handling_fee?: number
+          id?: string
+          origin_zip_code?: string
+          shipping_markup_percentage?: number
+          singleton?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_box_height_cm?: number
+          default_box_length_cm?: number
+          default_box_weight_kg?: number
+          default_box_width_cm?: number
+          handling_fee?: number
+          id?: string
+          origin_zip_code?: string
+          shipping_markup_percentage?: number
+          singleton?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       stale_bundle_logs: {
         Row: {
           id: string
@@ -6831,6 +6996,14 @@ export type Database = {
       app_role: "admin" | "user" | "editor" | "customer"
       kit_bundle_type: "suggested" | "curated" | "premium"
       payment_status: "pending" | "approved" | "refunded" | "cancelled"
+      shipping_condition_type:
+        | "min_cart_value"
+        | "specific_state"
+        | "zip_code_range"
+      shipping_discount_type:
+        | "free_shipping"
+        | "fixed_discount"
+        | "percentage_discount"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -6961,6 +7134,16 @@ export const Constants = {
       app_role: ["admin", "user", "editor", "customer"],
       kit_bundle_type: ["suggested", "curated", "premium"],
       payment_status: ["pending", "approved", "refunded", "cancelled"],
+      shipping_condition_type: [
+        "min_cart_value",
+        "specific_state",
+        "zip_code_range",
+      ],
+      shipping_discount_type: [
+        "free_shipping",
+        "fixed_discount",
+        "percentage_discount",
+      ],
     },
   },
 } as const
