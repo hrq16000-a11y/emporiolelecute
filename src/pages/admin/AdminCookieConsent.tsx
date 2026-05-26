@@ -105,24 +105,28 @@ export default function AdminCookieConsent() {
       <Helmet>
         <title>Banner de Consentimento | Admin</title>
       </Helmet>
-      <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <Cookie className="w-5 h-5 text-primary" />
+      <div className="p-3 sm:p-4 md:p-6 max-w-5xl mx-auto space-y-4 md:space-y-6">
+        {/* Header mobile-first: empilha em <md e coloca ações em linha full-width */}
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-start gap-3 min-w-0">
+            <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Cookie className="w-4 h-4 md:w-5 md:h-5 text-primary" />
             </div>
-            <div>
-              <h1 className="text-2xl font-heading">Banner de Consentimento (LGPD)</h1>
-              <p className="text-sm text-muted-foreground">
+            <div className="min-w-0">
+              <h1 className="text-lg md:text-2xl font-heading leading-tight break-words">
+                Banner de Consentimento (LGPD)
+              </h1>
+              <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
                 Controle textos, posição, formato e ativação do banner exibido no site.
               </p>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={resetConsent}>
-              <Eye className="w-4 h-4 mr-2" /> Resetar consentimento
+          <div className="grid grid-cols-2 gap-2 md:flex md:gap-2 md:shrink-0">
+            <Button variant="outline" onClick={resetConsent} className="w-full md:w-auto">
+              <Eye className="w-4 h-4 mr-2" />
+              <span className="truncate">Resetar consentimento</span>
             </Button>
-            <Button onClick={save} disabled={saving}>
+            <Button onClick={save} disabled={saving} className="w-full md:w-auto">
               <Save className="w-4 h-4 mr-2" /> {saving ? "Salvando…" : "Salvar"}
             </Button>
           </div>
