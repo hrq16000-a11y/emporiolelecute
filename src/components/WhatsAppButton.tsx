@@ -22,10 +22,13 @@ const WhatsAppButton = ({ message, ariaLabel }: Props = {}) => {
       rel="noopener noreferrer"
       onClick={() => markLead("whatsapp_float")}
       className="whatsapp-float"
-      aria-label={ariaLabel || "Contato via WhatsApp"}
+      aria-label={ariaLabel || "Finalizar pelo WhatsApp"}
     >
-      <div className="w-14 h-14 sm:w-16 sm:h-16 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110">
-        <MessageCircle className="h-7 w-7 sm:h-8 sm:w-8 text-white" />
+      <div className="bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 px-5 py-3 sm:px-6 sm:py-3.5">
+        <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+        <span className="ml-2 text-white font-medium text-sm sm:text-base whitespace-nowrap">
+          Finalizar pelo WhatsApp
+        </span>
       </div>
     </a>
   );
