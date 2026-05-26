@@ -519,13 +519,16 @@ const AdminCustomers = () => {
         </div>
       </div>
 
-      <Tabs value={tab} onValueChange={(v) => setTab(v as "customers" | "visitors")} className="mb-4">
+      <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="mb-4">
         <TabsList>
           <TabsTrigger value="customers">
-            Clientes ({customersQ.data?.length ?? 0})
+            Clientes (CRM) ({customersQ.data?.length ?? 0})
           </TabsTrigger>
           <TabsTrigger value="visitors">
-            Visitantes ({tab === "visitors" ? totalVisitors : "—"})
+            Visitantes Humanos {tab === "visitors" ? `(${totalVisitors})` : ""}
+          </TabsTrigger>
+          <TabsTrigger value="leads">
+            Leads / Potenciais Clientes {tab === "leads" ? `(${totalVisitors})` : ""}
           </TabsTrigger>
         </TabsList>
 
@@ -549,6 +552,21 @@ const AdminCustomers = () => {
         </div>
 
         {tab === "visitors" && (
+          <div className="mb-3 flex items-center justify-between gap-2 px-1">
+            <label className="inline-flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showBots}
+                onChange={(e) => setShowBots(e.target.checked)}
+                className="h-3.5 w-3.5"
+              />
+              <Bot className="h-3.5 w-3.5" />
+              Ver tráfego de bots {showBots && "(ativo)"}
+            </label>
+          </div>
+        )}
+
+        {(tab === "visitors" || tab === "leads") && (
           <div className="mb-4 p-3 bg-muted/30 rounded-lg border border-border space-y-3">
             <VisitorFilters value={visitorFilters} onChange={setVisitorFilters} osOptions={osOptions} />
             <div className="flex items-center gap-2">
