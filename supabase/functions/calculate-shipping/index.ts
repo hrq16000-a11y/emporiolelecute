@@ -152,7 +152,8 @@ Deno.serve(async (req) => {
     if (options.length === 0) {
       return json({ error: 'Não foi possível calcular o frete para este CEP.' }, 422);
     }
-    return json({ options, estimated, melhor_envio_has_key: meHasKey });
+    // is_fallback: true sempre que estamos servindo estimativa em vez de cotação real do provedor.
+    return json({ options, estimated, is_fallback: estimated, melhor_envio_has_key: meHasKey });
   } catch (err) {
     console.error('[calculate-shipping] unexpected', err);
     return json({ error: 'Erro interno', message: String(err) }, 500);
