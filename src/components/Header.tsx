@@ -114,12 +114,17 @@ const Header = () => {
             <img
               src={logo}
               alt="Logo Empório LeleCute - Ateliê Criativo de Lembrancinhas Artesanais"
+              /* width/height intrínsecos reais (1206x701) → browser reserva a aspect-ratio
+                 antes da imagem baixar, eliminando CLS no mobile. */
+              width={1206}
+              height={701}
+              decoding="async"
+              fetchPriority="high"
               className={`w-auto object-contain transition-all duration-500 group-hover:scale-105 ${
                 isScrolled ? "h-12 sm:h-14 md:h-20" : "h-16 sm:h-20 md:h-28"
               }`}
-              width="112"
-              height="112"
             />
+
           </Link>
 
           <div className="hidden lg:flex items-center gap-8">
