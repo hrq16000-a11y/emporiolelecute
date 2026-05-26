@@ -5,14 +5,22 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useShippingSettings } from "@/hooks/useShippingAdmin";
 import { useToast } from "@/hooks/use-toast";
+import { useFormDraft } from "@/hooks/useFormDraft";
 import { Loader2, Power } from "lucide-react";
 
 export default function ShippingSettingsTab() {
   const { data, isLoading, update } = useShippingSettings();
   const { toast } = useToast();
   const [form, setForm] = useState<any>(null);
+  const draft = useFormDraft(form, !!form);
 
-  useEffect(() => { if (data) setForm(data); }, [data]);
+  // Hidratação: primeiro tenta restaurar rascunho global; senão, usa o DB.
+  useEffect(() => {
+    if (!data || form) return;
+    const saved = draft.hydrate<any>();
+    setForm(saved ?? data);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
 
   if (isLoading || !form) {
     return <div className="flex items-center gap-2 text-muted-foreground p-8"><Loader2 className="h-4 w-4 animate-spin" /> Carregando…</div>;
@@ -31,6 +39,7 @@ export default function ShippingSettingsTab() {
         handling_fee: Number(form.handling_fee),
         shipping_markup_percentage: Number(form.shipping_markup_percentage),
       });
+      draft.clear();
       toast({ title: "Configurações salvas" });
     } catch (e: any) {
       toast({ title: "Erro ao salvar", description: e.message, variant: "destructive" });

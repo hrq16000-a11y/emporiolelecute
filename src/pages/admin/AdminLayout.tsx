@@ -17,6 +17,7 @@ import { EXECUTIVE_NAV, type NavGroup, type NavLeaf } from '@/lib/executiveNavig
 import { useAdminPageTracking } from '@/hooks/useAdminPageTracking';
 import { trackAdminEvent } from '@/lib/adminUsage';
 import AdminSearchBar from '@/components/admin/AdminSearchBar';
+import DraftNavigationGuard from '@/components/admin/DraftNavigationGuard';
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   LayoutDashboard, Package, Tags, Calendar, Home, Sparkles, ShoppingCart, Users,
@@ -257,6 +258,9 @@ const AdminLayout = () => {
       <main className="lg:ml-64 pt-16 lg:pt-0 min-h-screen">
         <Outlet />
       </main>
+
+      {/* Guarda global: avisa sobre rascunhos não salvos antes de sair */}
+      <DraftNavigationGuard />
     </div>
   );
 };
