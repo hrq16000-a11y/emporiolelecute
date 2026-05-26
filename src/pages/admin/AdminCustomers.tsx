@@ -148,13 +148,20 @@ const PAGE_SIZES = [10, 25, 50] as const;
 type PageSize = (typeof PAGE_SIZES)[number];
 
 // ============ Component ============
+const ROUTE_KEY = "/admin/clientes";
+type TabKey = "customers" | "visitors" | "leads";
+
 const AdminCustomers = () => {
   const qc = useQueryClient();
   const isMobile = useIsMobile();
   const [searchParams, setSearchParams] = useSearchParams();
+  const ws = useAdminWorkspaceStore();
 
-  // ============ Persistência URL ============
-  const tab = (searchParams.get("tab") as "customers" | "visitors") || "customers";
+  // ============ Persistência URL + store ============
+  const tabParam = searchParams.get("tab") as TabKey | null;
+  const tab: TabKey = (tabParam === "visitors" || tabParam === "leads" || tabParam === "customers")
+    ? tabParam : "customers";
+  const showBots = searchParams.get("bots") === "1";
   const search = searchParams.get("q") || "";
   const page = Math.max(1, Number(searchParams.get("page") || 1));
   const perPage: PageSize = (PAGE_SIZES.includes(Number(searchParams.get("per")) as PageSize)
@@ -184,15 +191,18 @@ const AdminCustomers = () => {
     setSearchParams(next, { replace: true });
   };
 
-  const setTab = (v: "customers" | "visitors") => patchParams({ tab: v === "customers" ? null : v, page: null });
-  const setSearch = (v: string) => patchParams({ q: v || null, page: null });
+  const setTab = (v: TabKey) => {
+    patchParams({ tab: v === "customers" ? null : v, page: null, bots: null });
+    ws.patchRoute(ROUTE_KEY, { tab: v });
+  };
+  const setShowBots = (v: boolean) => patchParams({ bots: v ? "1" : null, page: null });
+  const setSearch = (v: string) => { patchParams({ q: v || null, page: null }); ws.patchRoute(ROUTE_KEY, { search: v }); };
   const setPage = (n: number) => patchParams({ page: n <= 1 ? null : n });
   const setPerPage = (n: PageSize) => patchParams({ per: n === 25 ? null : n, page: null });
   const setSort = (s: VisitorSort) => patchParams({ sort: s === "last_seen" ? null : s, page: null });
   const setVisitorFilters = (f: VisitorFilterState) => patchParams({
     dp: f.datePreset === "all" ? null : f.datePreset,
-    df: f.dateFrom,
-    dt: f.dateTo,
+    df: f.dateFrom, dt: f.dateTo,
     hf: f.hourFrom === 0 ? null : f.hourFrom,
     ht: f.hourTo === 23 ? null : f.hourTo,
     dev: f.device === "all" ? null : f.device,
@@ -200,6 +210,17 @@ const AdminCustomers = () => {
     page: null,
   });
 
+  // Drawer via URL (?drawer=visitor&id=UUID ou ?drawer=customer&id=UUID)
+  const drawerKind = searchParams.get("drawer");
+  const drawerId = searchParams.get("id");
+  const openDrawer = (kind: "visitor" | "customer", id: string) => {
+    patchParams({ drawer: kind, id });
+    ws.patchRoute(ROUTE_KEY, { drawer: { kind, id } });
+  };
+  const closeDrawer = () => {
+    patchParams({ drawer: null, id: null });
+    ws.patchRoute(ROUTE_KEY, { drawer: null });
+  };
 
   // ============ Estado UI (não persiste) ============
   const [editing, setEditing] = useState<CustomerRow | null>(null);
@@ -207,6 +228,7 @@ const AdminCustomers = () => {
   const [confirmDelete, setConfirmDelete] = useState<CustomerRow | null>(null);
   const [viewVisitor, setViewVisitor] = useState<VisitorRow | null>(null);
   const [form, setForm] = useState(emptyForm);
+
 
   // ====== Queries ======
   const customersQ = useQuery({
