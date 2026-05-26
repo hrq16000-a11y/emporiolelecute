@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { usePageById, useCreatePage, useUpdatePage, useSavePageVersion, usePageVersions } from '@/hooks/usePages';
 import WYSIWYGEditor from '@/components/admin/WYSIWYGEditor';
+import { useFormDraft } from '@/hooks/useFormDraft';
 
 const AdminPageForm = () => {
   const { id } = useParams<{ id: string }>();
