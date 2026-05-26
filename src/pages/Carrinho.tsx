@@ -614,14 +614,20 @@ const Carrinho = () => {
       
       <main className="pt-24 pb-16">
         <div className="container mx-auto px-4">
-          {/* Back Link */}
-          <Link 
-            to="/produtos" 
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary mb-8 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Continuar comprando
-          </Link>
+          {/* Back Link — volta para a última rota pública visitada */}
+          {(() => {
+            const last = typeof window !== 'undefined' ? sessionStorage.getItem('lc_last_shop_path') : null;
+            const target = last && last !== '/' ? last : '/produtos';
+            return (
+              <Link
+                to={target}
+                className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary mb-8 transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Continuar comprando
+              </Link>
+            );
+          })()}
 
           <h1 className="font-display text-3xl md:text-4xl text-foreground mb-4">
             Finalizar Pedido
