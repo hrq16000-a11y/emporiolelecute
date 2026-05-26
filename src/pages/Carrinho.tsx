@@ -18,6 +18,9 @@ import { urls } from "@/lib/urls";
 import { calcCartTotals } from "@/lib/cartTotals";
 import { formatBRL } from "@/lib/format";
 import ShippingCalculator from "@/components/ShippingCalculator";
+import FreeShippingProgress from "@/components/FreeShippingProgress";
+import { formatPhoneBR, isValidPhoneBR } from "@/lib/phoneMask";
+import { loadCustomer, saveCustomer, loadAddress, saveAddress } from "@/lib/customerCache";
 
 interface AddressData {
   cep: string;
@@ -45,16 +48,22 @@ const Carrinho = () => {
   const { items, removeItem, updateQuantity, total, clearCart } = useCart();
   const { toast } = useToast();
   
-  const [customer, setCustomer] = useState<CustomerData>({
-    name: '',
-    email: '',
-    phone: '',
+  const [customer, setCustomer] = useState<CustomerData>(() => {
+    const cached = loadCustomer();
+    return {
+      name: cached?.name || '',
+      email: cached?.email || '',
+      phone: cached?.phone ? formatPhoneBR(cached.phone) : '',
+    };
   });
-  
-  const [address, setAddress] = useState<AddressData>({
-    cep: '',
-    city: '',
-    state: '',
+
+  const [address, setAddress] = useState<AddressData>(() => {
+    const cached = loadAddress();
+    return {
+      cep: cached?.cep || '',
+      city: cached?.city || '',
+      state: cached?.state || '',
+    };
   });
   
   const [loadingCep, setLoadingCep] = useState(false);
