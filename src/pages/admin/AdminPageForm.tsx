@@ -129,9 +129,11 @@ const AdminPageForm = () => {
         });
 
         await updatePage.mutateAsync({ id, ...pageData });
+        draft.clear();
         toast({ title: publish ? 'Página publicada!' : 'Página salva!' });
       } else {
         await createPage.mutateAsync(pageData);
+        draft.clear();
         toast({ title: 'Página criada com sucesso!' });
         navigate('/admin/paginas');
       }
