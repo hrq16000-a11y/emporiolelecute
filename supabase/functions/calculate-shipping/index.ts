@@ -64,27 +64,33 @@ Deno.serve(async (req) => {
     const ORIGIN_CEP = String(settings.origin_zip_code).replace(/\D/g, '');
     if (ORIGIN_CEP.length !== 8) return json({ error: 'CEP de origem inválido' }, 422);
 
-    // Filtra itens que exigem frete
-    const shippable = items.filter((it) => it.requires_shipping !== false);
+    // Empacotamento (lib) + filtro de itens que exigem frete
+    const defaultItemWeight = Number(settings.default_box_weight_kg) || 0.3;
+    const { shippable, totalWeight, subtotal } = packCart(items as any, defaultItemWeight);
     if (shippable.length === 0) {
       return json({ options: [{ provider: 'Digital', service_name: 'Sem envio', price: 0, estimated_delivery_days: '0' }] });
     }
 
-    // Empacotamento: peso real somado (sem default por item) + valor declarado
-    const defaultItemWeight = Number(settings.default_box_weight_kg) || 0.3;
-    const totalWeight = round2(shippable.reduce(
-      (acc, it) => acc + (it.weight_kg ?? defaultItemWeight) * it.quantity,
-      0,
-    ));
-    const subtotal = round2(shippable.reduce((acc, it) => acc + (it.unit_price ?? 0) * it.quantity, 0));
-
     // Diagnóstico: token Melhor Envio configurado?
     const meProvider = (providers ?? []).find((p: any) => p.provider_code === 'melhor_envio');
+    const meHasKey = !!meProvider?.api_key && !!meProvider?.endpoint_url;
     console.log('[calculate-shipping]', {
       destino, totalWeight, subtotal, items_count: shippable.length,
       melhor_envio_active: !!meProvider,
-      melhor_envio_has_key: !!meProvider?.api_key,
+      melhor_envio_has_key: meHasKey,
     });
+
+    // Alerta de credenciais ausentes (provedor ativo, mas sem token)
+    if (meProvider && !meHasKey) {
+      await sb.from('shipping_audit_logs').insert({
+        event_type: 'missing_credentials',
+        destination_zip: destino,
+        provider_name: meProvider.provider_name,
+        error_message: 'Provedor ativo sem api_key/endpoint_url configurados',
+        total_weight_kg: totalWeight,
+        melhor_envio_has_key: false,
+      });
+    }
 
     // Entrega local: mesmo CEP
     if (destino === ORIGIN_CEP) {
@@ -107,6 +113,18 @@ Deno.serve(async (req) => {
     if (options.length === 0) {
       estimated = true;
       options = quoteCorreiosEstimate({ totalWeight, destino, origin: ORIGIN_CEP });
+      await sb.from('shipping_audit_logs').insert({
+        event_type: 'estimate_fallback',
+        destination_zip: destino,
+        cart_snapshot: { items: shippable, subtotal },
+        provider_name: meProvider?.provider_name ?? null,
+        error_message: meHasKey
+          ? 'Provedores ativos não retornaram cotação — usando estimativa'
+          : 'Token Melhor Envio ausente — usando estimativa',
+        total_weight_kg: totalWeight,
+        melhor_envio_has_key: meHasKey,
+        estimated: true,
+      });
     }
 
     // Markup + handling (não aplicar em frete grátis)
@@ -125,7 +143,7 @@ Deno.serve(async (req) => {
     if (options.length === 0) {
       return json({ error: 'Não foi possível calcular o frete para este CEP.' }, 422);
     }
-    return json({ options, estimated });
+    return json({ options, estimated, melhor_envio_has_key: meHasKey });
   } catch (err) {
     console.error('[calculate-shipping] unexpected', err);
     return json({ error: 'Erro interno', message: String(err) }, 500);
