@@ -214,7 +214,7 @@ const AdminCustomers = () => {
     const hasUrlFilters = ["dp","df","dt","hf","ht","dev","os","country","region","city"]
       .some((k) => searchParams.get(k));
     if (hasUrlFilters) return;
-    const saved = ws.getRoute(ROUTE_KEY).filters as VisitorFilterState | undefined;
+    const saved = ws.getRoute(ROUTE_KEY).filters as unknown as VisitorFilterState | undefined;
     if (saved) setVisitorFilters(saved);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
