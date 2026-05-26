@@ -258,9 +258,12 @@ export default function SocialProofToast() {
     }
   };
 
+  // No carrinho, há CTA fixo "Finalizar pelo WhatsApp" embaixo — sobe o toast
+  const isCart = path.startsWith("/carrinho");
+  const bottomOffset = isCart ? "bottom-24 md:bottom-28" : "bottom-3 md:bottom-5";
   const positionClass: Record<Settings["position"], string> = {
-    "bottom-left": "left-3 bottom-3 md:left-5 md:bottom-5",
-    "bottom-right": "right-3 bottom-3 md:right-5 md:bottom-5",
+    "bottom-left": `left-3 md:left-5 ${bottomOffset}`,
+    "bottom-right": `right-3 md:right-5 ${bottomOffset}`,
     "top-left": "left-3 top-20 md:left-5 md:top-24",
     "top-right": "right-3 top-20 md:right-5 md:top-24",
   };
