@@ -344,9 +344,9 @@ export default function SocialProofToast() {
           type="button"
           onClick={handleClose}
           aria-label="Fechar prova social"
-          className="absolute top-1.5 right-1.5 text-muted-foreground hover:text-foreground transition-colors"
+          className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-foreground text-background shadow-md ring-2 ring-background flex items-center justify-center hover:scale-110 transition-transform"
         >
-          <X className="h-3.5 w-3.5" />
+          <X className="h-4 w-4" strokeWidth={2.5} />
         </button>
       </div>
     </div>
