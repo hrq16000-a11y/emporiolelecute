@@ -985,11 +985,5 @@ const Pagination = ({
   </div>
 );
 
-const Info = ({ label, value }: { label: string; value: string | null | undefined }) => (
-  <div className="p-2 bg-muted/40 rounded">
-    <div className="text-[10px] uppercase text-muted-foreground">{label}</div>
-    <div className="text-sm break-words" title={value || ""}>{value || "—"}</div>
-  </div>
-);
 
 export default AdminCustomers;
