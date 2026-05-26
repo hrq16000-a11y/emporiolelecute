@@ -46,6 +46,7 @@ import { trackAdminEvent } from '@/lib/adminUsage';
 import { PdpBadge } from '@/components/PdpBadge';
 import type { PdpBadgeConfig } from '@/hooks/useConversionCtaConfig';
 import ProductFaqEditor from '@/components/admin/ProductFaqEditor';
+import { useFormDraft } from '@/hooks/useFormDraft';
 
 const DEFAULT_BADGE_OVERRIDE: PdpBadgeConfig = {
   enabled: true,
