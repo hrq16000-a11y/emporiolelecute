@@ -218,6 +218,25 @@ const AdminProductForm = () => {
     setShowMinQuantity((existingProduct as any).show_min_quantity === true);
   }, [existingProduct, isEditing]);
 
+  // ===========================================================================
+  // Rascunho global: persiste formData no useDraftStore (debounce 1s) e reidrata
+  // automaticamente caso o admin volte à mesma rota sem ter salvo.
+  // Só ativa após a hidratação inicial (evita salvar valores em branco).
+  // ===========================================================================
+  const isHydrated = !isEditing || (!!existingProduct && hydratedForIdRef.current === existingProduct.id);
+  const draft = useFormDraft(formData, isHydrated);
+
+  useEffect(() => {
+    if (!isHydrated) return;
+    const saved = draft.hydrate<typeof formData>();
+    if (saved) setFormData(saved);
+    // Roda apenas após hidratar do banco; subsequentes alterações são responsabilidade do user
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isHydrated]);
+
+
+
+
 
 
   // Fase 4.1: gerador token-aware. Nunca corta no meio de palavra,
