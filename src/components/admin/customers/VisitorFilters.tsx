@@ -56,12 +56,15 @@ const DEVICE_ICONS = {
   bot: Bot,
 } as const;
 
-export function VisitorFilters({ value, onChange, osOptions }: Props) {
+export function VisitorFilters({ value, onChange, osOptions, countryOptions = [], regionOptions = [], cityOptions = [] }: Props) {
   const activeCount = useMemo(() => {
     let n = 0;
     if (value.datePreset !== "all") n++;
     if (value.device !== "all") n++;
     if (value.os !== "all") n++;
+    if (value.country !== "all") n++;
+    if (value.region !== "all") n++;
+    if (value.city !== "all") n++;
     if (value.hourFrom !== 0 || value.hourTo !== 23) n++;
     return n;
   }, [value]);
