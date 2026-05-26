@@ -65,6 +65,19 @@ const Carrinho = () => {
   const [couponInput, setCouponInput] = useState('');
   const [coupon, setCoupon] = useState<ValidCoupon | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
+  const [invalidFields, setInvalidFields] = useState<Set<string>>(new Set());
+
+  // Classe aplicada nos inputs vazios após tentativa de submit — contorno pulsante
+  const errorRing = "ring-2 ring-destructive ring-offset-2 animate-pulse border-destructive";
+  const fieldClass = (field: string, base = "mt-1") =>
+    `${base} ${invalidFields.has(field) ? errorRing : ""}`;
+  const clearInvalid = (field: string) =>
+    setInvalidFields(prev => {
+      if (!prev.has(field)) return prev;
+      const next = new Set(prev);
+      next.delete(field);
+      return next;
+    });
 
   // Mapa nome do estado -> UF (fallback quando provedores retornam nome por extenso)
   const STATE_NAME_TO_UF: Record<string, string> = {
