@@ -897,10 +897,8 @@ const AdminProductForm = () => {
               </p>
             </div>
 
-            <div className="hidden">{/* fim do agrupamento */}</div>
-            <div style={{ display: 'none' }}></div>
-            <div hidden></div>
-            <div hidden></div>
+
+
 
             {/* Sprint 2 — Discovery editorial */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t mt-4">
