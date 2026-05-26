@@ -346,6 +346,32 @@ const AdminCustomers = () => {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Opções distintas de país / região / cidade — alimenta os filtros globais de localização.
+  const locationOptionsQ = useQuery({
+    queryKey: ["admin-visitors-location-options"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("visitors")
+        .select("ip_country, ip_region, ip_city")
+        .limit(2000);
+      if (error) throw error;
+      const countries = new Set<string>();
+      const regions = new Set<string>();
+      const cities = new Set<string>();
+      (data || []).forEach((r: { ip_country: string | null; ip_region: string | null; ip_city: string | null }) => {
+        if (r.ip_country) countries.add(r.ip_country);
+        if (r.ip_region) regions.add(r.ip_region);
+        if (r.ip_city) cities.add(r.ip_city);
+      });
+      return {
+        countries: Array.from(countries).sort(),
+        regions: Array.from(regions).sort(),
+        cities: Array.from(cities).sort(),
+      };
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
 
   const pageviewsQ = useQuery({
     queryKey: ["visitor-pageviews", viewVisitor?.visitor_id],
