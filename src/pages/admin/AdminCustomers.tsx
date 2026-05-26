@@ -96,6 +96,11 @@ interface VisitorRow {
   gps_lon: number | null;
   ip_lat: number | null;
   ip_lon: number | null;
+  is_bot?: boolean | null;
+  bot_name?: string | null;
+  lead_status?: string | null;
+  lead_promoted_at?: string | null;
+  lead_trigger?: string | null;
 }
 
 interface PageviewRow {
