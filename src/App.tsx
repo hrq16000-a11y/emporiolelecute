@@ -668,6 +668,12 @@ const App = () => {
                       <AdminConversionCTA />
                     </Suspense>
                   } />
+                  <Route path="prova-social" element={
+                    <Suspense fallback={<AdminSkeleton />}>
+                      <AdminSocialProof />
+                    </Suspense>
+                  } />
+
                   <Route path="fretes" element={
                     <Suspense fallback={<AdminSkeleton />}>
                       <AdminShipping />
