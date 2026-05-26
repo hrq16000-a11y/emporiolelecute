@@ -11,24 +11,49 @@ import { useHomeSectionsPublic } from "@/hooks/useHomeSections";
 import { HOME_SECTIONS_REGISTRY } from "@/lib/homeSectionsRegistry";
 import { HomeRegistryProvider } from "@/contexts/HomeRegistry";
 
-const SectionFallback = () => (
-  <div className="h-32 md:h-48 animate-pulse bg-muted/30" aria-hidden />
+/**
+ * Altura realista de cada seção, usada no skeleton para reservar espaço
+ * antes do componente lazy montar (evita CLS empurrando o footer).
+ */
+const SECTION_HEIGHTS: Record<string, string> = {
+  HeroSlider: "min-h-[460px] md:min-h-[600px]",
+  CategoriesScroll: "min-h-[220px] md:min-h-[260px]",
+  OccasionsThumbs: "min-h-[260px] md:min-h-[320px]",
+  BestSellers: "min-h-[640px] md:min-h-[720px]",
+  FeaturedCollections: "min-h-[420px] md:min-h-[520px]",
+  FeaturedKits: "min-h-[520px] md:min-h-[600px]",
+  QuoteCTABanner: "min-h-[220px] md:min-h-[260px]",
+  Testimonials: "min-h-[360px] md:min-h-[420px]",
+  FAQSection: "min-h-[480px] md:min-h-[560px]",
+  InstagramFeed: "min-h-[320px] md:min-h-[400px]",
+};
+
+const SectionFallback = ({ name }: { name?: string }) => (
+  <div
+    className={`w-full animate-pulse bg-muted/30 ${
+      (name && SECTION_HEIGHTS[name]) || "min-h-[280px] md:min-h-[360px]"
+    }`}
+    aria-hidden
+  />
 );
 
 const Index = () => {
   const { data: sections, isLoading } = useHomeSectionsPublic();
 
   return (
-    <div className="min-h-screen bg-background">
+    // Layout vertical rígido: header + main flex-1 + footer fixo no fim.
+    <div className="min-h-screen bg-background flex flex-col">
       <DynamicSEO />
       <OrganizationStructuredData />
       <WebSiteStructuredData />
       <LocalBusinessStructuredData />
       <Header />
-      <main>
+      {/* flex-1 garante que o footer fique sempre no fim, sem subir antes do conteúdo carregar */}
+      <main className="flex-1 min-h-[100vh]">
         <HomeRegistryProvider>
           {isLoading || !sections
-            ? null
+            ? // Reserva visual enquanto sections carregam — evita o pop do footer.
+              <div className="min-h-[100vh] animate-pulse bg-muted/20" aria-hidden />
             : sections.map((section) => {
                 const Component = HOME_SECTIONS_REGISTRY[section.component_name];
                 if (!Component) {
@@ -40,7 +65,10 @@ const Index = () => {
                   return null;
                 }
                 return (
-                  <Suspense key={section.id} fallback={<SectionFallback />}>
+                  <Suspense
+                    key={section.id}
+                    fallback={<SectionFallback name={section.component_name} />}
+                  >
                     <Component {...(section.editable_props || {})} />
                   </Suspense>
                 );
