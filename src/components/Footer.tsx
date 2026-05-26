@@ -27,7 +27,11 @@ const Footer = () => {
   const colTitle = "text-[11px] uppercase tracking-[0.18em] text-primary-foreground/60 mb-5 font-medium";
 
   return (
-    <footer id="contato" className="bg-foreground text-primary-foreground pt-20 pb-10">
+    <footer
+      id="contato"
+      className="bg-foreground text-primary-foreground pt-20 pb-10 min-h-[640px] md:min-h-[480px]"
+    >
+
       <div className="layout-commerce">
         {/* Microcopy editorial — assinatura acima dos grupos de links */}
         <div className="max-w-2xl mb-14">
