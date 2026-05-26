@@ -985,6 +985,8 @@ const Carrinho = () => {
                     <div className={`relative mt-1 ${invalidFields.has('cep') ? 'rounded-md ' + errorRing : ''}`}>
                       <Input
                         id="cep"
+                        inputMode="numeric"
+                        autoComplete="postal-code"
                         placeholder="00000-000"
                         value={address.cep}
                         onChange={(e) => { handleCepChange(e.target.value); clearInvalid('cep'); }}
