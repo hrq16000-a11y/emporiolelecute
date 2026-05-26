@@ -34,7 +34,6 @@ export default function DraftNavigationGuard() {
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (bypassRef.current) return;
-      // Modificadores devem permitir comportamento padrão (nova aba, etc.)
       if (e.defaultPrevented || e.button !== 0) return;
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
 
@@ -45,13 +44,10 @@ export default function DraftNavigationGuard() {
       const href = anchor.getAttribute('href');
       if (!href || href.startsWith('http') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
       if (href.startsWith('#')) return;
-
-      // Mesma rota — não bloqueia
       if (href === pathname) return;
-
       if (!hasDraft(pathname)) return;
 
-      // Bloqueia e abre o modal
+      // Bloqueia e abre o modal informativo
       e.preventDefault();
       e.stopImmediatePropagation();
       setPendingHref(href);
@@ -61,12 +57,12 @@ export default function DraftNavigationGuard() {
     return () => document.removeEventListener('click', handleClick, true);
   }, [pathname, hasDraft]);
 
-  // Aviso nativo ao fechar/recarregar a aba
+  // Aviso nativo apenas para fechar aba/reload (drafts persistem em localStorage,
+  // mas o usuário deve saber que tem trabalho não salvo no servidor)
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (!hasDraft(pathname)) return;
       e.preventDefault();
-      // Texto customizado é ignorado por navegadores modernos, mas é exigido pela spec
       e.returnValue = '';
       return '';
     };
@@ -74,14 +70,26 @@ export default function DraftNavigationGuard() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [pathname, hasDraft]);
 
-  const confirmLeave = () => {
+  // Sair mantendo o rascunho (padrão seguro — usuário pode voltar e continuar)
+  const leaveKeepingDraft = () => {
+    if (!pendingHref) return;
+    const dest = pendingHref;
+    setPendingHref(null);
+    bypassRef.current = true;
+    navigate(dest);
+    setTimeout(() => {
+      bypassRef.current = false;
+    }, 0);
+  };
+
+  // Sair descartando explicitamente o rascunho
+  const leaveDiscarding = () => {
     if (!pendingHref) return;
     clearDraft(pathname);
     const dest = pendingHref;
     setPendingHref(null);
     bypassRef.current = true;
     navigate(dest);
-    // Libera o bypass no próximo tick
     setTimeout(() => {
       bypassRef.current = false;
     }, 0);
@@ -95,17 +103,20 @@ export default function DraftNavigationGuard() {
         <AlertDialogHeader>
           <AlertDialogTitle>Você tem alterações não salvas</AlertDialogTitle>
           <AlertDialogDescription>
-            Se você sair desta página agora, todas as alterações feitas serão perdidas. Deseja
-            continuar?
+            Seu rascunho será mantido automaticamente — você pode voltar a esta tela e continuar
+            de onde parou. Se preferir, descarte tudo agora.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
+        <AlertDialogFooter className="gap-2 sm:gap-2">
           <AlertDialogCancel onClick={cancelLeave}>Continuar editando</AlertDialogCancel>
+          <AlertDialogAction onClick={leaveKeepingDraft}>
+            Sair (manter rascunho)
+          </AlertDialogAction>
           <AlertDialogAction
-            onClick={confirmLeave}
+            onClick={leaveDiscarding}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            Sair e descartar
+            Descartar rascunho
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
