@@ -663,20 +663,29 @@ const Carrinho = () => {
                 </div>
               </div>
 
-              {/* Shipping Notice */}
-              <div className="bg-primary-light/50 rounded-xl border border-primary/20 p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Truck className="h-6 w-6 text-primary" />
+              {/* Simulador de Frete */}
+              <div className="bg-card rounded-xl border border-border p-6">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Truck className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground mb-1">Sobre o Frete</h3>
-                    <p className="text-sm text-muted-foreground">
-                      O valor do frete será calculado e informado pelo WhatsApp após o envio do pedido. 
-                      Trabalhamos com Correios (PAC e SEDEX) e o valor é calculado de acordo com o CEP de destino e peso dos produtos.
+                    <h3 className="font-semibold text-foreground">Simular Frete</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Calcule o valor e o prazo de entrega para o seu CEP.
                     </p>
                   </div>
                 </div>
+                <ShippingCalculator
+                  initialCep={address.cep}
+                  state={address.state}
+                  items={items.map((it: any) => ({
+                    product_id: it.id ?? it.product_id,
+                    name: it.name ?? it.title ?? 'Item',
+                    quantity: it.quantity ?? 1,
+                    unit_price: it.price ?? 0,
+                  }))}
+                />
               </div>
             </div>
 
