@@ -6739,6 +6739,10 @@ export type Database = {
         Args: { _q: string; _result_count: number; _suggestion?: string }
         Returns: undefined
       }
+      mark_visitor_as_lead: {
+        Args: { _trigger: string; _visitor_id: string }
+        Returns: Json
+      }
       migrate_customer_to_user_link: {
         Args: { _customer_id: string; _user_id: string }
         Returns: Json
