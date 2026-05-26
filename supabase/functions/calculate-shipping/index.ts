@@ -57,6 +57,9 @@ Deno.serve(async (req) => {
     if (!settings || !settings.origin_zip_code) {
       return json({ error: 'CEP de origem não configurado' }, 422);
     }
+    if (settings.is_enabled === false) {
+      return json({ error: 'Cálculo de frete temporariamente desabilitado', disabled: true }, 503);
+    }
     const ORIGIN_CEP = String(settings.origin_zip_code).replace(/\D/g, '');
     if (ORIGIN_CEP.length !== 8) return json({ error: 'CEP de origem inválido' }, 422);
 
