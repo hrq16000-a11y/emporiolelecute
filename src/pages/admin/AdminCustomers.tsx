@@ -104,20 +104,7 @@ interface VisitorRow {
   lead_trigger?: string | null;
 }
 
-interface PageviewRow {
-  id: string;
-  path: string;
-  title: string | null;
-  product_id: string | null;
-  time_on_page_seconds: number;
-  scroll_depth_pct: number | null;
-  viewed_at: string;
-  referrer: string | null;
-  step_index?: number | null;
-  from_path?: string | null;
-  cta_id?: string | null;
-  event_type?: string | null;
-}
+// PageviewRow movido para o UnifiedProfileDrawer (RPC get_unified_timeline).
 
 const emptyForm = {
   name: "", email: "", phone: "", whatsapp: "",
