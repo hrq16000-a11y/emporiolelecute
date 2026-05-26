@@ -267,4 +267,4 @@ function json(body: unknown, status = 200) {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
 }
-function round2(n: number) { return Math.round(n * 100) / 100; }
+
