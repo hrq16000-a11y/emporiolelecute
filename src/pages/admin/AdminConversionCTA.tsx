@@ -185,6 +185,52 @@ function ConfigTab({
         <CardHeader>
           <div className="flex items-center justify-between gap-3">
             <div>
+              <CardTitle>Botão CTA inline (descrição da PDP)</CardTitle>
+              <CardDescription>Botão "Fazer Orçamento no WhatsApp" exibido logo após a descrição do produto.</CardDescription>
+            </div>
+            <Switch
+              checked={draft.inlineCta.enabled}
+              onCheckedChange={(v) => update("inlineCta", { enabled: v })}
+            />
+          </div>
+        </CardHeader>
+        <CardContent className="grid sm:grid-cols-2 gap-4">
+          <Field
+            label="Texto do botão"
+            value={draft.inlineCta.label}
+            onChange={(v) => update("inlineCta", { label: v })}
+          />
+          <div className="space-y-1">
+            <Label>Estilo visual</Label>
+            <select
+              className="w-full border rounded-md h-10 px-3 bg-background"
+              value={draft.inlineCta.variant}
+              onChange={(e) => update("inlineCta", { variant: e.target.value as any })}
+            >
+              <option value="dark">Escuro (padrão)</option>
+              <option value="primary">Coral (cor primária)</option>
+              <option value="whatsapp">Verde WhatsApp</option>
+              <option value="outline">Contorno</option>
+            </select>
+          </div>
+          <div className="flex items-center justify-between sm:col-span-2 rounded-md border p-3">
+            <div>
+              <Label className="text-sm">Mostrar ícone do WhatsApp</Label>
+              <p className="text-xs text-muted-foreground">Ícone à esquerda do texto.</p>
+            </div>
+            <Switch
+              checked={draft.inlineCta.showIcon}
+              onCheckedChange={(v) => update("inlineCta", { showIcon: v })}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between gap-3">
+            <div>
               <CardTitle>Resumo rápido (Quick Summary)</CardTitle>
               <CardDescription>Bloco com mínimo, prazo, envio e CTA.</CardDescription>
             </div>

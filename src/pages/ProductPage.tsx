@@ -981,8 +981,21 @@ const ProductPage = () => {
 
                 {node}
                 {s.section_key === "description" &&
+                  ctaConfig?.inlineCta?.enabled !== false &&
                   (() => {
                     const { url } = buildWhatsAppMessage();
+                    const inline = ctaConfig?.inlineCta;
+                    const label = inline?.label || "Fazer Orçamento no WhatsApp";
+                    const showIcon = inline?.showIcon !== false;
+                    const variant = inline?.variant || "dark";
+                    const variantClass =
+                      variant === "primary"
+                        ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+                        : variant === "whatsapp"
+                        ? "bg-[#25D366] hover:bg-[#1ebe57] text-white"
+                        : variant === "outline"
+                        ? "border-2 border-foreground/80 hover:bg-foreground hover:text-background text-foreground"
+                        : "bg-foreground/95 hover:bg-foreground text-background";
                     return (
                       <div ref={ctaAnchorRef} className="mt-6 mb-10 max-w-3xl">
                         <a
@@ -993,10 +1006,10 @@ const ProductPage = () => {
                             e.preventDefault();
                             openWhatsApp("product_page");
                           }}
-                          className="flex max-w-full items-center justify-center gap-3 p-4 bg-foreground/95 hover:bg-foreground text-background rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-300"
+                          className={`flex max-w-full items-center justify-center gap-3 p-4 rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-300 ${variantClass}`}
                         >
-                          <MessageCircle className="h-6 w-6 shrink-0" />
-                          <span className="min-w-0 truncate">Fazer Orçamento no WhatsApp</span>
+                          {showIcon && <MessageCircle className="h-6 w-6 shrink-0" />}
+                          <span className="min-w-0 truncate">{label}</span>
                         </a>
                       </div>
                     );

@@ -65,6 +65,20 @@ export interface PdpBadgeConfig {
   offsetY: number;
 }
 
+/** Variante visual do botão CTA inline (dentro do bloco de descrição da PDP). */
+export type InlineCtaVariant = "dark" | "primary" | "whatsapp" | "outline";
+
+export interface InlineCtaConfig {
+  /** Renderiza o botão dentro do bloco de descrição da PDP. */
+  enabled: boolean;
+  /** Texto do botão. */
+  label: string;
+  /** Mostra o ícone do WhatsApp à esquerda do texto. */
+  showIcon: boolean;
+  /** Estilo visual do botão. */
+  variant: InlineCtaVariant;
+}
+
 export interface ConversionCtaConfig {
   sticky: StickyCtaConfig;
   quickSummary: QuickSummaryConfig;
@@ -72,6 +86,7 @@ export interface ConversionCtaConfig {
   whatsappTemplate: WhatsAppTemplateConfig;
   toast: ToastConfig;
   pdpBadge: PdpBadgeConfig;
+  inlineCta: InlineCtaConfig;
 }
 
 export const DEFAULT_CONVERSION_CTA: ConversionCtaConfig = {
@@ -118,6 +133,12 @@ export const DEFAULT_CONVERSION_CTA: ConversionCtaConfig = {
     offsetX: 12,
     offsetY: 12,
   },
+  inlineCta: {
+    enabled: true,
+    label: "Fazer Orçamento no WhatsApp",
+    showIcon: true,
+    variant: "dark",
+  },
 };
 
 function mergeConfig(raw: any): ConversionCtaConfig {
@@ -129,6 +150,7 @@ function mergeConfig(raw: any): ConversionCtaConfig {
     whatsappTemplate: { ...DEFAULT_CONVERSION_CTA.whatsappTemplate, ...(r.whatsappTemplate || {}) },
     toast: { ...DEFAULT_CONVERSION_CTA.toast, ...(r.toast || {}) },
     pdpBadge: { ...DEFAULT_CONVERSION_CTA.pdpBadge, ...(r.pdpBadge || {}) },
+    inlineCta: { ...DEFAULT_CONVERSION_CTA.inlineCta, ...(r.inlineCta || {}) },
   };
 }
 
@@ -217,6 +239,13 @@ const pdpBadgeSchema = z.object({
   offsetY: z.coerce.number().int().min(0).max(80),
 });
 
+const inlineCtaSchema = z.object({
+  enabled: z.boolean(),
+  label: z.string().trim().min(1, "Texto do botão obrigatório").max(60),
+  showIcon: z.boolean(),
+  variant: z.enum(["dark", "primary", "whatsapp", "outline"]),
+});
+
 export const conversionCtaConfigSchema = z.object({
   sticky: stickySchema,
   quickSummary: quickSummarySchema,
@@ -224,6 +253,7 @@ export const conversionCtaConfigSchema = z.object({
   whatsappTemplate: whatsappTemplateSchema,
   toast: toastSchema,
   pdpBadge: pdpBadgeSchema,
+  inlineCta: inlineCtaSchema,
 });
 
 /** Valida (e normaliza) o config. Lança Error com mensagem amigável se inválido. */
