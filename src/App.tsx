@@ -78,6 +78,8 @@ const AdminRedirects = lazyWithRetry(() => import("./pages/admin/AdminRedirects"
 const AdminRobots = lazyWithRetry(() => import("./pages/admin/AdminRobots"), "AdminRobots");
 const AdminTracking = lazyWithRetry(() => import("./pages/admin/AdminTracking"), "AdminTracking");
 const AdminConversionCTA = lazyWithRetry(() => import("./pages/admin/AdminConversionCTA"), "AdminConversionCTA");
+const AdminSocialProof = lazyWithRetry(() => import("./pages/admin/AdminSocialProof"), "AdminSocialProof");
+
 const AdminShipping = lazyWithRetry(() => import("./pages/admin/AdminShipping"), "AdminShipping");
 const AdminSEODashboard = lazyWithRetry(() => import("./pages/admin/AdminSEODashboard"), "AdminSEODashboard");
 const AdminTelemetry = lazyWithRetry(() => import("./pages/admin/AdminTelemetry"), "AdminTelemetry");
@@ -666,6 +668,12 @@ const App = () => {
                       <AdminConversionCTA />
                     </Suspense>
                   } />
+                  <Route path="prova-social" element={
+                    <Suspense fallback={<AdminSkeleton />}>
+                      <AdminSocialProof />
+                    </Suspense>
+                  } />
+
                   <Route path="fretes" element={
                     <Suspense fallback={<AdminSkeleton />}>
                       <AdminShipping />

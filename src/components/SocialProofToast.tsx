@@ -7,12 +7,7 @@ import { optimizeImage } from "@/lib/image";
 
 /**
  * Prova social flutuante: exibe avaliações reais (product_reviews) com
- * miniatura do produto. Aleatório a cada visita e rotativo a cada ~25s.
- *
- * - Aparece após ~6s na primeira página
- * - Não aparece em rotas /admin e /carrinho/checkout sensíveis
- * - Respeita prefers-reduced-motion (sem animação de slide)
- * - Pode ser fechado; permanece fechado até refresh da página
+ * miniatura do produto. 100% gerenciável via /admin/prova-social.
  */
 
 type Review = {
@@ -22,14 +17,43 @@ type Review = {
   comment: string;
   review_date: string | null;
   is_verified: boolean;
-  product: {
-    name: string;
-    slug: string;
-    images: string[] | null;
-  } | null;
+  product: { name: string; slug: string; images: string[] | null } | null;
 };
 
-const STORAGE_KEY = "lc_social_proof_dismissed";
+type Settings = {
+  is_enabled: boolean;
+  initial_delay_ms: number;
+  visible_ms: number;
+  interval_ms: number;
+  position: "bottom-left" | "bottom-right" | "top-left" | "top-right";
+  show_on_mobile: boolean;
+  show_on_desktop: boolean;
+  min_rating: number;
+  pool_size: number;
+  require_verified: boolean;
+  excluded_paths: string[];
+  included_paths: string[];
+  dismiss_persistence: "session" | "never";
+};
+
+const DEFAULTS: Settings = {
+  is_enabled: true,
+  initial_delay_ms: 6000,
+  visible_ms: 9000,
+  interval_ms: 18000,
+  position: "bottom-left",
+  show_on_mobile: true,
+  show_on_desktop: true,
+  min_rating: 4,
+  pool_size: 60,
+  require_verified: false,
+  excluded_paths: ["/admin", "/acesso-restrito", "/rastrear"],
+  included_paths: [],
+  dismiss_persistence: "session",
+};
+
+const STORAGE_KEY_SESSION = "lc_social_proof_dismissed";
+const STORAGE_KEY_PERSIST = "lc_social_proof_dismissed_forever";
 
 function timeAgo(date: string | null): string {
   if (!date) return "recentemente";
@@ -53,44 +77,113 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+function pathMatches(path: string, patterns: string[]): boolean {
+  return patterns.some((p) => {
+    const pat = p.trim();
+    if (!pat) return false;
+    if (pat.endsWith("*")) return path.startsWith(pat.slice(0, -1));
+    return path === pat || path.startsWith(pat + "/") || path.startsWith(pat);
+  });
+}
+
+function useIsMobile() {
+  const [m, setM] = useState(
+    typeof window !== "undefined" ? window.innerWidth < 768 : false,
+  );
+  useEffect(() => {
+    const onR = () => setM(window.innerWidth < 768);
+    window.addEventListener("resize", onR);
+    return () => window.removeEventListener("resize", onR);
+  }, []);
+  return m;
+}
+
 export default function SocialProofToast() {
   const location = useLocation();
+  const isMobile = useIsMobile();
+  const [settings, setSettings] = useState<Settings | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const hoverRef = useRef(false);
 
-  // Não exibir em rotas administrativas ou no fluxo final do carrinho
-  const path = location.pathname;
-  const blocked =
-    path.startsWith("/admin") ||
-    path.startsWith("/acesso-restrito") ||
-    path.startsWith("/rastrear");
-
+  // Carrega settings + escuta updates em tempo real
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (sessionStorage.getItem(STORAGE_KEY) === "1") setDismissed(true);
+    let mounted = true;
+    (async () => {
+      const { data } = await supabase
+        .from("social_proof_settings")
+        .select("*")
+        .eq("id", true)
+        .maybeSingle();
+      if (mounted) setSettings({ ...DEFAULTS, ...(data ?? {}) } as Settings);
+    })();
+
+    const channel = supabase
+      .channel("social_proof_settings_changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "social_proof_settings" },
+        (payload) => {
+          const next = payload.new as Settings | undefined;
+          if (next) setSettings({ ...DEFAULTS, ...next });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      mounted = false;
+      supabase.removeChannel(channel);
+    };
   }, []);
 
-  // Busca aleatória das avaliações reais com produto
+  // Persistência do dismiss
   useEffect(() => {
-    if (blocked || dismissed) return;
+    if (typeof window === "undefined") return;
+    if (localStorage.getItem(STORAGE_KEY_PERSIST) === "1") {
+      setDismissed(true);
+      return;
+    }
+    if (sessionStorage.getItem(STORAGE_KEY_SESSION) === "1") setDismissed(true);
+  }, []);
+
+  const path = location.pathname;
+  const blocked = (() => {
+    if (!settings) return true;
+    if (!settings.is_enabled) return true;
+    if (isMobile && !settings.show_on_mobile) return true;
+    if (!isMobile && !settings.show_on_desktop) return true;
+    if (pathMatches(path, settings.excluded_paths)) return true;
+    if (
+      settings.included_paths.length > 0 &&
+      !pathMatches(path, settings.included_paths)
+    )
+      return true;
+    return false;
+  })();
+
+  // Busca avaliações reais
+  useEffect(() => {
+    if (!settings || blocked || dismissed) return;
     let mounted = true;
 
     (async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("product_reviews")
         .select(
           `id, author_name, rating, comment, review_date, is_verified,
-           product:products!inner(name, slug, images)`
+           product:products!inner(name, slug, images)`,
         )
         .eq("is_visible", true)
-        .gte("rating", 4)
+        .gte("rating", settings.min_rating)
         .not("comment", "is", null)
         .order("review_date", { ascending: false })
-        .limit(60);
+        .limit(Math.max(10, Math.min(settings.pool_size, 200)));
 
+      if (settings.require_verified) q = q.eq("is_verified", true);
+
+      const { data, error } = await q;
       if (error || !mounted || !data) return;
 
       const cleaned = (data as any[])
@@ -102,22 +195,20 @@ export default function SocialProofToast() {
             r.author_name &&
             r.author_name.trim().length > 1,
         )
-        .map((r) => ({
-          ...r,
-          product: r.product,
-        })) as Review[];
+        .map((r) => ({ ...r, product: r.product })) as Review[];
 
       setReviews(shuffle(cleaned).slice(0, 20));
+      setIndex(0);
     })();
 
     return () => {
       mounted = false;
     };
-  }, [blocked, dismissed]);
+  }, [settings, blocked, dismissed]);
 
-  // Ciclo de exibição
+  // Ciclo de exibição (usa timings do settings)
   useEffect(() => {
-    if (blocked || dismissed || reviews.length === 0) return;
+    if (!settings || blocked || dismissed || reviews.length === 0) return;
 
     let showTimer: number;
     let hideTimer: number;
@@ -132,20 +223,20 @@ export default function SocialProofToast() {
       hideTimer = window.setTimeout(() => {
         setVisible(false);
         setIndex((i) => (i + 1) % reviews.length);
-        cycleTimer = window.setTimeout(showOne, 18000);
-      }, 9000);
+        cycleTimer = window.setTimeout(showOne, Math.max(2000, settings.interval_ms));
+      }, Math.max(2000, settings.visible_ms));
     };
 
-    showTimer = window.setTimeout(showOne, 6000);
+    showTimer = window.setTimeout(showOne, Math.max(0, settings.initial_delay_ms));
 
     return () => {
       window.clearTimeout(showTimer);
       window.clearTimeout(hideTimer);
       window.clearTimeout(cycleTimer);
     };
-  }, [reviews, blocked, dismissed]);
+  }, [reviews, settings, blocked, dismissed]);
 
-  if (blocked || dismissed || reviews.length === 0) return null;
+  if (!settings || blocked || dismissed || reviews.length === 0) return null;
 
   const review = reviews[index];
   if (!review?.product) return null;
@@ -159,10 +250,19 @@ export default function SocialProofToast() {
     setVisible(false);
     setDismissed(true);
     try {
-      sessionStorage.setItem(STORAGE_KEY, "1");
+      if (settings.dismiss_persistence === "never")
+        localStorage.setItem(STORAGE_KEY_PERSIST, "1");
+      else sessionStorage.setItem(STORAGE_KEY_SESSION, "1");
     } catch {
       /* noop */
     }
+  };
+
+  const positionClass: Record<Settings["position"], string> = {
+    "bottom-left": "left-3 bottom-3 md:left-5 md:bottom-5",
+    "bottom-right": "right-3 bottom-3 md:right-5 md:bottom-5",
+    "top-left": "left-3 top-20 md:left-5 md:top-24",
+    "top-right": "right-3 top-20 md:right-5 md:top-24",
   };
 
   return (
@@ -172,7 +272,8 @@ export default function SocialProofToast() {
       onMouseEnter={() => (hoverRef.current = true)}
       onMouseLeave={() => (hoverRef.current = false)}
       className={[
-        "fixed z-40 left-3 bottom-3 md:left-5 md:bottom-5",
+        "fixed z-40",
+        positionClass[settings.position],
         "max-w-[19rem] md:max-w-[22rem]",
         "transition-all duration-500 ease-out",
         visible

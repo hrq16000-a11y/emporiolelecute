@@ -6098,6 +6098,63 @@ export type Database = {
         }
         Relationships: []
       }
+      social_proof_settings: {
+        Row: {
+          created_at: string
+          dismiss_persistence: string
+          excluded_paths: string[]
+          id: boolean
+          included_paths: string[]
+          initial_delay_ms: number
+          interval_ms: number
+          is_enabled: boolean
+          min_rating: number
+          pool_size: number
+          position: string
+          require_verified: boolean
+          show_on_desktop: boolean
+          show_on_mobile: boolean
+          updated_at: string
+          visible_ms: number
+        }
+        Insert: {
+          created_at?: string
+          dismiss_persistence?: string
+          excluded_paths?: string[]
+          id?: boolean
+          included_paths?: string[]
+          initial_delay_ms?: number
+          interval_ms?: number
+          is_enabled?: boolean
+          min_rating?: number
+          pool_size?: number
+          position?: string
+          require_verified?: boolean
+          show_on_desktop?: boolean
+          show_on_mobile?: boolean
+          updated_at?: string
+          visible_ms?: number
+        }
+        Update: {
+          created_at?: string
+          dismiss_persistence?: string
+          excluded_paths?: string[]
+          id?: boolean
+          included_paths?: string[]
+          initial_delay_ms?: number
+          interval_ms?: number
+          is_enabled?: boolean
+          min_rating?: number
+          pool_size?: number
+          position?: string
+          require_verified?: boolean
+          show_on_desktop?: boolean
+          show_on_mobile?: boolean
+          updated_at?: string
+          visible_ms?: number
+        }
+        Relationships: []
+      }
       stale_bundle_logs: {
         Row: {
           id: string
