@@ -879,10 +879,11 @@ const Carrinho = () => {
 
             {/* Right Column - Summary */}
             <div className="lg:col-span-1">
-              <div id="step-checkout" className="bg-card rounded-xl border border-border p-6 sticky top-28 scroll-mt-32">
-                <h2 className="font-display text-xl text-foreground mb-4">
+              <div id="step-checkout" className="bg-card rounded-xl border border-border p-3 md:p-6 sticky top-28 scroll-mt-32">
+                <h2 className="font-display text-lg md:text-xl text-foreground mb-3 md:mb-4">
                   Resumo do Pedido
                 </h2>
+
 
                 <div className="mb-4">
                   <FreeShippingProgress currentTotal={totalWithDiscount} />
