@@ -303,6 +303,9 @@ const AdminCustomers = () => {
       if (dateRange.to) q = q.lte("last_seen_at", dateRange.to.toISOString());
       if (visitorFilters.device !== "all") q = q.eq("device_type", visitorFilters.device);
       if (visitorFilters.os !== "all") q = q.eq("os_name", visitorFilters.os);
+      if (visitorFilters.country !== "all") q = q.eq("ip_country", visitorFilters.country);
+      if (visitorFilters.region !== "all") q = q.eq("ip_region", visitorFilters.region);
+      if (visitorFilters.city !== "all") q = q.eq("ip_city", visitorFilters.city);
       if (search) {
         const term = `%${search}%`;
         q = q.or(
