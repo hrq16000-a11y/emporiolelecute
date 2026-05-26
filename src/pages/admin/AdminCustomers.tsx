@@ -272,12 +272,20 @@ const AdminCustomers = () => {
   }, [visitorFilters]);
 
   const visitorsQ = useQuery({
-    queryKey: ["admin-visitors", { search, page, perPage, sort, hourFilterActive, visitorFilters }],
+    queryKey: ["admin-visitors", { tab, showBots, search, page, perPage, sort, hourFilterActive, visitorFilters }],
     queryFn: async () => {
       let q = supabase
         .from("visitors")
         .select("*", { count: "exact" })
         .order(sortColumn, { ascending: false, nullsFirst: false });
+
+      // Segmentação por aba: visitors humanos / leads (humanos promovidos) / tráfego de bots
+      if (tab === "leads") {
+        q = q.eq("is_bot", false).eq("lead_status", "lead");
+      } else if (tab === "visitors") {
+        if (showBots) q = q.eq("is_bot", true);
+        else q = q.eq("is_bot", false);
+      }
 
       if (dateRange.from) q = q.gte("last_seen_at", dateRange.from.toISOString());
       if (dateRange.to) q = q.lte("last_seen_at", dateRange.to.toISOString());
@@ -294,7 +302,6 @@ const AdminCustomers = () => {
         const from = (page - 1) * perPage;
         q = q.range(from, from + perPage - 1);
       } else {
-        // janela maior pra filtrar localmente sem perder muitos registros
         q = q.limit(1000);
       }
 
@@ -302,7 +309,7 @@ const AdminCustomers = () => {
       if (error) throw error;
       return { rows: (data || []) as VisitorRow[], totalCount: count ?? (data?.length || 0) };
     },
-    enabled: tab === "visitors",
+    enabled: tab === "visitors" || tab === "leads",
     placeholderData: (prev) => prev,
   });
 
