@@ -28,6 +28,7 @@ import { VisitorFilters, applyVisitorFilters, defaultFilters, type VisitorFilter
 import { VisitorCard } from "@/components/admin/customers/VisitorCard";
 import { CustomerCard } from "@/components/admin/customers/CustomerCard";
 import { useAdminWorkspaceStore } from "@/stores/adminWorkspaceStore";
+import { UnifiedProfileDrawer } from "@/components/admin/UnifiedProfileDrawer";
 
 // ============ Ordenação (Visitantes) ============
 type VisitorSort = "last_seen" | "time" | "pageviews";
