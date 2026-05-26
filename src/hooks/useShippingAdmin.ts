@@ -11,6 +11,10 @@ export type ShippingSettings = {
   default_box_height_cm: number;
   handling_fee: number;
   shipping_markup_percentage: number;
+  pickup_enabled: boolean;
+  pickup_label: string;
+  pickup_address: string;
+  pickup_instructions: string;
 };
 
 export type ShippingProvider = {
