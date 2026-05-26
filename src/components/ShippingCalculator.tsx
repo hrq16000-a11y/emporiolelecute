@@ -140,6 +140,30 @@ export default function ShippingCalculator({ items, state, initialCep = "", onSe
         </div>
       )}
 
+      {options && options.length > 0 && (quoteMeta.estimated || quoteMeta.local) && (
+        <div
+          role="status"
+          className={`flex items-start gap-2 text-xs rounded-md p-2.5 border ${
+            quoteMeta.estimated
+              ? "bg-amber-50 border-amber-200 text-amber-900 dark:bg-amber-950/40 dark:border-amber-900/50 dark:text-amber-200"
+              : "bg-primary/5 border-primary/20 text-foreground"
+          }`}
+        >
+          {quoteMeta.estimated ? <Info className="h-4 w-4 mt-0.5 shrink-0" /> : <MapPin className="h-4 w-4 mt-0.5 shrink-0" />}
+          <div>
+            {quoteMeta.estimated ? (
+              <>
+                <strong>Valor estimado.</strong> Confirmamos o frete real antes de fechar o pedido pelo WhatsApp.
+              </>
+            ) : (
+              <>
+                <strong>Entrega local.</strong> Mesma cidade do nosso ateliê — retirada ou entrega combinada.
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {options && options.length > 0 && (
         <RadioGroup
           value={selected ?? ""}
