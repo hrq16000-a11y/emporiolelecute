@@ -4,8 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, Truck, Info, MapPin } from "lucide-react";
+import { Loader2, Truck, Info, MapPin, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/format";
 
@@ -58,7 +59,7 @@ export default function ShippingCalculator({ items, state, initialCep = "", onSe
   const [options, setOptions] = useState<ShippingOption[] | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [moduleEnabled, setModuleEnabled] = useState<boolean | null>(null);
-  const [quoteMeta, setQuoteMeta] = useState<{ estimated?: boolean; local?: boolean }>({});
+  const [quoteMeta, setQuoteMeta] = useState<{ estimated?: boolean; local?: boolean; is_fallback?: boolean }>({});
 
   // Verifica se o módulo de frete está habilitado no admin
   useEffect(() => {
@@ -97,7 +98,11 @@ export default function ShippingCalculator({ items, state, initialCep = "", onSe
         return;
       }
       setOptions(opts);
-      setQuoteMeta({ estimated: !!data?.estimated, local: !!data?.local_delivery });
+      setQuoteMeta({
+        estimated: !!data?.estimated,
+        local: !!data?.local_delivery,
+        is_fallback: !!data?.is_fallback,
+      });
       const cheapest = opts[0];
       setSelected(optionKey(cheapest));
       onSelect?.(cheapest);
@@ -201,8 +206,25 @@ export default function ShippingCalculator({ items, state, initialCep = "", onSe
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {!quoteMeta.estimated && !quoteMeta.local && o.price > 0 && (
+                  {!quoteMeta.estimated && !quoteMeta.is_fallback && !quoteMeta.local && o.price > 0 && (
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0">cotação real</Badge>
+                  )}
+                  {quoteMeta.is_fallback && o.price > 0 && (
+                    <TooltipProvider delayDuration={150}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span
+                            className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-200"
+                            aria-label="Cotação estimada"
+                          >
+                            <AlertCircle className="h-3.5 w-3.5" />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-[220px] text-xs">
+                          Cotação estimada — confirmação final no WhatsApp
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
                   <span className="font-semibold text-foreground">
                     {o.price === 0 ? "Grátis" : formatBRL(o.price)}
