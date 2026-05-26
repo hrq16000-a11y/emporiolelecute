@@ -109,18 +109,34 @@ const ProductPage = () => {
   const valuesRef = useRef({ quantity, personalization });
   valuesRef.current = { quantity, personalization };
 
-  // Sticky CTA: aparece quando o CTA principal sai do viewport (qualquer altura de tela)
-  // e some quando o usuário volta para ele. Fallback por scroll caso o ref não exista.
+  // Sticky CTA: gatilho via IntersectionObserver no botão de compra principal.
+  // - Aparece quando o CTA primário sai do viewport (rolagem para baixo).
+  // - Esconde suavemente quando o CTA volta a ficar visível.
+  // - Fallback por scroll caso o ref ainda não esteja montado (hidratação inicial).
   useEffect(() => {
-    // Gatilho por scroll: aparece quando rolou ~15% da altura da viewport.
-    const ratio = ctaConfig?.sticky?.scrollViewportRatio ?? 0.15;
-    const onScroll = () => {
-      const threshold = Math.max(80, window.innerHeight * ratio);
-      setShowStickyCta(window.scrollY > threshold);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
+    const target = primaryCtaRef.current;
+    if (!target || typeof IntersectionObserver === "undefined") {
+      // Fallback determinístico: aparece após ~25% da viewport rolada.
+      const ratio = ctaConfig?.sticky?.scrollViewportRatio ?? 0.25;
+      const onScroll = () => {
+        const threshold = Math.max(120, window.innerHeight * ratio);
+        setShowStickyCta(window.scrollY > threshold);
+      };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+      return () => window.removeEventListener("scroll", onScroll);
+    }
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        // Sticky aparece somente quando o CTA principal NÃO está visível.
+        setShowStickyCta(!entry.isIntersecting);
+      },
+      // rootMargin negativo no topo evita "flicker" próximo ao header fixo.
+      { threshold: 0, rootMargin: "-64px 0px 0px 0px" },
+    );
+    io.observe(target);
+    return () => io.disconnect();
   }, [dbProduct?.id, ctaConfig?.sticky?.scrollViewportRatio]);
 
   // Fase 1 — Replace controlado para slug primário.
