@@ -98,7 +98,11 @@ export default function ShippingCalculator({ items, state, initialCep = "", onSe
         return;
       }
       setOptions(opts);
-      setQuoteMeta({ estimated: !!data?.estimated, local: !!data?.local_delivery });
+      setQuoteMeta({
+        estimated: !!data?.estimated,
+        local: !!data?.local_delivery,
+        is_fallback: !!data?.is_fallback,
+      });
       const cheapest = opts[0];
       setSelected(optionKey(cheapest));
       onSelect?.(cheapest);
