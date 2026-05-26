@@ -3,6 +3,7 @@ import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { trackFunnelEvent } from "@/lib/analytics";
+import { markLead } from "@/lib/visitor";
 
 interface StickyAddToCartProps {
   productName: string;
