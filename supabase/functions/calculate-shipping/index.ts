@@ -1,145 +1,233 @@
 // Edge Function: calculate-shipping
-// Esboço da estrutura para cálculo de frete via Melhor Envio.
-// Recebe os itens do carrinho, soma pesos e consulta a API do ME.
-// Trata o caso onde o CEP de destino é o mesmo do Empório LeleCute (entrega local).
+// Lê configurações, provedores e regras 100% do banco (shipping_settings,
+// shipping_providers, shipping_rules). Loga falhas em shipping_audit_logs.
 
+import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@3.23.8';
 
-const ORIGIN_CEP = (Deno.env.get('LELECUTE_ORIGIN_CEP') ?? '').replace(/\D/g, '');
-const DEFAULT_WEIGHT_KG = 0.150;
-const ME_API = Deno.env.get('MELHOR_ENVIO_API_URL') ?? 'https://www.melhorenvio.com.br/api/v2/me/shipment/calculate';
-const ME_TOKEN = Deno.env.get('MELHOR_ENVIO_TOKEN') ?? '';
+const TIMEOUT_MS = 5000;
 
 const ItemSchema = z.object({
-  product_id: z.string().uuid().optional(),
+  product_id: z.string().optional(),
   name: z.string().min(1).max(200),
   quantity: z.number().int().positive().max(500),
   weight_kg: z.number().nonnegative().max(30).optional(),
-  // dimensões opcionais (cm)
   width: z.number().positive().max(200).optional(),
   height: z.number().positive().max(200).optional(),
   length: z.number().positive().max(200).optional(),
   unit_price: z.number().nonnegative().optional(),
+  requires_shipping: z.boolean().optional(),
 });
 
 const BodySchema = z.object({
-  cep_destino: z.string().regex(/^\d{5}-?\d{3}$/, 'CEP inválido'),
+  cep_destino: z.string().regex(/^\d{5}-?\d{3}$/, 'CEP de destino inválido'),
+  state: z.string().length(2).optional(),
   items: z.array(ItemSchema).min(1).max(100),
 });
+
+type ShippingOption = {
+  provider: string;
+  service_name: string;
+  price: number;
+  estimated_delivery_days: string;
+};
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
-  const startedAt = Date.now();
+  const sb = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  );
+
   try {
     const parsed = BodySchema.safeParse(await req.json());
-    if (!parsed.success) {
-      console.warn('[calculate-shipping] validation failed', parsed.error.flatten());
-      return json({ error: parsed.error.flatten().fieldErrors }, 400);
-    }
-    const { cep_destino, items } = parsed.data;
+    if (!parsed.success) return json({ error: parsed.error.flatten().fieldErrors }, 400);
+    const { cep_destino, items, state } = parsed.data;
     const destino = cep_destino.replace(/\D/g, '');
 
-    const totalWeight = items.reduce(
-      (acc, it) => acc + (it.weight_kg ?? DEFAULT_WEIGHT_KG) * it.quantity,
+    // Carrega configurações do banco
+    const [{ data: settings }, { data: providers }, { data: rules }] = await Promise.all([
+      sb.from('shipping_settings').select('*').limit(1).maybeSingle(),
+      sb.from('shipping_providers').select('*').eq('is_active', true),
+      sb.from('shipping_rules').select('*').eq('is_active', true).order('priority', { ascending: false }),
+    ]);
+
+    if (!settings || !settings.origin_zip_code) {
+      return json({ error: 'CEP de origem não configurado' }, 422);
+    }
+    const ORIGIN_CEP = String(settings.origin_zip_code).replace(/\D/g, '');
+    if (ORIGIN_CEP.length !== 8) return json({ error: 'CEP de origem inválido' }, 422);
+
+    // Filtra itens que exigem frete
+    const shippable = items.filter((it) => it.requires_shipping !== false);
+    if (shippable.length === 0) {
+      return json({ options: [{ provider: 'Digital', service_name: 'Sem envio', price: 0, estimated_delivery_days: '0' }] });
+    }
+
+    const totalWeight = shippable.reduce(
+      (acc, it) => acc + (it.weight_kg ?? Number(settings.default_box_weight_kg)) * it.quantity,
       0,
     );
-    const subtotal = items.reduce(
-      (acc, it) => acc + (it.unit_price ?? 0) * it.quantity,
-      0,
-    );
+    const subtotal = shippable.reduce((acc, it) => acc + (it.unit_price ?? 0) * it.quantity, 0);
 
-    console.log('[calculate-shipping] request', {
-      origin_cep_set: !!ORIGIN_CEP,
-      destino_prefix: destino.slice(0, 3),
-      item_count: items.length,
-      total_weight_kg: round(totalWeight),
-      me_token_set: !!ME_TOKEN,
-    });
-
-    // Caso 1: CEP de origem == destino → entrega local / retirada
-    if (ORIGIN_CEP && destino === ORIGIN_CEP) {
-      console.log('[calculate-shipping] local_delivery match');
+    // Entrega local: mesmo CEP
+    if (destino === ORIGIN_CEP) {
       return json({
         local_delivery: true,
-        origin_cep: ORIGIN_CEP,
-        total_weight_kg: round(totalWeight),
-        options: [
-          { service: 'Retirada / Entrega local', price: 0, days: '1-2', company: 'Empório LeleCute' },
-        ],
-        elapsed_ms: Date.now() - startedAt,
+        options: applyRules([
+          { provider: 'Empório LeleCute', service_name: 'Retirada / Entrega local', price: 0, estimated_delivery_days: '1-2' },
+        ], { subtotal, state, destino }, rules ?? []),
       });
     }
 
-    // Caso 2: cotação real no Melhor Envio
-    if (!ME_TOKEN || !ORIGIN_CEP) {
-      console.log('[calculate-shipping] estimated_fallback', { reason: !ME_TOKEN ? 'no_token' : 'no_origin' });
-      return json({
-        estimated: true,
-        total_weight_kg: round(totalWeight),
-        options: [
-          { service: 'PAC (estimado)', price: estimate(totalWeight, 1.0), days: '5-9', company: 'Correios' },
-          { service: 'SEDEX (estimado)', price: estimate(totalWeight, 1.8), days: '2-4', company: 'Correios' },
-        ],
-        elapsed_ms: Date.now() - startedAt,
-      });
+    // Coleta cotações de todos os provedores ativos em paralelo
+    const quotes = await Promise.all(
+      (providers ?? []).map((p) => quoteProvider(p, { origin: ORIGIN_CEP, destino, items: shippable, totalWeight, subtotal, settings, sb })),
+    );
+    let options: ShippingOption[] = quotes.flat();
+
+    // Markup + handling
+    const markup = Number(settings.shipping_markup_percentage) || 0;
+    const fee = Number(settings.handling_fee) || 0;
+    options = options.map((o) => ({
+      ...o,
+      price: o.price === 0 ? 0 : round2(o.price * (1 + markup / 100) + fee),
+    }));
+
+    // Aplica regras
+    options = applyRules(options, { subtotal, state, destino }, rules ?? []);
+
+    options.sort((a, b) => a.price - b.price);
+
+    if (options.length === 0) {
+      return json({ error: 'Não foi possível calcular o frete para este CEP.' }, 422);
     }
-
-    const mePayload = {
-      from: { postal_code: ORIGIN_CEP },
-      to: { postal_code: destino },
-      products: items.map((it, i) => ({
-        id: String(it.product_id ?? i),
-        width: it.width ?? 11,
-        height: it.height ?? 6,
-        length: it.length ?? 16,
-        weight: (it.weight_kg ?? DEFAULT_WEIGHT_KG),
-        insurance_value: it.unit_price ?? 0,
-        quantity: it.quantity,
-      })),
-      options: { receipt: false, own_hand: false, insurance_value: subtotal },
-    };
-
-    console.log('[calculate-shipping] calling Melhor Envio', { products: mePayload.products.length });
-    const meRes = await fetch(ME_API, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${ME_TOKEN}`,
-        'User-Agent': 'EmporioLeleCute (contato@emporiolelecute.com.br)',
-      },
-      body: JSON.stringify(mePayload),
-    });
-
-    if (!meRes.ok) {
-      const text = await meRes.text();
-      console.error('[calculate-shipping] ME error', meRes.status, text.slice(0, 500));
-      return json({ error: 'Falha na consulta Melhor Envio', status: meRes.status, detail: text }, 502);
-    }
-
-    const data = await meRes.json();
-    const options = (Array.isArray(data) ? data : [])
-      .filter((o: any) => !o.error && o.price)
-      .map((o: any) => ({
-        service: o.name,
-        company: o.company?.name,
-        price: Number(o.price),
-        days: `${o.delivery_range?.min ?? '?'}-${o.delivery_range?.max ?? '?'}`,
-      }));
-
-    console.log('[calculate-shipping] ME ok', { options_returned: options.length, elapsed_ms: Date.now() - startedAt });
-    return json({
-      total_weight_kg: round(totalWeight),
-      options,
-      elapsed_ms: Date.now() - startedAt,
-    });
+    return json({ options });
   } catch (err) {
     console.error('[calculate-shipping] unexpected', err);
     return json({ error: 'Erro interno', message: String(err) }, 500);
   }
 });
+
+// --- Provedores ---
+async function quoteProvider(p: any, ctx: any): Promise<ShippingOption[]> {
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+    try {
+      if (p.provider_code === 'melhor_envio') {
+        return await quoteMelhorEnvio(p, ctx, ctrl.signal);
+      }
+      if (p.provider_code === 'correios_estimate') {
+        return quoteCorreiosEstimate(ctx);
+      }
+      // Provedor custom: tenta POST genérico
+      return [];
+    } finally {
+      clearTimeout(t);
+    }
+  } catch (err: any) {
+    await ctx.sb.from('shipping_audit_logs').insert({
+      destination_zip: ctx.destino,
+      cart_snapshot: { items: ctx.items },
+      provider_name: p.provider_name,
+      error_message: String(err?.message ?? err),
+      http_status: err?.status ?? null,
+    });
+    return [];
+  }
+}
+
+async function quoteMelhorEnvio(p: any, ctx: any, signal: AbortSignal): Promise<ShippingOption[]> {
+  if (!p.api_key || !p.endpoint_url) throw new Error('Credenciais Melhor Envio ausentes');
+  const payload = {
+    from: { postal_code: ctx.origin },
+    to: { postal_code: ctx.destino },
+    products: ctx.items.map((it: any, i: number) => ({
+      id: String(it.product_id ?? i),
+      width: it.width ?? Number(ctx.settings.default_box_width_cm),
+      height: it.height ?? Number(ctx.settings.default_box_height_cm),
+      length: it.length ?? Number(ctx.settings.default_box_length_cm),
+      weight: it.weight_kg ?? Number(ctx.settings.default_box_weight_kg),
+      insurance_value: it.unit_price ?? 0,
+      quantity: it.quantity,
+    })),
+    options: { receipt: false, own_hand: false, insurance_value: ctx.subtotal },
+  };
+  const res = await fetch(p.endpoint_url, {
+    method: 'POST',
+    signal,
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${p.api_key}`,
+      'User-Agent': 'EmporioLeleCute (contato@emporiolelecute.com.br)',
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    const e: any = new Error(text.slice(0, 400)); e.status = res.status; throw e;
+  }
+  const data = await res.json();
+  return (Array.isArray(data) ? data : [])
+    .filter((o: any) => !o.error && o.price)
+    .map((o: any) => ({
+      provider: o.company?.name ?? 'Melhor Envio',
+      service_name: o.name,
+      price: Number(o.price),
+      estimated_delivery_days: `${o.delivery_range?.min ?? '?'}-${o.delivery_range?.max ?? '?'}`,
+    }));
+}
+
+function quoteCorreiosEstimate(ctx: any): ShippingOption[] {
+  const w = ctx.totalWeight;
+  const est = (factor: number) => Math.max(12, Math.round((15 + w * 18) * factor * 100) / 100);
+  return [
+    { provider: 'Correios', service_name: 'PAC (estimado)', price: est(1.0), estimated_delivery_days: '5-9' },
+    { provider: 'Correios', service_name: 'SEDEX (estimado)', price: est(1.8), estimated_delivery_days: '2-4' },
+  ];
+}
+
+// --- Regras ---
+function applyRules(opts: ShippingOption[], ctx: { subtotal: number; state?: string; destino: string }, rules: any[]): ShippingOption[] {
+  let result = [...opts];
+  for (const r of rules) {
+    if (!matchesCondition(r, ctx)) continue;
+    if (r.discount_type === 'free_shipping') {
+      // Zera a opção mais barata
+      result.sort((a, b) => a.price - b.price);
+      if (result[0]) result[0] = { ...result[0], price: 0, service_name: result[0].service_name + ' (Frete Grátis)' };
+    } else if (r.discount_type === 'fixed_discount') {
+      const v = Number(r.discount_value) || 0;
+      result = result.map((o) => ({ ...o, price: Math.max(0, round2(o.price - v)) }));
+    } else if (r.discount_type === 'percentage_discount') {
+      const v = Number(r.discount_value) || 0;
+      result = result.map((o) => ({ ...o, price: round2(o.price * (1 - v / 100)) }));
+    }
+  }
+  return result;
+}
+
+function matchesCondition(r: any, ctx: { subtotal: number; state?: string; destino: string }): boolean {
+  const cv = r.condition_value ?? {};
+  if (r.condition_type === 'min_cart_value') {
+    return ctx.subtotal >= Number(cv.value ?? 0);
+  }
+  if (r.condition_type === 'specific_state') {
+    const states: string[] = Array.isArray(cv.states) ? cv.states : (cv.state ? [cv.state] : []);
+    return !!ctx.state && states.map((s) => s.toUpperCase()).includes(ctx.state.toUpperCase());
+  }
+  if (r.condition_type === 'zip_code_range') {
+    const from = String(cv.from ?? '').replace(/\D/g, '');
+    const to = String(cv.to ?? '').replace(/\D/g, '');
+    if (!from || !to) return false;
+    return ctx.destino >= from && ctx.destino <= to;
+  }
+  return false;
+}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -147,7 +235,4 @@ function json(body: unknown, status = 200) {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
 }
-function round(n: number) { return Math.round(n * 1000) / 1000; }
-function estimate(weightKg: number, factor: number) {
-  return Math.max(12, Math.round((15 + weightKg * 18) * factor * 100) / 100);
-}
+function round2(n: number) { return Math.round(n * 100) / 100; }
