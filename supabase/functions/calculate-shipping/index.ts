@@ -220,30 +220,9 @@ async function quoteMelhorEnvio(p: any, ctx: any, signal: AbortSignal): Promise<
     }));
 }
 
-// Fallback estimado por faixa de CEP (região). Valores conservadores para
-// pacote pequeno; não substitui cotação real, apenas evita carrinho vazio.
-function quoteCorreiosEstimate(ctx: { totalWeight: number; destino: string; origin: string }): ShippingOption[] {
-  const w = Math.max(0.1, ctx.totalWeight);
-  const destPrefix = Number(ctx.destino.slice(0, 2)); // 01-99 → região do CEP
-  const originPrefix = Number(ctx.origin.slice(0, 2));
+// (quoteCorreiosEstimate movido para ./lib.ts)
 
-  // Fator de distância simples por diferença de prefixo (proxy de região).
-  const diff = Math.abs(destPrefix - originPrefix);
-  let zoneFactor = 1.0;
-  if (diff <= 3) zoneFactor = 0.85;       // mesma região
-  else if (diff <= 15) zoneFactor = 1.0;  // regiões próximas
-  else if (diff <= 35) zoneFactor = 1.25; // distante
-  else zoneFactor = 1.5;                  // muito distante
 
-  // Base realista: PAC ~ R$ 18 + R$ 6/kg; SEDEX ~ 1.6x PAC. Cap superior.
-  const pac = Math.min(60, Math.max(15, round2((18 + w * 6) * zoneFactor)));
-  const sedex = Math.min(95, round2(pac * 1.6));
-
-  return [
-    { provider: 'Correios', service_name: 'PAC (estimado)', price: pac, estimated_delivery_days: '5-9' },
-    { provider: 'Correios', service_name: 'SEDEX (estimado)', price: sedex, estimated_delivery_days: '2-4' },
-  ];
-}
 
 // --- Regras ---
 function applyRules(opts: ShippingOption[], ctx: { subtotal: number; state?: string; destino: string }, rules: any[]): ShippingOption[] {
