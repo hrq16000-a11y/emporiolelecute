@@ -646,6 +646,11 @@ const App = () => {
                       <AdminConversionCTA />
                     </Suspense>
                   } />
+                  <Route path="fretes" element={
+                    <Suspense fallback={<AdminSkeleton />}>
+                      <AdminShipping />
+                    </Suspense>
+                  } />
                   <Route path="colecoes" element={
                     <Suspense fallback={<AdminSkeleton />}>
                       <AdminCollections />
