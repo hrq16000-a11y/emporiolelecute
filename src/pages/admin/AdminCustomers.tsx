@@ -3,7 +3,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Users, UserPlus, Search, Calendar, Edit, Trash2,
+  Users, UserPlus, Search, Edit, Trash2,
   Eye, Globe, Smartphone, Monitor, Tablet, Bot, ShieldCheck,
   ChevronLeft, ChevronRight, X, ArrowUpDown,
 } from "lucide-react";
@@ -28,6 +28,7 @@ import { VisitorFilters, applyVisitorFilters, defaultFilters, type VisitorFilter
 import { VisitorCard } from "@/components/admin/customers/VisitorCard";
 import { CustomerCard } from "@/components/admin/customers/CustomerCard";
 import { useAdminWorkspaceStore } from "@/stores/adminWorkspaceStore";
+import { UnifiedProfileDrawer } from "@/components/admin/UnifiedProfileDrawer";
 
 // ============ Ordenação (Visitantes) ============
 type VisitorSort = "last_seen" | "time" | "pageviews";
@@ -103,20 +104,7 @@ interface VisitorRow {
   lead_trigger?: string | null;
 }
 
-interface PageviewRow {
-  id: string;
-  path: string;
-  title: string | null;
-  product_id: string | null;
-  time_on_page_seconds: number;
-  scroll_depth_pct: number | null;
-  viewed_at: string;
-  referrer: string | null;
-  step_index?: number | null;
-  from_path?: string | null;
-  cta_id?: string | null;
-  event_type?: string | null;
-}
+// PageviewRow movido para o UnifiedProfileDrawer (RPC get_unified_timeline).
 
 const emptyForm = {
   name: "", email: "", phone: "", whatsapp: "",
@@ -220,6 +208,18 @@ const AdminCustomers = () => {
     // Persiste snapshot dos filtros globais no workspace store para sobreviver troca de rotas.
     ws.patchRoute(ROUTE_KEY, { filters: f } as unknown as Record<string, unknown>);
   };
+
+  // Hidratação one-shot: se a URL chegou sem filtros mas o store tem snapshot, restaura.
+  useEffect(() => {
+    const hasUrlFilters = ["dp","df","dt","hf","ht","dev","os","country","region","city"]
+      .some((k) => searchParams.get(k));
+    if (hasUrlFilters) return;
+    const saved = ws.getRoute(ROUTE_KEY).filters as unknown as VisitorFilterState | undefined;
+    if (saved) setVisitorFilters(saved);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
 
 
   // Drawer via URL (?drawer=visitor&id=UUID ou ?drawer=customer&id=UUID)
@@ -373,23 +373,7 @@ const AdminCustomers = () => {
   });
 
 
-  const pageviewsQ = useQuery({
-    queryKey: ["visitor-pageviews", viewVisitor?.visitor_id],
-    queryFn: async () => {
-      if (!viewVisitor) return [];
-      // Timeline ascendente: ordena por step_index quando disponível, fallback em viewed_at.
-      const { data, error } = await supabase
-        .from("visitor_pageviews")
-        .select("*")
-        .eq("visitor_id", viewVisitor.visitor_id)
-        .order("step_index", { ascending: true, nullsFirst: false })
-        .order("viewed_at", { ascending: true })
-        .limit(500);
-      if (error) throw error;
-      return (data || []) as PageviewRow[];
-    },
-    enabled: !!viewVisitor,
-  });
+  // Timeline foi movida para o UnifiedProfileDrawer (RPC get_unified_timeline).
 
   // ====== Mutations ======
   const saveMut = useMutation({
@@ -935,78 +919,13 @@ const AdminCustomers = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* ============ Visitor Detail ============ */}
-      <Dialog open={!!viewVisitor} onOpenChange={(o) => { if (!o) { setViewVisitor(null); closeDrawer(); } }}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Globe className="w-5 h-5 text-primary" />
-              {viewVisitor?.is_bot ? "Bot" : "Visitante"} {viewVisitor?.visitor_id.slice(0, 8)}…
-              {viewVisitor?.lead_status === "lead" && (
-                <Badge variant="default" className="ml-2 text-[10px]">LEAD</Badge>
-              )}
-            </DialogTitle>
-          </DialogHeader>
-          {viewVisitor && (
-            <div className="space-y-4 text-sm">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Info label="IP" value={viewVisitor.ip} />
-                <Info label="Status" value={viewVisitor.lead_status || "visitor"} />
-                <Info label="País" value={viewVisitor.ip_country} />
-                <Info label="Cidade" value={[viewVisitor.ip_city, viewVisitor.ip_region].filter(Boolean).join(", ")} />
-                <Info label="Provedor (ISP)" value={viewVisitor.ip_isp} />
-                <Info label="Fuso horário" value={viewVisitor.timezone || viewVisitor.ip_timezone} />
-                <Info label="Dispositivo" value={`${viewVisitor.device_brand || ""} ${viewVisitor.device_model || viewVisitor.device_type || ""}`.trim()} />
-                <Info label="Sistema" value={`${viewVisitor.os_name || ""} ${viewVisitor.os_version || ""}`} />
-                <Info label="Navegador" value={viewVisitor.browser_name} />
-                <Info label="Tela" value={viewVisitor.screen_w ? `${viewVisitor.screen_w}×${viewVisitor.screen_h}` : null} />
-                <Info label="Idioma" value={viewVisitor.language} />
-                <Info label="WhatsApp" value={viewVisitor.whatsapp_phone} />
-                <Info label="Origem (referrer)" value={viewVisitor.first_referrer} />
-                <Info label="UTM" value={[viewVisitor.utm_source, viewVisitor.utm_campaign].filter(Boolean).join(" / ")} />
-                <Info label="Total páginas" value={String(viewVisitor.total_pageviews)} />
-                <Info label="Tempo total" value={formatDuration(viewVisitor.total_time_seconds)} />
-                <Info label="Gatilho de lead" value={viewVisitor.lead_trigger} />
-                <Info label="Virou lead em" value={viewVisitor.lead_promoted_at ? formatDateTime(viewVisitor.lead_promoted_at) : null} />
-              </div>
-
-              {/* ============ Timeline (Stepper Vertical) ============ */}
-              <div>
-                <h4 className="font-semibold mb-3 flex items-center gap-2">
-                  <Calendar className="w-4 h-4" /> Linha do tempo de navegação ({pageviewsQ.data?.length ?? 0})
-                </h4>
-                <div className="border border-border rounded-lg max-h-[420px] overflow-y-auto p-4">
-                  {pageviewsQ.isLoading && <div className="text-muted-foreground">Carregando…</div>}
-                  {pageviewsQ.data?.length === 0 && <div className="text-muted-foreground">Sem páginas registradas.</div>}
-                  <ol className="relative border-l-2 border-primary/30 ml-2 space-y-4">
-                    {pageviewsQ.data?.map((pv, idx) => (
-                      <li key={pv.id} className="ml-4 relative">
-                        <span className="absolute -left-[1.4rem] flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-[10px] font-bold ring-4 ring-background">
-                          {pv.step_index ?? idx + 1}
-                        </span>
-                        <div className="text-xs">
-                          <div className="font-mono break-all text-foreground">{pv.path}</div>
-                          {pv.title && <div className="text-muted-foreground">{pv.title}</div>}
-                          <div className="text-muted-foreground mt-1 flex flex-wrap gap-x-3 gap-y-1">
-                            <span>⏱ {formatDuration(pv.time_on_page_seconds)}</span>
-                            {pv.scroll_depth_pct !== null && pv.scroll_depth_pct !== undefined && <span>scroll {pv.scroll_depth_pct}%</span>}
-                            {pv.cta_id && <Badge variant="outline" className="text-[10px]">CTA: {pv.cta_id}</Badge>}
-                            {pv.event_type && pv.event_type !== "pageview" && (
-                              <Badge variant="secondary" className="text-[10px]">{pv.event_type}</Badge>
-                            )}
-                            <span className="ml-auto">{formatDateTime(pv.viewed_at)}</span>
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              </div>
-            </div>
-          )}
-
-        </DialogContent>
-      </Dialog>
+      {/* ============ Drawer unificado (Visitante / Cliente / Usuário) ============ */}
+      <UnifiedProfileDrawer
+        kind={drawerKind === "visitor" ? "visitor" : null}
+        id={drawerKind === "visitor" ? drawerId : null}
+        open={drawerKind === "visitor" && !!drawerId}
+        onClose={() => { setViewVisitor(null); closeDrawer(); }}
+      />
     </div>
   );
 };
@@ -1065,11 +984,5 @@ const Pagination = ({
   </div>
 );
 
-const Info = ({ label, value }: { label: string; value: string | null | undefined }) => (
-  <div className="p-2 bg-muted/40 rounded">
-    <div className="text-[10px] uppercase text-muted-foreground">{label}</div>
-    <div className="text-sm break-words" title={value || ""}>{value || "—"}</div>
-  </div>
-);
 
 export default AdminCustomers;

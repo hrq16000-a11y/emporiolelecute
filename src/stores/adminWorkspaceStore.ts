@@ -12,6 +12,8 @@ interface RouteState {
   search?: string;
   // Drawer: { kind, id } — ex: { kind: "visitor", id: "uuid" }
   drawer?: { kind: string; id: string } | null;
+  // Snapshot dos filtros globais (geolocalização, dispositivo, datas, etc.)
+  filters?: Record<string, unknown>;
 }
 
 interface AdminWorkspaceState {
