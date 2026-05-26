@@ -99,8 +99,12 @@ export default function ShippingCalculator({ items, state, initialCep = "", onSe
 
   const optionKey = (o: ShippingOption) => `${o.provider}|${o.service_name}`;
 
+  // Se admin desabilitou o módulo, oculta o cálculo do site
+  if (moduleEnabled === false) return null;
+
   return (
     <div className="space-y-4">
+
       <div className="flex items-end gap-3">
         <div className="flex-1">
           <Label htmlFor="ship-cep">CEP de entrega</Label>
