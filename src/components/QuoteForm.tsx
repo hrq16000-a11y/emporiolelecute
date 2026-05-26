@@ -23,6 +23,9 @@ const QuoteForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    // Gatilho de conversão: visitante vira lead ao enviar orçamento.
+    markLead("quote_form_submit");
+
 
     try {
       const { data, error } = await supabase.functions.invoke("send-order-email", {
