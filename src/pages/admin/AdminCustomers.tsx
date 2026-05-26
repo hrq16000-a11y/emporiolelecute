@@ -569,6 +569,23 @@ const AdminCustomers = () => {
         </div>
       </div>
 
+      {/* ============ Barra Global de Filtros (acima das abas) ============ */}
+      {/* Filtros globais (data, horário, dispositivo, sistema, país/estado/cidade) — aplicam-se a todas as abas
+          e persistem ao trocar entre Clientes / Visitantes / Leads via URL + Zustand workspace. */}
+      <div className="mb-4 p-3 bg-muted/30 rounded-lg border border-border">
+        <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2 font-medium">
+          Filtros globais
+        </div>
+        <VisitorFilters
+          value={visitorFilters}
+          onChange={setVisitorFilters}
+          osOptions={osOptions}
+          countryOptions={locationOptions.countries}
+          regionOptions={locationOptions.regions}
+          cityOptions={locationOptions.cities}
+        />
+      </div>
+
       <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="mb-4">
         <TabsList>
           <TabsTrigger value="customers">
@@ -617,8 +634,7 @@ const AdminCustomers = () => {
         )}
 
         {(tab === "visitors" || tab === "leads") && (
-          <div className="mb-4 p-3 bg-muted/30 rounded-lg border border-border space-y-3">
-            <VisitorFilters value={visitorFilters} onChange={setVisitorFilters} osOptions={osOptions} />
+          <div className="mb-4 p-3 bg-muted/30 rounded-lg border border-border">
             <div className="flex items-center gap-2">
               <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">Ordenar por:</span>
@@ -632,6 +648,7 @@ const AdminCustomers = () => {
                   ))}
                 </SelectContent>
               </Select>
+
               {hourFilterActive && (
                 <span className="text-[11px] text-muted-foreground ml-auto">
                   Filtro de hora ativo — janela de até 1.000 registros.
