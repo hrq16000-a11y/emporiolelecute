@@ -1,7 +1,7 @@
 // Filtros avançados para a aba de Visitantes — data, faixa horária, dispositivo.
 // Estado controlado externamente (vive na URL) para persistir entre navegações.
 import { useMemo } from "react";
-import { Calendar as CalendarIcon, Smartphone, Monitor, Tablet, Bot, X } from "lucide-react";
+import { Calendar as CalendarIcon, Smartphone, Monitor, Tablet, Bot, X, Globe } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
