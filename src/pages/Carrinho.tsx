@@ -787,12 +787,13 @@ const Carrinho = () => {
               </div>
 
               {/* Address */}
-              <div className="bg-card rounded-xl border border-border p-4 md:p-6">
-                <div className="flex items-start justify-between gap-3 mb-4 flex-wrap">
-                  <h2 className="font-display text-xl text-foreground flex items-center gap-2">
+              <div className="bg-card rounded-xl border border-border p-3 md:p-6">
+                <div className="flex items-start justify-between gap-3 mb-3 md:mb-4 flex-wrap">
+                  <h2 className="font-display text-lg md:text-xl text-foreground flex items-center gap-2">
                     <MapPin className="h-5 w-5 text-primary" />
                     Dados de entrega/envio
                   </h2>
+
                   <Button
                     type="button"
                     variant="outline"
