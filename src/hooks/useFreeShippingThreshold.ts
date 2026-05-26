@@ -16,9 +16,14 @@ export function useFreeShippingThreshold() {
       // 1. Tenta ler de shipping_settings (fonte canônica)
       const { data: shippingData } = await supabase
         .from('shipping_settings')
-        .select('free_shipping_threshold')
+        .select('free_shipping_threshold, free_shipping_enabled')
         .limit(1)
         .maybeSingle();
+
+      // Se o admin desabilitou a barra explicitamente, retorna 0 (FreeShippingProgress já oculta).
+      if (shippingData && (shippingData as any).free_shipping_enabled === false) {
+        return 0;
+      }
 
       const fromShipping = Number(shippingData?.free_shipping_threshold ?? 0);
       if (Number.isFinite(fromShipping) && fromShipping > 0) {
