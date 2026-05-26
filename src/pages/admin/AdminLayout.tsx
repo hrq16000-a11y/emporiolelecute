@@ -17,6 +17,7 @@ import { EXECUTIVE_NAV, type NavGroup, type NavLeaf } from '@/lib/executiveNavig
 import { useAdminPageTracking } from '@/hooks/useAdminPageTracking';
 import { trackAdminEvent } from '@/lib/adminUsage';
 import AdminSearchBar from '@/components/admin/AdminSearchBar';
+import DraftNavigationGuard from '@/components/admin/DraftNavigationGuard';
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   LayoutDashboard, Package, Tags, Calendar, Home, Sparkles, ShoppingCart, Users,
