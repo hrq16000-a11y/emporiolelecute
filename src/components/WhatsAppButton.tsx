@@ -1,5 +1,6 @@
 import { MessageCircle } from "lucide-react";
 import { useContactInfo } from "@/hooks/useContactInfo";
+import { markLead } from "@/lib/visitor";
 
 interface Props {
   /** Mensagem pré-preenchida no WhatsApp. Se omitida, usa a padrão genérica. */
