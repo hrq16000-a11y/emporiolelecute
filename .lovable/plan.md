@@ -1,89 +1,82 @@
-# Módulo de Cálculo de Frete E-commerce
+# Revisão Mobile-First — Plano em Ondas
 
-Implementação completa de um sistema de frete configurável, com schema isolado, painel admin e edge function de cálculo. Tudo via banco de dados — zero hardcoded.
+Escopo amplo. Para entregar com qualidade e sem regressões, divido em **4 ondas** sequenciais. Cada onda = auditoria curta + correções + verificação no preview 390×843.
 
-## Contexto atual
-
-O projeto já tem:
-- `supabase/functions/calculate-shipping/index.ts` (usa env vars `LELECUTE_ORIGIN_CEP` e `MELHOR_ENVIO_TOKEN` — **será refatorado para ler do banco**)
-- Componentes de checkout em `QuoteForm.tsx` e `StickyAddToCart.tsx` que já consomem essa função
-
-Vamos **migrar credenciais e parâmetros para o banco**, criar painel admin e enriquecer a lógica.
+> Toda mudança é **frontend/presentation only** (Tailwind, breakpoints, semântica). Backend (RLS, edge functions, migrations) só será tocado se descobrirmos um bug funcional que afete mobile especificamente. Não há razão para o "backend" estar "não otimizado para mobile" — APIs são form-factor agnostic.
 
 ---
 
-## 1. Schema (migration única)
+## Padrões aplicados em todas as ondas
 
-**Novas tabelas:**
-
-- `shipping_settings` (singleton, 1 linha): `origin_zip_code`, `default_box_weight_kg`, `default_box_length_cm`, `default_box_width_cm`, `default_box_height_cm`, `handling_fee`, `shipping_markup_percentage`
-- `shipping_providers`: `provider_name`, `is_active`, `api_key`, `api_secret`, `endpoint_url`, `config_json` (extras)
-- `shipping_rules`: `rule_name`, `condition_type` enum (`min_cart_value` | `specific_state` | `zip_code_range`), `condition_value` (jsonb flexível), `discount_type` enum (`free_shipping` | `fixed_discount` | `percentage_discount`), `discount_value`, `is_active`, `priority`
-- `shipping_audit_logs`: `destination_zip`, `cart_snapshot` (jsonb), `provider_name`, `error_message`, `http_status`, `created_at` (retenção: trigger limita a 50 últimas linhas por delete cascata)
-
-**Alteração em `products`:**
-- Adicionar `weight_kg`, `length_cm`, `width_cm`, `height_cm`, `requires_shipping bool default true` (somente se ainda não existirem — verificar antes)
-
-**RLS:** todas admin-only (read + write via `has_role(auth.uid(), 'admin')`). `shipping_settings` e `shipping_providers` (sem expor `api_key`/`api_secret`) podem ser lidos pela edge function via service role.
+- **Mobile-first**: classes base = mobile, `sm:` / `md:` / `lg:` adicionam desktop.
+- **Tap targets ≥ 44×44 px** em qualquer botão/ícone interativo.
+- **Sem overflow horizontal**: `overflow-x-hidden` em containers, `min-w-0` em flex children, `break-words` em textos longos.
+- **Tabs com muitos itens**: scroll horizontal suave (`overflow-x-auto`, `snap-x`, `-mx-4 px-4`) em vez de quebrar/cortar.
+- **Tabelas admin**: wrapper `overflow-x-auto` + versão card-stack opcional em `<md`.
+- **Tipografia fluida**: `text-sm md:text-base`, títulos `text-xl md:text-3xl`.
+- **Padding compacto mobile**: `p-3 md:p-6`, `gap-2 md:gap-4`.
+- **Safe-area iOS**: `pb-[env(safe-area-inset-bottom)]` em barras fixas.
+- **Imagens**: `aspect-*` + `object-cover`, `loading="lazy"` em listas.
 
 ---
 
-## 2. Edge Function `calculate-shipping` (refatorada)
+## Onda 1 — Painel Admin (prioridade pelo print enviado)
 
-Fluxo:
-1. Carrega `shipping_settings` + `shipping_providers` ativos via service role
-2. Valida CEPs origem/destino + `requires_shipping` dos itens
-3. Calcula peso total (físico) e dimensões (fallback nas defaults)
-4. `Promise.all` com timeout de 5s por provedor; falhas vão para `shipping_audit_logs` e o provedor é ignorado
-5. Aplica `handling_fee` + `shipping_markup_percentage` em cada cotação
-6. Aplica `shipping_rules` (min_cart_value / specific_state / zip_code_range) — se match de `free_shipping`, zera a opção mais barata
-7. Ordena por preço, retorna `{ provider, service_name, price, estimated_delivery_days }[]`
+**Alvos principais:**
+- `AdminLayout` (sidebar/drawer, header)
+- Páginas com Tabs longas: `/admin/conversao`, `/admin/fretes`, `/admin/seo`, `/admin/busca`, `/admin/produtos`
+- Listagens-tabela: produtos, pedidos, cupons, redirects, tags, kits
+- Formulários longos: produto, kit, página, blog
 
-CORS e validação Zod mantidos.
+**Correções típicas:**
+1. `TabsList` → wrapper rolável horizontal + indicador de overflow.
+2. Tabelas → `overflow-x-auto` + larguras mínimas + sticky 1ª coluna quando fizer sentido.
+3. Forms → grid 1 col mobile, 2+ cols `md:`. Labels acima dos inputs no mobile.
+4. Toolbars/filtros → empilhar verticalmente <md, agrupar em `Sheet`/`Drawer` se >3 controles.
+5. Cards de estatística (dashboard) → grid 2 cols mobile, 4 cols desktop.
 
----
+## Onda 2 — PDP
 
-## 3. Painel Admin — `/admin/fretes`
+**Alvos:** `ProductPage.tsx`, `StickyAddToCart`, galeria, reviews, FAQs, relacionados.
 
-Página com 4 abas (`Tabs` shadcn):
+**Correções típicas:**
+1. Reauditar contra `docs/qa/pdp-mobile-checklist.md` e rodar `e2e/pdp-mobile.spec.ts`.
+2. Garantir que badges/favoritos não se sobrepõem.
+3. Sticky CTA com safe-area + z-index correto.
+4. Reviews list em coluna única + paginação compacta.
+5. Relacionados em grid 2 cols mobile sem estourar.
 
-- **Origem e Padrões** — form único para `shipping_settings`
-- **Provedores** — lista com toggle ativo/inativo + modal de edição (api_key/secret/endpoint)
-- **Regras e Promoções** — CRUD com tabela + dialog (tipo de condição, valor, desconto)
-- **Auditoria** — tabela read-only com últimos 50 logs de erro
+## Onda 3 — Loja / Listagens / Busca
 
-Hook: `useShippingAdmin.ts` consolidando queries/mutations (React Query).
+**Alvos:** `Loja.tsx`, `Buscar.tsx`, `Colecao.tsx`, `Ocasioes.tsx`, `KitPage.tsx`.
 
-Rota adicionada em `AdminLayout`/router.
+**Correções típicas:**
+1. Filtros → `Sheet` lateral acionado por botão "Filtrar" no mobile.
+2. Grid de produtos → 2 cols mobile (já é padrão; auditar gaps).
+3. Paginação → controles compactos centralizados.
+4. Ordenação → select full-width mobile.
+5. Hero/landing `/loja` → compactar headlines e CTAs em mobile.
 
----
+## Onda 4 — Checkout / Carrinho
 
-## 4. Frontend (Checkout)
+**Alvos:** `Carrinho.tsx`, `ShippingCalculator`, modais de cadastro/login.
 
-Refatorar `QuoteForm.tsx` (já tem input CEP + cálculo):
-- Máscara visual `00000-000`
-- Skeleton durante loading
-- Mensagem de erro padronizada: *"Não foi possível calcular o frete para este CEP. Verifique o número ou entre em contato com o suporte."*
-- Opções em `RadioGroup` shadcn com nome do serviço, prazo em dias úteis, valor BRL
-
----
-
-## Arquivos
-
-**Novos:**
-- `supabase/migrations/{timestamp}_shipping_module.sql`
-- `src/pages/admin/AdminShipping.tsx`
-- `src/components/admin/shipping/{SettingsTab,ProvidersTab,RulesTab,AuditTab,ProviderDialog,RuleDialog}.tsx`
-- `src/hooks/useShippingAdmin.ts`
-
-**Editados:**
-- `supabase/functions/calculate-shipping/index.ts` (ler do banco, aplicar regras/markup, logar erros)
-- `src/components/QuoteForm.tsx` (máscara + RadioGroup + skeleton + mensagem padrão)
-- `src/App.tsx` ou router admin (rota `/admin/fretes`)
-- `src/pages/admin/AdminLayout.tsx` (item de menu)
+**Correções típicas:**
+1. Linha de item → imagem menor, controles de quantidade empilhados se necessário.
+2. Resumo do pedido → card sticky no rodapé mobile com total + CTA.
+3. Inputs CEP/cidade/estado em grid responsivo.
+4. Etapas (modelo → quantidade → frete → envio) com progresso visual mobile.
 
 ---
 
-## Confirmação antes de executar
+## Entrega
 
-Antes de criar a migration eu vou checar quais colunas de `products` já existem (`weight_kg` provavelmente já está) para evitar conflito. Posso seguir?
+- Cada onda é commitada separadamente com QA visual no viewport 390×843 antes de avançar.
+- Ao final, atualizo `docs/qa/pdp-mobile-checklist.md` e adiciono `docs/qa/admin-mobile-checklist.md`.
+- Memória do projeto recebe uma regra Core: **"Toda nova tela admin precisa passar em 360px sem overflow."**
+
+---
+
+## Pergunta antes de começar
+
+Posso iniciar pela **Onda 1 (Admin)** já que o print que você enviou é da `/admin/conversao`? Ou prefere outra ordem (ex.: PDP primeiro por impacto em conversão)?

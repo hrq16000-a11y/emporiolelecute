@@ -9,10 +9,14 @@ const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
 >(({ className, ...props }, ref) => (
+  // Mobile-first: rola horizontalmente quando os triggers estouram a largura do viewport.
+  // Mantém aparência de pílula no desktop. Esconde scrollbar nativo para visual limpo.
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
+      "inline-flex h-10 max-w-full items-center justify-start rounded-md bg-muted p-1 text-muted-foreground",
+      "overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+      "md:justify-center md:overflow-visible",
       className,
     )}
     {...props}
