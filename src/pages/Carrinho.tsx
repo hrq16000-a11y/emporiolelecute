@@ -596,8 +596,8 @@ const Carrinho = () => {
                       id="name"
                       placeholder="Seu nome completo"
                       value={customer.name}
-                      onChange={(e) => setCustomer(prev => ({ ...prev, name: e.target.value }))}
-                      className="mt-1"
+                      onChange={(e) => { setCustomer(prev => ({ ...prev, name: e.target.value })); clearInvalid('name'); }}
+                      className={fieldClass('name')}
                     />
                   </div>
                   <div>
@@ -607,8 +607,8 @@ const Carrinho = () => {
                       type="email"
                       placeholder="seu@email.com"
                       value={customer.email}
-                      onChange={(e) => setCustomer(prev => ({ ...prev, email: e.target.value }))}
-                      className="mt-1"
+                      onChange={(e) => { setCustomer(prev => ({ ...prev, email: e.target.value })); clearInvalid('email'); }}
+                      className={fieldClass('email')}
                     />
                   </div>
                   <div>
@@ -617,8 +617,8 @@ const Carrinho = () => {
                       id="phone"
                       placeholder="(41) 99999-9999"
                       value={customer.phone}
-                      onChange={(e) => setCustomer(prev => ({ ...prev, phone: e.target.value }))}
-                      className="mt-1"
+                      onChange={(e) => { setCustomer(prev => ({ ...prev, phone: e.target.value })); clearInvalid('phone'); }}
+                      className={fieldClass('phone')}
                     />
                   </div>
                 </div>
