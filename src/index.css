@@ -184,10 +184,17 @@
     background-size: 80px 80px;
   }
   
-  /* WhatsApp floating button — respeita safe-area do iPhone (home indicator) */
+  /* WhatsApp floating button — respeita safe-area do iPhone (home indicator)
+     e evita sobreposição com sticky CTA / footer no mobile */
   .whatsapp-float {
     @apply fixed right-4 sm:right-6 z-50;
     bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
   }
   
   /* Fade in animation */
