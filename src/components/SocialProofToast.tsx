@@ -258,9 +258,12 @@ export default function SocialProofToast() {
     }
   };
 
+  // No carrinho, há CTA fixo "Finalizar pelo WhatsApp" embaixo — sobe o toast
+  const isCart = path.startsWith("/carrinho");
+  const bottomOffset = isCart ? "bottom-24 md:bottom-28" : "bottom-3 md:bottom-5";
   const positionClass: Record<Settings["position"], string> = {
-    "bottom-left": "left-3 bottom-3 md:left-5 md:bottom-5",
-    "bottom-right": "right-3 bottom-3 md:right-5 md:bottom-5",
+    "bottom-left": `left-3 md:left-5 ${bottomOffset}`,
+    "bottom-right": `right-3 md:right-5 ${bottomOffset}`,
     "top-left": "left-3 top-20 md:left-5 md:top-24",
     "top-right": "right-3 top-20 md:right-5 md:top-24",
   };
@@ -281,7 +284,7 @@ export default function SocialProofToast() {
           : "opacity-0 translate-y-3 pointer-events-none",
       ].join(" ")}
     >
-      <div className="relative flex items-stretch gap-3 rounded-xl border border-border bg-card/95 backdrop-blur shadow-lg p-2.5 pr-7">
+      <div className="relative flex items-stretch gap-3 rounded-xl border border-border bg-card/95 backdrop-blur shadow-lg p-2.5 pr-9">
         <Link
           to={urls.product(review.product.slug)}
           className="shrink-0 self-center"
@@ -341,9 +344,9 @@ export default function SocialProofToast() {
           type="button"
           onClick={handleClose}
           aria-label="Fechar prova social"
-          className="absolute top-1.5 right-1.5 text-muted-foreground hover:text-foreground transition-colors"
+          className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-foreground text-background shadow-md ring-2 ring-background flex items-center justify-center hover:scale-110 transition-transform"
         >
-          <X className="h-3.5 w-3.5" />
+          <X className="h-4 w-4" strokeWidth={2.5} />
         </button>
       </div>
     </div>
