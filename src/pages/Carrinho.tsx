@@ -72,6 +72,14 @@ const Carrinho = () => {
   const [loadingGeo, setLoadingGeo] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
+
+  // Garante que a tela de "Pedido Enviado" abra sempre rolada ao topo,
+  // independente da posição em que o usuário estava no formulário.
+  useEffect(() => {
+    if (orderComplete) {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    }
+  }, [orderComplete]);
   const [orderCode, setOrderCode] = useState('');
   const [couponInput, setCouponInput] = useState('');
   const [coupon, setCoupon] = useState<ValidCoupon | null>(null);
