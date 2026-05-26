@@ -51,7 +51,7 @@ export const StickyAddToCart = ({
         </div>
 
         <Button
-          onClick={onAddToCart}
+          onClick={() => { markLead("sticky_add_to_cart"); onAddToCart(); }}
           className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full font-bold shadow-lg h-11"
           aria-label="Comprar agora"
         >
