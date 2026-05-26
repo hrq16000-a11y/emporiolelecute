@@ -396,7 +396,7 @@ const Carrinho = () => {
     const missing = new Set<string>();
     if (!customer.name.trim()) missing.add('name');
     if (!customer.email.trim()) missing.add('email');
-    if (!customer.phone.trim()) missing.add('phone');
+    if (!customer.phone.trim() || !isValidPhoneBR(customer.phone)) missing.add('phone');
     if (!address.cep) missing.add('cep');
     if (!address.city) missing.add('city');
     if (!address.state) missing.add('state');
