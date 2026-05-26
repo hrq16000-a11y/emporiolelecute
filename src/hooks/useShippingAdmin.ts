@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type ShippingSettings = {
   id: string;
+  is_enabled: boolean;
   origin_zip_code: string;
   default_box_weight_kg: number;
   default_box_length_cm: number;
