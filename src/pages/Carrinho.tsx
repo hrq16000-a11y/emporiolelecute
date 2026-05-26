@@ -633,13 +633,17 @@ const Carrinho = () => {
             Finalizar Pedido
           </h1>
 
+          {/* Espaçador para compensar a barra fixa abaixo */}
+          <div aria-hidden="true" className="h-12 md:h-14 mb-2" />
           <div
-            className="sticky top-16 md:top-24 z-40 -mx-4 md:mx-0 mb-6 px-3 md:px-4 py-1.5 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70 border-y md:border md:rounded-full border-border shadow-sm"
+            className="fixed left-0 right-0 top-16 md:top-24 z-40 px-3 md:px-6 py-1.5 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70 border-b border-border shadow-sm"
           >
-            <CheckoutSteps
-              current={items.length > 0 ? 2 : 1}
-              sectionIds={["step-cart", "step-data", "step-checkout"]}
-            />
+            <div className="container mx-auto">
+              <CheckoutSteps
+                current={items.length > 0 ? 2 : 1}
+                sectionIds={["step-cart", "step-data", "step-checkout"]}
+              />
+            </div>
           </div>
 
 
