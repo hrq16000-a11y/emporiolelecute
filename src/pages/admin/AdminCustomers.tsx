@@ -485,15 +485,24 @@ const AdminCustomers = () => {
   // ====== Derived data ======
   const filteredCustomers = useMemo(() => {
     const s = search.toLowerCase();
-    return (customersQ.data || []).filter((c) => !s ||
-      c.name?.toLowerCase().includes(s) ||
-      c.email?.toLowerCase().includes(s) ||
-      c.phone?.includes(s) ||
-      c.whatsapp?.includes(s) ||
-      c.city?.toLowerCase().includes(s));
-  }, [customersQ.data, search]);
+    return (customersQ.data || []).filter((c) => {
+      if (s && !(
+        c.name?.toLowerCase().includes(s) ||
+        c.email?.toLowerCase().includes(s) ||
+        c.phone?.includes(s) ||
+        c.whatsapp?.includes(s) ||
+        c.city?.toLowerCase().includes(s)
+      )) return false;
+      // Filtros globais de localização — aplicados também ao CRM.
+      if (visitorFilters.region !== "all" && c.state !== visitorFilters.region) return false;
+      if (visitorFilters.city !== "all" && c.city !== visitorFilters.city) return false;
+      return true;
+    });
+  }, [customersQ.data, search, visitorFilters.region, visitorFilters.city]);
 
   const osOptions = osOptionsQ.data || [];
+  const locationOptions = locationOptionsQ.data || { countries: [], regions: [], cities: [] };
+
 
   // Filtragem local apenas para faixa horária (e re-aplicação completa fallback).
   const visitorRowsRaw = visitorsQ.data?.rows || [];
