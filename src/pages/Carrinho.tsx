@@ -198,6 +198,56 @@ const Carrinho = () => {
     );
   };
 
+  // Auto-preenchimento silencioso ao abrir o carrinho — sem perguntar nada ao usuário.
+  // Tenta GPS apenas se a permissão JÁ estiver concedida; caso contrário, usa IP.
+  const autoFilledRef = useRef(false);
+  useEffect(() => {
+    if (autoFilledRef.current) return;
+    if (address.cep || address.city || address.state) return;
+    autoFilledRef.current = true;
+
+    const silentIp = async () => {
+      try {
+        const res = await ipFallback();
+        await applyAddressResult(res);
+      } catch {
+        // silencioso — usuário pode preencher manualmente
+      }
+    };
+
+    const trySilentGeo = async () => {
+      try {
+        // Só usa GPS se permissão já estiver concedida (evita popup)
+        const perm = await (navigator.permissions?.query?.({ name: 'geolocation' as PermissionName }) as Promise<PermissionStatus> | undefined);
+        if (perm && perm.state === 'granted' && 'geolocation' in navigator) {
+          navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+              try {
+                const res = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+                if (res.cep || res.city) {
+                  await applyAddressResult(res);
+                  return;
+                }
+                await silentIp();
+              } catch {
+                await silentIp();
+              }
+            },
+            async () => { await silentIp(); },
+            { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
+          );
+        } else {
+          await silentIp();
+        }
+      } catch {
+        await silentIp();
+      }
+    };
+
+    trySilentGeo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const discount = coupon?.discount_applied ?? 0;
   const totalWithDiscount = Math.max(0, total - discount);
 
