@@ -317,15 +317,25 @@ const AdminProductForm = () => {
       return;
     }
 
-    // Peso obrigatório para novos produtos (evita erros no cálculo de frete)
-    const weightNum = formData.weight ? parseFloat(formData.weight) : 0;
-    if (!isEditing && (!weightNum || weightNum <= 0)) {
-      toast({
-        title: 'Peso obrigatório',
-        description: 'Informe o peso do produto (kg) para permitir o cálculo de frete.',
-        variant: 'destructive',
-      });
-      return;
+    // Validação condicional: produtos com entrega física exigem peso + 3 dimensões.
+    if (formData.requires_shipping) {
+      const w = parseFloat(formData.weight);
+      const l = parseFloat(formData.length_cm);
+      const wd = parseFloat(formData.width_cm);
+      const h = parseFloat(formData.height_cm);
+      const invalid =
+        !Number.isFinite(w) || w <= 0 ||
+        !Number.isFinite(l) || l <= 0 ||
+        !Number.isFinite(wd) || wd <= 0 ||
+        !Number.isFinite(h) || h <= 0;
+      if (invalid) {
+        toast({
+          title: 'Peso e dimensões obrigatórios',
+          description: 'Obrigatório para produtos com entrega física (Melhor Envio). Preencha peso e as 3 dimensões com valores maiores que zero.',
+          variant: 'destructive',
+        });
+        return;
+      }
     }
 
     setIsSaving(true);
