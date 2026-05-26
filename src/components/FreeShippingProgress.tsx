@@ -1,59 +1,109 @@
-import { useQuery } from '@tanstack/react-query';
-import { Truck, Sparkles } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { useMemo } from 'react';
+import { Truck, Sparkles, Gift } from 'lucide-react';
+import { useFreeShippingThreshold } from '@/hooks/useFreeShippingThreshold';
 import { formatBRL } from '@/lib/format';
 
 interface Props {
+  /** Subtotal atual do carrinho. Se omitido, o componente pode ser combinado com useCart(). */
   currentTotal: number;
+  /** Variante visual. 'card' para bloco discreto (carrinho/checkout); 'compact' para drawers/sidebars. */
+  variant?: 'card' | 'compact';
 }
 
-// Barra progressiva de frete grátis — lê o limiar de store_settings.shipping_policy.free_shipping_threshold
-const FreeShippingProgress = ({ currentTotal }: Props) => {
-  const { data: threshold } = useQuery({
-    queryKey: ['shipping-policy-threshold'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('store_settings')
-        .select('value')
-        .eq('key', 'shipping_policy')
-        .maybeSingle();
-      const raw = (data?.value as { free_shipping_threshold?: number } | null) || null;
-      const v = Number(raw?.free_shipping_threshold ?? 0);
-      return Number.isFinite(v) && v > 0 ? v : 0;
-    },
-    staleTime: 1000 * 60 * 5,
-  });
+/**
+ * Barra de progresso de Frete Grátis — 100% dinâmica e orientada a CRO.
+ *
+ * Requisitos:
+ * - Threshold lido do backend (shipping_settings → store_settings → fallback 299).
+ * - Animação fluida (transition-all duration-500) ao alterar a largura.
+ * - Mensagens persuasivas: urgência quando próximo, celebração ao atingir.
+ * - Design harmonizado com a paleta artesanal/feminina (verde oliva suave).
+ * - Acessível: role="status", aria-live="polite", progressbar semântico.
+ */
+const FreeShippingProgress = ({ currentTotal, variant = 'card' }: Props) => {
+  const { data: threshold, isLoading } = useFreeShippingThreshold();
 
-  if (!threshold || threshold <= 0) return null;
+  const safeThreshold = threshold ?? 299;
+  const reached = currentTotal >= safeThreshold;
+  const missing = Math.max(0, safeThreshold - currentTotal);
+  const pct = useMemo(
+    () => Math.min(100, Math.round((currentTotal / safeThreshold) * 100)),
+    [currentTotal, safeThreshold]
+  );
 
-  const reached = currentTotal >= threshold;
-  const missing = Math.max(0, threshold - currentTotal);
-  const pct = Math.min(100, Math.round((currentTotal / threshold) * 100));
+  // Não renderiza nada enquanto carrega o threshold (evita flicker de layout)
+  if (isLoading) return null;
+
+  // Se o threshold for 0, desabilita a barra (frete grátis universal ou desativado)
+  if (safeThreshold <= 0) return null;
+
+  const isCompact = variant === 'compact';
 
   return (
     <div
-      className="rounded-lg border border-border bg-muted/40 p-3"
+      className={`
+        ${isCompact ? 'px-3 py-2' : 'rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)]'}
+      `}
       role="status"
       aria-live="polite"
     >
-      <div className="flex items-center gap-2 text-sm">
-        {reached ? (
-          <Sparkles className="h-4 w-4 text-green-600 flex-shrink-0" aria-hidden="true" />
-        ) : (
-          <Truck className="h-4 w-4 text-primary flex-shrink-0" aria-hidden="true" />
-        )}
-        <span className="text-foreground">
+      {/* Cabeçalho com ícone + mensagem CRO */}
+      <div className="flex items-center gap-2.5">
+        <div
+          className={`
+            flex items-center justify-center rounded-full flex-shrink-0
+            ${reached
+              ? 'bg-success/15 text-success'
+              : 'bg-primary/10 text-primary'}
+            ${isCompact ? 'h-7 w-7' : 'h-9 w-9'}
+          `}
+        >
           {reached ? (
-            <strong className="text-green-700">Você ganhou frete grátis!</strong>
+            <Gift className={isCompact ? 'h-4 w-4' : 'h-5 w-5'} aria-hidden="true" />
           ) : (
-            <>
-              Faltam <strong className="text-primary">{formatBRL(missing)}</strong> para frete grátis
-            </>
+            <Truck className={isCompact ? 'h-4 w-4' : 'h-5 w-5'} aria-hidden="true" />
           )}
-        </span>
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <p className={`font-medium leading-snug ${isCompact ? 'text-xs' : 'text-sm'}`}>
+            {reached ? (
+              <span className="text-success">
+                <span className="font-display font-semibold">Parabéns!</span>{' '}
+                Você garantiu <span className="font-semibold">Frete Grátis</span> 🎉
+              </span>
+            ) : missing <= safeThreshold * 0.15 ? (
+              // Menos de 15% faltando: mensagem de urgência/escassez
+              <span className="text-foreground">
+                <span className="font-display font-semibold text-primary">Faltam apenas {formatBRL(missing)}</span>{' '}
+                para o <span className="font-semibold">Frete Grátis</span>!
+              </span>
+            ) : (
+              <span className="text-foreground">
+                Faltam <span className="font-display font-semibold text-primary">{formatBRL(missing)}</span>{' '}
+                para você ganhar <span className="font-semibold">Frete Grátis</span>
+              </span>
+            )}
+          </p>
+
+          {!reached && !isCompact && (
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Aproveite e complete seu pedido — frete grátis em compras acima de {formatBRL(safeThreshold)}.
+            </p>
+          )}
+        </div>
+
+        {reached && (
+          <Sparkles className="h-5 w-5 text-success flex-shrink-0 animate-pulse" aria-hidden="true" />
+        )}
       </div>
+
+      {/* Barra de progresso */}
       <div
-        className="mt-2 h-2 w-full overflow-hidden rounded-full bg-border"
+        className={`
+          w-full overflow-hidden rounded-full bg-muted
+          ${isCompact ? 'mt-2 h-1.5' : 'mt-3 h-2.5'}
+        `}
         role="progressbar"
         aria-valuenow={pct}
         aria-valuemin={0}
@@ -61,10 +111,29 @@ const FreeShippingProgress = ({ currentTotal }: Props) => {
         aria-label="Progresso para frete grátis"
       >
         <div
-          className={`h-full transition-all duration-500 ${reached ? 'bg-green-500' : 'bg-primary'}`}
+          className={`
+            h-full rounded-full transition-all duration-500 ease-out
+            ${reached
+              ? 'bg-success'
+              : pct >= 75
+                ? 'bg-success/80'
+                : 'bg-primary'}
+          `}
           style={{ width: `${pct}%` }}
         />
       </div>
+
+      {/* Percentual numérico (visível apenas em variant card) */}
+      {!isCompact && (
+        <div className="flex justify-between mt-1.5">
+          <span className="text-[11px] text-muted-foreground">
+            {formatBRL(currentTotal)}
+          </span>
+          <span className="text-[11px] text-muted-foreground">
+            {formatBRL(safeThreshold)}
+          </span>
+        </div>
+      )}
     </div>
   );
 };
