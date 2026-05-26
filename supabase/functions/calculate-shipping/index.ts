@@ -7,7 +7,16 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@3.23.8';
 import { packCart, buildMelhorEnvioPayload, quoteCorreiosEstimate, round2 } from './lib.ts';
 
-const TIMEOUT_MS = 5000;
+// Timeout rígido para qualquer chamada a provedor externo (ex.: Melhor Envio).
+// Acima disso, devolvemos o fallback estimado para não travar o checkout.
+const PROVIDER_TIMEOUT_MS = 2500;
+
+class ProviderTimeoutError extends Error {
+  constructor(public ms: number) {
+    super(`Timeout do provedor após ${ms}ms`);
+    this.name = 'ProviderTimeoutError';
+  }
+}
 
 const ItemSchema = z.object({
   product_id: z.string().optional(),
