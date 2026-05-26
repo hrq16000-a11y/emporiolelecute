@@ -39,6 +39,7 @@ export default function ShippingSettingsTab() {
         handling_fee: Number(form.handling_fee),
         shipping_markup_percentage: Number(form.shipping_markup_percentage),
       });
+      draft.clear();
       toast({ title: "Configurações salvas" });
     } catch (e: any) {
       toast({ title: "Erro ao salvar", description: e.message, variant: "destructive" });
