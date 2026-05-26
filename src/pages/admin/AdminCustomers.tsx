@@ -869,19 +869,22 @@ const AdminCustomers = () => {
       </AlertDialog>
 
       {/* ============ Visitor Detail ============ */}
-      <Dialog open={!!viewVisitor} onOpenChange={(o) => !o && setViewVisitor(null)}>
+      <Dialog open={!!viewVisitor} onOpenChange={(o) => { if (!o) { setViewVisitor(null); closeDrawer(); } }}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Globe className="w-5 h-5 text-primary" />
-              Visitante {viewVisitor?.visitor_id.slice(0, 8)}…
+              {viewVisitor?.is_bot ? "Bot" : "Visitante"} {viewVisitor?.visitor_id.slice(0, 8)}…
+              {viewVisitor?.lead_status === "lead" && (
+                <Badge variant="default" className="ml-2 text-[10px]">LEAD</Badge>
+              )}
             </DialogTitle>
           </DialogHeader>
           {viewVisitor && (
             <div className="space-y-4 text-sm">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Info label="IP" value={viewVisitor.ip} />
-                <Info label="Consentimento" value={viewVisitor.consent_status} />
+                <Info label="Status" value={viewVisitor.lead_status || "visitor"} />
                 <Info label="País" value={viewVisitor.ip_country} />
                 <Info label="Cidade" value={[viewVisitor.ip_city, viewVisitor.ip_region].filter(Boolean).join(", ")} />
                 <Info label="Provedor (ISP)" value={viewVisitor.ip_isp} />
@@ -896,32 +899,45 @@ const AdminCustomers = () => {
                 <Info label="UTM" value={[viewVisitor.utm_source, viewVisitor.utm_campaign].filter(Boolean).join(" / ")} />
                 <Info label="Total páginas" value={String(viewVisitor.total_pageviews)} />
                 <Info label="Tempo total" value={formatDuration(viewVisitor.total_time_seconds)} />
-                <Info label="GPS" value={viewVisitor.gps_lat ? `${viewVisitor.gps_lat}, ${viewVisitor.gps_lon}` : null} />
-                <Info label="Geo (IP)" value={viewVisitor.ip_lat ? `${viewVisitor.ip_lat}, ${viewVisitor.ip_lon}` : null} />
+                <Info label="Gatilho de lead" value={viewVisitor.lead_trigger} />
+                <Info label="Virou lead em" value={viewVisitor.lead_promoted_at ? formatDateTime(viewVisitor.lead_promoted_at) : null} />
               </div>
 
+              {/* ============ Timeline (Stepper Vertical) ============ */}
               <div>
-                <h4 className="font-semibold mb-2 flex items-center gap-2"><Calendar className="w-4 h-4" /> Histórico de navegação ({pageviewsQ.data?.length ?? 0})</h4>
-                <div className="border border-border rounded-lg max-h-72 overflow-y-auto">
-                  {pageviewsQ.isLoading && <div className="p-3 text-muted-foreground">Carregando…</div>}
-                  {pageviewsQ.data?.length === 0 && <div className="p-3 text-muted-foreground">Sem páginas registradas.</div>}
-                  {pageviewsQ.data?.map((pv) => (
-                    <div key={pv.id} className="p-2 border-b border-border/50 text-xs last:border-0">
-                      <div className="flex justify-between gap-2">
-                        <span className="font-mono truncate flex-1">{pv.path}</span>
-                        <span className="text-muted-foreground shrink-0">{formatDateTime(pv.viewed_at)}</span>
-                      </div>
-                      <div className="text-muted-foreground">
-                        {pv.title && <>{pv.title} · </>}
-                        ⏱ {formatDuration(pv.time_on_page_seconds)}
-                        {pv.scroll_depth_pct !== null && <> · scroll {pv.scroll_depth_pct}%</>}
-                      </div>
-                    </div>
-                  ))}
+                <h4 className="font-semibold mb-3 flex items-center gap-2">
+                  <Calendar className="w-4 h-4" /> Linha do tempo de navegação ({pageviewsQ.data?.length ?? 0})
+                </h4>
+                <div className="border border-border rounded-lg max-h-[420px] overflow-y-auto p-4">
+                  {pageviewsQ.isLoading && <div className="text-muted-foreground">Carregando…</div>}
+                  {pageviewsQ.data?.length === 0 && <div className="text-muted-foreground">Sem páginas registradas.</div>}
+                  <ol className="relative border-l-2 border-primary/30 ml-2 space-y-4">
+                    {pageviewsQ.data?.map((pv, idx) => (
+                      <li key={pv.id} className="ml-4 relative">
+                        <span className="absolute -left-[1.4rem] flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-[10px] font-bold ring-4 ring-background">
+                          {pv.step_index ?? idx + 1}
+                        </span>
+                        <div className="text-xs">
+                          <div className="font-mono break-all text-foreground">{pv.path}</div>
+                          {pv.title && <div className="text-muted-foreground">{pv.title}</div>}
+                          <div className="text-muted-foreground mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                            <span>⏱ {formatDuration(pv.time_on_page_seconds)}</span>
+                            {pv.scroll_depth_pct !== null && pv.scroll_depth_pct !== undefined && <span>scroll {pv.scroll_depth_pct}%</span>}
+                            {pv.cta_id && <Badge variant="outline" className="text-[10px]">CTA: {pv.cta_id}</Badge>}
+                            {pv.event_type && pv.event_type !== "pageview" && (
+                              <Badge variant="secondary" className="text-[10px]">{pv.event_type}</Badge>
+                            )}
+                            <span className="ml-auto">{formatDateTime(pv.viewed_at)}</span>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
                 </div>
               </div>
             </div>
           )}
+
         </DialogContent>
       </Dialog>
     </div>
