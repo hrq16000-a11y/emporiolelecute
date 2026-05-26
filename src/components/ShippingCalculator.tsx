@@ -206,8 +206,25 @@ export default function ShippingCalculator({ items, state, initialCep = "", onSe
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {!quoteMeta.estimated && !quoteMeta.local && o.price > 0 && (
+                  {!quoteMeta.estimated && !quoteMeta.is_fallback && !quoteMeta.local && o.price > 0 && (
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0">cotação real</Badge>
+                  )}
+                  {quoteMeta.is_fallback && o.price > 0 && (
+                    <TooltipProvider delayDuration={150}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span
+                            className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-200"
+                            aria-label="Cotação estimada"
+                          >
+                            <AlertCircle className="h-3.5 w-3.5" />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-[220px] text-xs">
+                          Cotação estimada — confirmação final no WhatsApp
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
                   <span className="font-semibold text-foreground">
                     {o.price === 0 ? "Grátis" : formatBRL(o.price)}
