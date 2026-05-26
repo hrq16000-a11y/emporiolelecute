@@ -112,6 +112,10 @@ interface PageviewRow {
   scroll_depth_pct: number | null;
   viewed_at: string;
   referrer: string | null;
+  step_index?: number | null;
+  from_path?: string | null;
+  cta_id?: string | null;
+  event_type?: string | null;
 }
 
 const emptyForm = {
