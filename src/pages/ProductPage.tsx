@@ -52,6 +52,7 @@ import { useProductFaqs, buildAutoFaq } from "@/hooks/useProductFaqs";
 import { useDbProduct, useDbProducts } from "@/hooks/useProducts";
 import { useProductReviews, useProductReviewStats } from "@/hooks/useProductReviews";
 import ProductReviews from "@/components/ProductReviews";
+import ProductRatingBadge from "@/components/ProductRatingBadge";
 import { usePaymentConfig } from "@/hooks/useStoreSettings";
 import {
   trackProductView,
