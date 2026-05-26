@@ -42,6 +42,10 @@ export type ShippingAuditLog = {
   provider_name: string | null;
   error_message: string | null;
   http_status: number | null;
+  event_type: string | null;
+  total_weight_kg: number | null;
+  melhor_envio_has_key: boolean | null;
+  estimated: boolean | null;
   created_at: string;
 };
 
