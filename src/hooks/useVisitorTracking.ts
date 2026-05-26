@@ -1,6 +1,7 @@
-// Hook de rastreamento de visitantes — gera visitor_id persistente, envia eventos
-// para a Edge Function track-visit. Respeita consentimento LGPD (não envia nada
-// até o usuário aceitar o banner, exceto o próprio evento de consent).
+// Hook de rastreamento de visitantes — Fase 2 (telemetria agressiva, Opção B).
+// Captura device/UTM/referrer SEMPRE no init, dispara pageview a cada rota e
+// envia heartbeats de DELTA (segundos desde o último envio), nunca tempo total.
+// Consentimento LGPD continua sendo registrado, mas NÃO bloqueia mais a captura.
 import { useEffect, useRef } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { parseUA } from "@/lib/uaParser";
@@ -32,6 +33,24 @@ function send(payload: Record<string, unknown>, useBeacon = false) {
   }).catch(() => { /* silencioso */ });
 }
 
+function buildDevicePayload() {
+  const ua = navigator.userAgent;
+  const uaInfo = parseUA(ua);
+  return {
+    ...uaInfo,
+    screen_w: window.screen.width,
+    screen_h: window.screen.height,
+    viewport_w: window.innerWidth,
+    viewport_h: window.innerHeight,
+    pixel_ratio: window.devicePixelRatio,
+    color_depth: window.screen.colorDepth,
+    language: navigator.language,
+    languages: navigator.languages?.slice(0, 5),
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    touch_support: "ontouchstart" in window,
+  };
+}
+
 function readConsent(): "pending" | "accepted" | "rejected" {
   return (localStorage.getItem(CONSENT_KEY) as "accepted" | "rejected" | null) ?? "pending";
 }
@@ -55,37 +74,22 @@ export function useVisitorTracking() {
   const params = useParams<{ slug?: string }>();
   const initialized = useRef(false);
   const pageStart = useRef<number>(Date.now());
+  const lastHeartbeatAt = useRef<number>(Date.now()); // base para cálculo de delta
   const lastPath = useRef<string>("");
 
-  // INIT — captura device, UTM, referrer 1x
+  // INIT — captura device + UTM + referrer (1x por carregamento)
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
 
-    // Não traqueia rotas /admin
+    // Admin é exceção: continua sem trackear
     if (location.pathname.startsWith("/admin")) return;
 
-    const visitor_id = getOrCreateVisitorId();
-    const ua = navigator.userAgent;
-    const uaInfo = parseUA(ua);
     const search = new URLSearchParams(window.location.search);
-
     send({
-      visitor_id,
+      visitor_id: getOrCreateVisitorId(),
       event: "init",
-      device: {
-        ...uaInfo,
-        screen_w: window.screen.width,
-        screen_h: window.screen.height,
-        viewport_w: window.innerWidth,
-        viewport_h: window.innerHeight,
-        pixel_ratio: window.devicePixelRatio,
-        color_depth: window.screen.colorDepth,
-        language: navigator.language,
-        languages: navigator.languages?.slice(0, 5),
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        touch_support: "ontouchstart" in window,
-      },
+      device: buildDevicePayload(),
       utm: {
         utm_source: search.get("utm_source"),
         utm_medium: search.get("utm_medium"),
@@ -98,31 +102,32 @@ export function useVisitorTracking() {
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // PAGEVIEW em mudança de rota
+  // PAGEVIEW + flush de heartbeat ao mudar de rota
   useEffect(() => {
     if (location.pathname.startsWith("/admin")) return;
-    if (readConsent() !== "accepted") return;
 
-    // Envia heartbeat da página anterior antes de mudar
+    // Flush do delta acumulado na página anterior antes de virar
     if (lastPath.current && lastPath.current !== location.pathname) {
-      const elapsed = Math.floor((Date.now() - pageStart.current) / 1000);
-      if (elapsed > 1) {
-        send({
-          visitor_id: getOrCreateVisitorId(),
-          event: "heartbeat",
-          time_on_page: elapsed,
-          scroll_depth: Math.round((window.scrollY / Math.max(document.body.scrollHeight - window.innerHeight, 1)) * 100),
-        });
-      }
+      const deltaMs = Date.now() - lastHeartbeatAt.current;
+      const delta = Math.max(1, Math.floor(deltaMs / 1000));
+      send({
+        visitor_id: getOrCreateVisitorId(),
+        event: "heartbeat",
+        delta_seconds: delta,
+        scroll_depth: Math.round((window.scrollY / Math.max(document.body.scrollHeight - window.innerHeight, 1)) * 100),
+      });
     }
 
     pageStart.current = Date.now();
+    lastHeartbeatAt.current = Date.now();
+    const fromPath = lastPath.current || null;
     lastPath.current = location.pathname;
 
     const productSlug = location.pathname.startsWith("/produto/") || location.pathname.startsWith("/produtos/")
       ? params.slug || location.pathname.split("/").pop()
       : undefined;
 
+    // Reenvia device a cada pageview também (auto-heal de campos faltantes — barato)
     send({
       visitor_id: getOrCreateVisitorId(),
       event: "pageview",
@@ -130,29 +135,53 @@ export function useVisitorTracking() {
       title: document.title,
       product_slug: productSlug,
       referrer: document.referrer || null,
+      from_path: fromPath,
+      device: buildDevicePayload(),
     });
   }, [location.pathname, location.search, params.slug]);
 
-  // Heartbeat ao sair da página
+  // Heartbeat periódico (30s) — envia DELTA acumulado
+  useEffect(() => {
+    if (location.pathname.startsWith("/admin")) return;
+    const interval = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      const deltaMs = Date.now() - lastHeartbeatAt.current;
+      const delta = Math.max(1, Math.floor(deltaMs / 1000));
+      if (delta < 5) return;
+      send({
+        visitor_id: getOrCreateVisitorId(),
+        event: "heartbeat",
+        delta_seconds: delta,
+        scroll_depth: Math.round((window.scrollY / Math.max(document.body.scrollHeight - window.innerHeight, 1)) * 100),
+      });
+      lastHeartbeatAt.current = Date.now();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [location.pathname]);
+
+  // Heartbeat final ao sair / esconder a aba
   useEffect(() => {
     const onHide = () => {
-      if (readConsent() !== "accepted") return;
       if (location.pathname.startsWith("/admin")) return;
-      const elapsed = Math.floor((Date.now() - pageStart.current) / 1000);
-      if (elapsed > 1) {
-        send({
-          visitor_id: getOrCreateVisitorId(),
-          event: "heartbeat",
-          time_on_page: elapsed,
-          scroll_depth: Math.round((window.scrollY / Math.max(document.body.scrollHeight - window.innerHeight, 1)) * 100),
-        }, true);
-      }
+      const deltaMs = Date.now() - lastHeartbeatAt.current;
+      const delta = Math.max(1, Math.floor(deltaMs / 1000));
+      if (delta < 1) return;
+      send({
+        visitor_id: getOrCreateVisitorId(),
+        event: "heartbeat",
+        delta_seconds: delta,
+        scroll_depth: Math.round((window.scrollY / Math.max(document.body.scrollHeight - window.innerHeight, 1)) * 100),
+      }, true);
+      lastHeartbeatAt.current = Date.now();
     };
-    document.addEventListener("visibilitychange", () => {
+    const onVis = () => {
       if (document.visibilityState === "hidden") onHide();
-    });
+      else lastHeartbeatAt.current = Date.now();
+    };
+    document.addEventListener("visibilitychange", onVis);
     window.addEventListener("pagehide", onHide);
     return () => {
+      document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("pagehide", onHide);
     };
   }, [location.pathname]);
