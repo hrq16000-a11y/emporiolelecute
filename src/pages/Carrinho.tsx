@@ -634,7 +634,7 @@ const Carrinho = () => {
           </h1>
 
           <div
-            className="sticky top-14 md:top-20 z-30 -mx-4 md:mx-0 mb-6 px-3 md:px-4 py-1.5 bg-background/85 backdrop-blur border-y md:border md:rounded-full border-border shadow-sm"
+            className="sticky top-16 md:top-24 z-40 -mx-4 md:mx-0 mb-6 px-3 md:px-4 py-1.5 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70 border-y md:border md:rounded-full border-border shadow-sm"
           >
             <CheckoutSteps
               current={items.length > 0 ? 2 : 1}
