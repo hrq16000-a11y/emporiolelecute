@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,6 +48,21 @@ export default function ShippingCalculator({ items, state, initialCep = "", onSe
   const [error, setError] = useState<string | null>(null);
   const [options, setOptions] = useState<ShippingOption[] | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  const [moduleEnabled, setModuleEnabled] = useState<boolean | null>(null);
+
+  // Verifica se o módulo de frete está habilitado no admin
+  useEffect(() => {
+    let cancelled = false;
+    supabase
+      .from("shipping_settings")
+      .select("is_enabled")
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setModuleEnabled(data?.is_enabled !== false);
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   const calculate = async () => {
     setError(null);
@@ -84,8 +99,12 @@ export default function ShippingCalculator({ items, state, initialCep = "", onSe
 
   const optionKey = (o: ShippingOption) => `${o.provider}|${o.service_name}`;
 
+  // Se admin desabilitou o módulo, oculta o cálculo do site
+  if (moduleEnabled === false) return null;
+
   return (
     <div className="space-y-4">
+
       <div className="flex items-end gap-3">
         <div className="flex-1">
           <Label htmlFor="ship-cep">CEP de entrega</Label>
