@@ -418,6 +418,14 @@ const HeroSlider = () => {
   );
   const isBanner = hasAnyBanner;
 
+  // Preload LCP — primeiro slide (index 0), sempre, mesmo quando o usuário
+  // já avançou o carrossel (o navegador descobre o asset cedo, no parse do HTML).
+  const lcpSlide = slides[0];
+  const lcpMobile = lcpSlide ? resolveImageSrc(lcpSlide.image_mobile_url) : "";
+  const lcpDesktop = lcpSlide ? resolveImageSrc(lcpSlide.image_desktop_url) : "";
+  const lcpFallback = lcpSlide ? resolveImageSrc(lcpSlide.image_url) : "";
+  const isHttp = (u: string) => /^https?:\/\//i.test(u) || u.startsWith("/");
+
   return (
     <section
       id="inicio"
@@ -425,6 +433,21 @@ const HeroSlider = () => {
       style={isBanner ? { paddingTop: "var(--header-height, 80px)" } : undefined}
       aria-label="Seção principal - Empório LeleCute"
     >
+      {/* Preload da imagem LCP do primeiro slide — descoberta antecipada pelo browser.
+          Slides com index > 0 permanecem em lazy loading (loading="lazy"). */}
+      <Helmet>
+        {lcpMobile && isHttp(lcpMobile) && (
+          <link rel="preload" as="image" href={lcpMobile} fetchpriority="high" media="(max-width: 767px)" />
+        )}
+        {lcpDesktop && isHttp(lcpDesktop) && (
+          <link rel="preload" as="image" href={lcpDesktop} fetchpriority="high" media="(min-width: 768px)" />
+        )}
+        {!lcpMobile && !lcpDesktop && lcpFallback && isHttp(lcpFallback) && (
+          <link rel="preload" as="image" href={lcpFallback} fetchpriority="high" />
+        )}
+      </Helmet>
+
+
       {/* Decorative background — only for text_image mode */}
       {!hasAnyBanner && (
         <>
