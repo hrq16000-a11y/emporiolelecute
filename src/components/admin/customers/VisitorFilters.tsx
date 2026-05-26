@@ -44,6 +44,9 @@ interface Props {
   value: VisitorFilterState;
   onChange: (next: VisitorFilterState) => void;
   osOptions: string[];
+  countryOptions?: string[];
+  regionOptions?: string[];
+  cityOptions?: string[];
 }
 
 const DEVICE_ICONS = {
