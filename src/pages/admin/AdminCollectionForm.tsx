@@ -180,6 +180,7 @@ export default function AdminCollectionForm() {
       return cid!;
     },
     onSuccess: (cid) => {
+      draft.clear();
       qc.invalidateQueries({ queryKey: ["admin-collections"] });
       qc.invalidateQueries({ queryKey: ["admin-collection", cid] });
       qc.invalidateQueries({ queryKey: ["collections"] });
