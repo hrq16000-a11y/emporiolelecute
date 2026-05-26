@@ -176,6 +176,9 @@ const AdminCustomers = () => {
     hourTo: Number(searchParams.get("ht") ?? defaultFilters.hourTo),
     device: (searchParams.get("dev") as DeviceFilter) || defaultFilters.device,
     os: searchParams.get("os") || defaultFilters.os,
+    country: searchParams.get("country") || defaultFilters.country,
+    region: searchParams.get("region") || defaultFilters.region,
+    city: searchParams.get("city") || defaultFilters.city,
   }), [searchParams]);
 
   const sort: VisitorSort = (["last_seen", "time", "pageviews"].includes(searchParams.get("sort") || "")
@@ -192,6 +195,7 @@ const AdminCustomers = () => {
   };
 
   const setTab = (v: TabKey) => {
+    // Não limpa filtros globais (data, dispositivo, localização) ao trocar de aba — Zustand + URL preservam.
     patchParams({ tab: v === "customers" ? null : v, page: null, bots: null });
     ws.patchRoute(ROUTE_KEY, { tab: v });
   };
@@ -200,15 +204,23 @@ const AdminCustomers = () => {
   const setPage = (n: number) => patchParams({ page: n <= 1 ? null : n });
   const setPerPage = (n: PageSize) => patchParams({ per: n === 25 ? null : n, page: null });
   const setSort = (s: VisitorSort) => patchParams({ sort: s === "last_seen" ? null : s, page: null });
-  const setVisitorFilters = (f: VisitorFilterState) => patchParams({
-    dp: f.datePreset === "all" ? null : f.datePreset,
-    df: f.dateFrom, dt: f.dateTo,
-    hf: f.hourFrom === 0 ? null : f.hourFrom,
-    ht: f.hourTo === 23 ? null : f.hourTo,
-    dev: f.device === "all" ? null : f.device,
-    os: f.os === "all" ? null : f.os,
-    page: null,
-  });
+  const setVisitorFilters = (f: VisitorFilterState) => {
+    patchParams({
+      dp: f.datePreset === "all" ? null : f.datePreset,
+      df: f.dateFrom, dt: f.dateTo,
+      hf: f.hourFrom === 0 ? null : f.hourFrom,
+      ht: f.hourTo === 23 ? null : f.hourTo,
+      dev: f.device === "all" ? null : f.device,
+      os: f.os === "all" ? null : f.os,
+      country: f.country === "all" ? null : f.country,
+      region: f.region === "all" ? null : f.region,
+      city: f.city === "all" ? null : f.city,
+      page: null,
+    });
+    // Persiste snapshot dos filtros globais no workspace store para sobreviver troca de rotas.
+    ws.patchRoute(ROUTE_KEY, { filters: f } as unknown as Record<string, unknown>);
+  };
+
 
   // Drawer via URL (?drawer=visitor&id=UUID ou ?drawer=customer&id=UUID)
   const drawerKind = searchParams.get("drawer");
@@ -291,6 +303,9 @@ const AdminCustomers = () => {
       if (dateRange.to) q = q.lte("last_seen_at", dateRange.to.toISOString());
       if (visitorFilters.device !== "all") q = q.eq("device_type", visitorFilters.device);
       if (visitorFilters.os !== "all") q = q.eq("os_name", visitorFilters.os);
+      if (visitorFilters.country !== "all") q = q.eq("ip_country", visitorFilters.country);
+      if (visitorFilters.region !== "all") q = q.eq("ip_region", visitorFilters.region);
+      if (visitorFilters.city !== "all") q = q.eq("ip_city", visitorFilters.city);
       if (search) {
         const term = `%${search}%`;
         q = q.or(
@@ -328,6 +343,32 @@ const AdminCustomers = () => {
       return Array.from(set).sort();
     },
     enabled: (tab === "visitors" || tab === "leads"),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Opções distintas de país / região / cidade — alimenta os filtros globais de localização.
+  const locationOptionsQ = useQuery({
+    queryKey: ["admin-visitors-location-options"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("visitors")
+        .select("ip_country, ip_region, ip_city")
+        .limit(2000);
+      if (error) throw error;
+      const countries = new Set<string>();
+      const regions = new Set<string>();
+      const cities = new Set<string>();
+      (data || []).forEach((r: { ip_country: string | null; ip_region: string | null; ip_city: string | null }) => {
+        if (r.ip_country) countries.add(r.ip_country);
+        if (r.ip_region) regions.add(r.ip_region);
+        if (r.ip_city) cities.add(r.ip_city);
+      });
+      return {
+        countries: Array.from(countries).sort(),
+        regions: Array.from(regions).sort(),
+        cities: Array.from(cities).sort(),
+      };
+    },
     staleTime: 5 * 60 * 1000,
   });
 
@@ -444,15 +485,24 @@ const AdminCustomers = () => {
   // ====== Derived data ======
   const filteredCustomers = useMemo(() => {
     const s = search.toLowerCase();
-    return (customersQ.data || []).filter((c) => !s ||
-      c.name?.toLowerCase().includes(s) ||
-      c.email?.toLowerCase().includes(s) ||
-      c.phone?.includes(s) ||
-      c.whatsapp?.includes(s) ||
-      c.city?.toLowerCase().includes(s));
-  }, [customersQ.data, search]);
+    return (customersQ.data || []).filter((c) => {
+      if (s && !(
+        c.name?.toLowerCase().includes(s) ||
+        c.email?.toLowerCase().includes(s) ||
+        c.phone?.includes(s) ||
+        c.whatsapp?.includes(s) ||
+        c.city?.toLowerCase().includes(s)
+      )) return false;
+      // Filtros globais de localização — aplicados também ao CRM.
+      if (visitorFilters.region !== "all" && c.state !== visitorFilters.region) return false;
+      if (visitorFilters.city !== "all" && c.city !== visitorFilters.city) return false;
+      return true;
+    });
+  }, [customersQ.data, search, visitorFilters.region, visitorFilters.city]);
 
   const osOptions = osOptionsQ.data || [];
+  const locationOptions = locationOptionsQ.data || { countries: [], regions: [], cities: [] };
+
 
   // Filtragem local apenas para faixa horária (e re-aplicação completa fallback).
   const visitorRowsRaw = visitorsQ.data?.rows || [];
@@ -519,6 +569,23 @@ const AdminCustomers = () => {
         </div>
       </div>
 
+      {/* ============ Barra Global de Filtros (acima das abas) ============ */}
+      {/* Filtros globais (data, horário, dispositivo, sistema, país/estado/cidade) — aplicam-se a todas as abas
+          e persistem ao trocar entre Clientes / Visitantes / Leads via URL + Zustand workspace. */}
+      <div className="mb-4 p-3 bg-muted/30 rounded-lg border border-border">
+        <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2 font-medium">
+          Filtros globais
+        </div>
+        <VisitorFilters
+          value={visitorFilters}
+          onChange={setVisitorFilters}
+          osOptions={osOptions}
+          countryOptions={locationOptions.countries}
+          regionOptions={locationOptions.regions}
+          cityOptions={locationOptions.cities}
+        />
+      </div>
+
       <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="mb-4">
         <TabsList>
           <TabsTrigger value="customers">
@@ -567,8 +634,7 @@ const AdminCustomers = () => {
         )}
 
         {(tab === "visitors" || tab === "leads") && (
-          <div className="mb-4 p-3 bg-muted/30 rounded-lg border border-border space-y-3">
-            <VisitorFilters value={visitorFilters} onChange={setVisitorFilters} osOptions={osOptions} />
+          <div className="mb-4 p-3 bg-muted/30 rounded-lg border border-border">
             <div className="flex items-center gap-2">
               <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">Ordenar por:</span>
@@ -582,6 +648,7 @@ const AdminCustomers = () => {
                   ))}
                 </SelectContent>
               </Select>
+
               {hourFilterActive && (
                 <span className="text-[11px] text-muted-foreground ml-auto">
                   Filtro de hora ativo — janela de até 1.000 registros.

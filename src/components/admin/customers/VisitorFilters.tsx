@@ -1,7 +1,7 @@
 // Filtros avançados para a aba de Visitantes — data, faixa horária, dispositivo.
 // Estado controlado externamente (vive na URL) para persistir entre navegações.
 import { useMemo } from "react";
-import { Calendar as CalendarIcon, Smartphone, Monitor, Tablet, Bot, X } from "lucide-react";
+import { Calendar as CalendarIcon, Smartphone, Monitor, Tablet, Bot, X, Globe } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,9 @@ export interface VisitorFilterState {
   hourTo: number;   // 0-23
   device: DeviceFilter;
   os: string; // "all" | nome
+  country: string; // "all" | nome
+  region: string;  // "all" | nome (estado/região)
+  city: string;    // "all" | nome
 }
 
 export const defaultFilters: VisitorFilterState = {
@@ -32,12 +35,18 @@ export const defaultFilters: VisitorFilterState = {
   hourTo: 23,
   device: "all",
   os: "all",
+  country: "all",
+  region: "all",
+  city: "all",
 };
 
 interface Props {
   value: VisitorFilterState;
   onChange: (next: VisitorFilterState) => void;
   osOptions: string[];
+  countryOptions?: string[];
+  regionOptions?: string[];
+  cityOptions?: string[];
 }
 
 const DEVICE_ICONS = {
@@ -47,12 +56,15 @@ const DEVICE_ICONS = {
   bot: Bot,
 } as const;
 
-export function VisitorFilters({ value, onChange, osOptions }: Props) {
+export function VisitorFilters({ value, onChange, osOptions, countryOptions = [], regionOptions = [], cityOptions = [] }: Props) {
   const activeCount = useMemo(() => {
     let n = 0;
     if (value.datePreset !== "all") n++;
     if (value.device !== "all") n++;
     if (value.os !== "all") n++;
+    if (value.country !== "all") n++;
+    if (value.region !== "all") n++;
+    if (value.city !== "all") n++;
     if (value.hourFrom !== 0 || value.hourTo !== 23) n++;
     return n;
   }, [value]);
@@ -186,6 +198,52 @@ export function VisitorFilters({ value, onChange, osOptions }: Props) {
         </Select>
       )}
 
+      {/* País */}
+      {countryOptions.length > 0 && (
+        <Select value={value.country} onValueChange={(v) => onChange({ ...value, country: v })}>
+          <SelectTrigger className="w-auto min-w-[130px] h-9">
+            <Globe className="w-4 h-4 mr-1.5" />
+            <SelectValue placeholder="País" />
+          </SelectTrigger>
+          <SelectContent className="max-h-72">
+            <SelectItem value="all">Todos países</SelectItem>
+            {countryOptions.map((c) => (
+              <SelectItem key={c} value={c}>{c}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
+      {/* Estado/Região */}
+      {regionOptions.length > 0 && (
+        <Select value={value.region} onValueChange={(v) => onChange({ ...value, region: v })}>
+          <SelectTrigger className="w-auto min-w-[130px] h-9">
+            <SelectValue placeholder="Estado" />
+          </SelectTrigger>
+          <SelectContent className="max-h-72">
+            <SelectItem value="all">Todos estados</SelectItem>
+            {regionOptions.map((r) => (
+              <SelectItem key={r} value={r}>{r}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
+      {/* Cidade */}
+      {cityOptions.length > 0 && (
+        <Select value={value.city} onValueChange={(v) => onChange({ ...value, city: v })}>
+          <SelectTrigger className="w-auto min-w-[140px] h-9">
+            <SelectValue placeholder="Cidade" />
+          </SelectTrigger>
+          <SelectContent className="max-h-72">
+            <SelectItem value="all">Todas cidades</SelectItem>
+            {cityOptions.map((c) => (
+              <SelectItem key={c} value={c}>{c}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
       {activeCount > 0 && (
         <Button variant="ghost" size="sm" onClick={reset} className="h-9 text-muted-foreground">
           <X className="w-3.5 h-3.5 mr-1" />
@@ -202,6 +260,9 @@ export function applyVisitorFilters<T extends {
   last_seen_at: string;
   device_type: string | null;
   os_name: string | null;
+  ip_country?: string | null;
+  ip_region?: string | null;
+  ip_city?: string | null;
 }>(rows: T[], f: VisitorFilterState): T[] {
   const now = new Date();
   let from: Date | null = null;
@@ -232,6 +293,9 @@ export function applyVisitorFilters<T extends {
     }
     if (f.device !== "all" && r.device_type !== f.device) return false;
     if (f.os !== "all" && r.os_name !== f.os) return false;
+    if (f.country !== "all" && r.ip_country !== f.country) return false;
+    if (f.region !== "all" && r.ip_region !== f.region) return false;
+    if (f.city !== "all" && r.ip_city !== f.city) return false;
     return true;
   });
 }
