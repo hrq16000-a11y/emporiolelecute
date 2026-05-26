@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { useShippingSettings } from "@/hooks/useShippingAdmin";
 import { useToast } from "@/hooks/use-toast";
 import { useFormDraft } from "@/hooks/useFormDraft";
-import { Loader2, Power } from "lucide-react";
+import { Loader2, Power, Store } from "lucide-react";
 
 export default function ShippingSettingsTab() {
   const { data, isLoading, update } = useShippingSettings();
