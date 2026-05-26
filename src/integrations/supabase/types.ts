@@ -6060,6 +6060,7 @@ export type Database = {
           default_box_length_cm: number
           default_box_weight_kg: number
           default_box_width_cm: number
+          free_shipping_threshold: number
           handling_fee: number
           id: string
           is_enabled: boolean
@@ -6074,6 +6075,7 @@ export type Database = {
           default_box_length_cm?: number
           default_box_weight_kg?: number
           default_box_width_cm?: number
+          free_shipping_threshold?: number
           handling_fee?: number
           id?: string
           is_enabled?: boolean
@@ -6088,6 +6090,7 @@ export type Database = {
           default_box_length_cm?: number
           default_box_weight_kg?: number
           default_box_width_cm?: number
+          free_shipping_threshold?: number
           handling_fee?: number
           id?: string
           is_enabled?: boolean

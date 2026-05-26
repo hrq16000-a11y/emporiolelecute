@@ -59,6 +59,12 @@
     --soft-gray: 0 0% 75%;
     --cream: 40 40% 97%;
     
+    /* Success / Free Shipping — verde oliva suave que harmoniza com coral */
+    --success: 145 35% 52%;
+    --success-foreground: 0 0% 100%;
+    --success-light: 145 40% 92%;
+    --success-dark: 145 40% 42%;
+    
     /* Shadows */
     --shadow-soft: 0 4px 20px -4px hsl(0 0% 0% / 0.08);
     --shadow-medium: 0 8px 30px -8px hsl(0 0% 0% / 0.12);
