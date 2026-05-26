@@ -853,6 +853,11 @@ const Carrinho = () => {
                   Resumo do Pedido
                 </h2>
 
+                <div className="mb-4">
+                  <FreeShippingProgress currentTotal={totalWithDiscount} />
+                </div>
+
+
                 <div className="space-y-3 text-sm">
                   {(() => {
                     const { originalSubtotal, savings, hasDiscount } = calcCartTotals(items);
