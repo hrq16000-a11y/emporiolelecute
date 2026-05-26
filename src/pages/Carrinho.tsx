@@ -793,12 +793,12 @@ const Carrinho = () => {
                     size="sm"
                     onClick={handleAutoFillAddress}
                     disabled={loadingGeo}
-                    className="gap-2"
+                    className="gap-1.5 h-8 text-xs px-2.5 py-1"
                   >
                     {loadingGeo ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
                     ) : (
-                      <Crosshair className="h-4 w-4" />
+                      <Crosshair className="h-3.5 w-3.5" />
                     )}
                     Preencher endereço preciso por GPS
                   </Button>
