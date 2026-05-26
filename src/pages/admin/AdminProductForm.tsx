@@ -391,6 +391,8 @@ const AdminProductForm = () => {
 
       toast({ title: isEditing ? 'Produto atualizado!' : 'Produto criado!' });
       usage.markSubmitted();
+      // Salvou: limpa rascunho da rota atual para não bloquear navegação.
+      draft.clear();
       if (!isEditing) {
         navigate('/admin/produtos');
       } else if (result.slug !== routeParam) {
