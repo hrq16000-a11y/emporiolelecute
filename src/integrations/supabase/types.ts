@@ -6229,36 +6229,48 @@ export type Database = {
       }
       visitor_pageviews: {
         Row: {
+          cta_id: string | null
+          event_type: string
+          from_path: string | null
           id: string
           path: string
           product_id: string | null
           referrer: string | null
           scroll_depth_pct: number | null
           session_id: string | null
+          step_index: number | null
           time_on_page_seconds: number
           title: string | null
           viewed_at: string
           visitor_id: string
         }
         Insert: {
+          cta_id?: string | null
+          event_type?: string
+          from_path?: string | null
           id?: string
           path: string
           product_id?: string | null
           referrer?: string | null
           scroll_depth_pct?: number | null
           session_id?: string | null
+          step_index?: number | null
           time_on_page_seconds?: number
           title?: string | null
           viewed_at?: string
           visitor_id: string
         }
         Update: {
+          cta_id?: string | null
+          event_type?: string
+          from_path?: string | null
           id?: string
           path?: string
           product_id?: string | null
           referrer?: string | null
           scroll_depth_pct?: number | null
           session_id?: string | null
+          step_index?: number | null
           time_on_page_seconds?: number
           title?: string | null
           viewed_at?: string
@@ -6346,6 +6358,7 @@ export type Database = {
       }
       visitors: {
         Row: {
+          bot_name: string | null
           browser_name: string | null
           browser_version: string | null
           color_depth: number | null
@@ -6373,9 +6386,13 @@ export type Database = {
           ip_lon: number | null
           ip_region: string | null
           ip_timezone: string | null
+          is_bot: boolean
           language: string | null
           languages: string[] | null
           last_seen_at: string
+          lead_promoted_at: string | null
+          lead_status: string
+          lead_trigger: string | null
           os_name: string | null
           os_version: string | null
           pixel_ratio: number | null
@@ -6399,6 +6416,7 @@ export type Database = {
           whatsapp_phone: string | null
         }
         Insert: {
+          bot_name?: string | null
           browser_name?: string | null
           browser_version?: string | null
           color_depth?: number | null
@@ -6426,9 +6444,13 @@ export type Database = {
           ip_lon?: number | null
           ip_region?: string | null
           ip_timezone?: string | null
+          is_bot?: boolean
           language?: string | null
           languages?: string[] | null
           last_seen_at?: string
+          lead_promoted_at?: string | null
+          lead_status?: string
+          lead_trigger?: string | null
           os_name?: string | null
           os_version?: string | null
           pixel_ratio?: number | null
@@ -6452,6 +6474,7 @@ export type Database = {
           whatsapp_phone?: string | null
         }
         Update: {
+          bot_name?: string | null
           browser_name?: string | null
           browser_version?: string | null
           color_depth?: number | null
@@ -6479,9 +6502,13 @@ export type Database = {
           ip_lon?: number | null
           ip_region?: string | null
           ip_timezone?: string | null
+          is_bot?: boolean
           language?: string | null
           languages?: string[] | null
           last_seen_at?: string
+          lead_promoted_at?: string | null
+          lead_status?: string
+          lead_trigger?: string | null
           os_name?: string | null
           os_version?: string | null
           pixel_ratio?: number | null
@@ -6753,6 +6780,29 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      track_heartbeat: {
+        Args: {
+          _delta_seconds: number
+          _pageview_id: string
+          _scroll_depth: number
+          _visitor_id: string
+        }
+        Returns: undefined
+      }
+      track_pageview: {
+        Args: {
+          _cta_id?: string
+          _event_type?: string
+          _from_path?: string
+          _path: string
+          _product_slug: string
+          _referrer: string
+          _session_id: string
+          _title: string
+          _visitor_id: string
+        }
+        Returns: string
+      }
       unaccent: { Args: { "": string }; Returns: string }
       update_user_profile: {
         Args: { _full_name: string; _user_id: string }
