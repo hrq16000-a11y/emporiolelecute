@@ -89,7 +89,7 @@ const MiniCart = ({ className, iconClassName, badgeClassName, compact = false }:
                     className="flex-shrink-0 w-14 h-14 rounded-md overflow-hidden bg-muted"
                   >
                     <img
-                      src={optimizeImage(item.image, { w: 120, h: 120, q: 70 })}
+                      src={optimizeImage(item.image, { width: 120, quality: 70 })}
                       alt={item.name}
                       className="w-full h-full object-cover"
                       loading="lazy"
