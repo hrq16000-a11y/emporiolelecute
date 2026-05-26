@@ -681,92 +681,107 @@ const AdminCustomers = () => {
         </TabsContent>
 
         {/* ============ VISITORS ============ */}
-        <TabsContent value="visitors">
-          {visitorsQ.isLoading ? (
-            isMobile ? <MobileCardsSkeleton /> : <div className="py-16 text-center text-muted-foreground">Carregando…</div>
-
-          ) : filteredVisitors.length === 0 ? (
-            <EmptyState icon={Globe} text="Nenhum visitante encontrado com os filtros atuais." />
-          ) : isMobile ? (
-            <div className="grid grid-cols-1 gap-3">
-              {pagedVisitors.map((v) => (
-                <VisitorCard key={v.visitor_id} visitor={v} onView={() => setViewVisitor(v)} />
-              ))}
-            </div>
-          ) : (
-            <div className="bg-card rounded-xl border border-border overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-muted/50 border-b border-border">
-                    <tr>
-                      <th className="text-left p-3 font-medium">Visitante</th>
-                      <th className="text-left p-3 font-medium">Localização (IP)</th>
-                      <th className="text-left p-3 font-medium">Dispositivo</th>
-                      <th className="text-left p-3 font-medium">Origem</th>
-                      <th className="text-left p-3 font-medium">Engajamento</th>
-                      <th className="text-left p-3 font-medium">Última visita</th>
-                      <th className="text-right p-3 font-medium">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pagedVisitors.map((v) => (
-                      <tr key={v.visitor_id} className="border-b border-border/50 hover:bg-muted/30">
-                        <td className="p-3">
-                          <div className="font-mono text-xs">{v.visitor_id.slice(0, 8)}…</div>
-                          <div className="text-xs text-muted-foreground">{v.ip || "sem IP"}</div>
-                          <Badge variant={v.consent_status === "accepted" ? "default" : "secondary"} className="text-[10px] mt-1">
-                            {v.consent_status}
-                          </Badge>
-                        </td>
-                        <td className="p-3 text-xs">
-                          {v.ip_city && <div>{v.ip_city}, {v.ip_region}</div>}
-                          <div className="text-muted-foreground">{v.ip_country || "—"}</div>
-                          {v.ip_isp && <div className="text-muted-foreground text-[10px]">{v.ip_isp}</div>}
-                        </td>
-                        <td className="p-3 text-xs">
-                          <div className="flex items-center gap-1">
-                            <DeviceIcon t={v.device_type} />
-                            <span>{v.device_brand || ""} {v.device_model || v.device_type || "—"}</span>
-                          </div>
-                          <div className="text-muted-foreground">
-                            {v.os_name} {v.os_version} · {v.browser_name}
-                          </div>
-                        </td>
-                        <td className="p-3 text-xs">
-                          {v.utm_source && <Badge variant="outline" className="text-[10px]">{v.utm_source}</Badge>}
-                          {v.first_referrer && (
-                            <div className="text-muted-foreground truncate max-w-[140px]" title={v.first_referrer}>
-                              {(() => { try { return new URL(v.first_referrer).hostname; } catch { return v.first_referrer; } })()}
-                            </div>
-                          )}
-                        </td>
-                        <td className="p-3 text-xs">
-                          <div>{v.total_pageviews} páginas</div>
-                          <div className="text-muted-foreground">{formatDuration(v.total_time_seconds)}</div>
-                        </td>
-                        <td className="p-3 text-xs">{formatDateTime(v.last_seen_at)}</td>
-                        <td className="p-3 text-right">
-                          <Button variant="ghost" size="sm" onClick={() => setViewVisitor(v)}>
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+        {/* Conteúdo de visitantes E leads compartilha a mesma estrutura, diferindo apenas pela query (lead_status). */}
+        {(["visitors", "leads"] as const).map((kind) => (
+          <TabsContent key={kind} value={kind}>
+            {visitorsQ.isLoading ? (
+              isMobile ? <MobileCardsSkeleton /> : <div className="py-16 text-center text-muted-foreground">Carregando…</div>
+            ) : filteredVisitors.length === 0 ? (
+              <EmptyState icon={Globe} text={kind === "leads"
+                ? "Nenhum lead identificado ainda. Leads aparecem quando um visitante clica em WhatsApp, carrinho ou envia orçamento."
+                : (showBots ? "Nenhum bot detectado com esses filtros." : "Nenhum visitante humano com os filtros atuais.")} />
+            ) : isMobile ? (
+              <div className="grid grid-cols-1 gap-3">
+                {pagedVisitors.map((v) => (
+                  <VisitorCard key={v.visitor_id} visitor={v} onView={() => openDrawer("visitor", v.visitor_id)} />
+                ))}
               </div>
-            </div>
-          )}
-          {!visitorsQ.isLoading && filteredVisitors.length > 0 && (
-            <Pagination
-              page={safePage} totalPages={totalPages} perPage={perPage}
-              total={totalVisitors}
-
-              onPage={setPage} onPerPage={setPerPage}
-            />
-          )}
-        </TabsContent>
+            ) : (
+              <div className="bg-card rounded-xl border border-border overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/50 border-b border-border">
+                      <tr>
+                        <th className="text-left p-3 font-medium">{kind === "leads" ? "Lead" : (showBots ? "Bot" : "Visitante")}</th>
+                        <th className="text-left p-3 font-medium">Localização (IP)</th>
+                        <th className="text-left p-3 font-medium">Dispositivo</th>
+                        <th className="text-left p-3 font-medium">Origem</th>
+                        <th className="text-left p-3 font-medium">Engajamento</th>
+                        {kind === "leads" && <th className="text-left p-3 font-medium">Gatilho</th>}
+                        <th className="text-left p-3 font-medium">Última visita</th>
+                        <th className="text-right p-3 font-medium">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pagedVisitors.map((v) => (
+                        <tr key={v.visitor_id} className="border-b border-border/50 hover:bg-muted/30">
+                          <td className="p-3">
+                            <div className="font-mono text-xs">{v.visitor_id.slice(0, 8)}…</div>
+                            <div className="text-xs text-muted-foreground">{v.ip || "sem IP"}</div>
+                            {v.is_bot && v.bot_name && (
+                              <Badge variant="outline" className="text-[10px] mt-1">{v.bot_name}</Badge>
+                            )}
+                          </td>
+                          <td className="p-3 text-xs">
+                            {v.ip_city && <div>{v.ip_city}, {v.ip_region}</div>}
+                            <div className="text-muted-foreground">{v.ip_country || "—"}</div>
+                            {v.ip_isp && <div className="text-muted-foreground text-[10px]">{v.ip_isp}</div>}
+                          </td>
+                          <td className="p-3 text-xs">
+                            <div className="flex items-center gap-1">
+                              <DeviceIcon t={v.device_type} />
+                              <span>{v.device_brand || ""} {v.device_model || v.device_type || "—"}</span>
+                            </div>
+                            <div className="text-muted-foreground">
+                              {v.os_name} {v.os_version} · {v.browser_name}
+                            </div>
+                          </td>
+                          <td className="p-3 text-xs">
+                            {v.utm_source && <Badge variant="outline" className="text-[10px]">{v.utm_source}</Badge>}
+                            {v.first_referrer && (
+                              <div className="text-muted-foreground truncate max-w-[140px]" title={v.first_referrer}>
+                                {(() => { try { return new URL(v.first_referrer!).hostname; } catch { return v.first_referrer; } })()}
+                              </div>
+                            )}
+                          </td>
+                          <td className="p-3 text-xs">
+                            <div>{v.total_pageviews} páginas</div>
+                            <div className="text-muted-foreground">{formatDuration(v.total_time_seconds)}</div>
+                          </td>
+                          {kind === "leads" && (
+                            <td className="p-3 text-xs">
+                              {v.lead_trigger
+                                ? <Badge variant="default" className="text-[10px]">{v.lead_trigger}</Badge>
+                                : <span className="text-muted-foreground">—</span>}
+                              {v.lead_promoted_at && (
+                                <div className="text-muted-foreground text-[10px] mt-1">{formatDateTime(v.lead_promoted_at)}</div>
+                              )}
+                            </td>
+                          )}
+                          <td className="p-3 text-xs">{formatDateTime(v.last_seen_at)}</td>
+                          <td className="p-3 text-right">
+                            <Button variant="ghost" size="sm" onClick={() => openDrawer("visitor", v.visitor_id)}>
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            {!visitorsQ.isLoading && filteredVisitors.length > 0 && (
+              <Pagination
+                page={safePage} totalPages={totalPages} perPage={perPage}
+                total={totalVisitors}
+                onPage={setPage} onPerPage={setPerPage}
+              />
+            )}
+          </TabsContent>
+        ))}
       </Tabs>
+
 
       {/* ============ Create / Edit Dialog ============ */}
       <Dialog open={!!editing || creating} onOpenChange={(o) => { if (!o) { setEditing(null); setCreating(false); } }}>
