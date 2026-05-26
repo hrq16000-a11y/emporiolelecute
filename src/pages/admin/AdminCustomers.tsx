@@ -176,6 +176,9 @@ const AdminCustomers = () => {
     hourTo: Number(searchParams.get("ht") ?? defaultFilters.hourTo),
     device: (searchParams.get("dev") as DeviceFilter) || defaultFilters.device,
     os: searchParams.get("os") || defaultFilters.os,
+    country: searchParams.get("country") || defaultFilters.country,
+    region: searchParams.get("region") || defaultFilters.region,
+    city: searchParams.get("city") || defaultFilters.city,
   }), [searchParams]);
 
   const sort: VisitorSort = (["last_seen", "time", "pageviews"].includes(searchParams.get("sort") || "")
@@ -192,6 +195,7 @@ const AdminCustomers = () => {
   };
 
   const setTab = (v: TabKey) => {
+    // Não limpa filtros globais (data, dispositivo, localização) ao trocar de aba — Zustand + URL preservam.
     patchParams({ tab: v === "customers" ? null : v, page: null, bots: null });
     ws.patchRoute(ROUTE_KEY, { tab: v });
   };
@@ -200,15 +204,23 @@ const AdminCustomers = () => {
   const setPage = (n: number) => patchParams({ page: n <= 1 ? null : n });
   const setPerPage = (n: PageSize) => patchParams({ per: n === 25 ? null : n, page: null });
   const setSort = (s: VisitorSort) => patchParams({ sort: s === "last_seen" ? null : s, page: null });
-  const setVisitorFilters = (f: VisitorFilterState) => patchParams({
-    dp: f.datePreset === "all" ? null : f.datePreset,
-    df: f.dateFrom, dt: f.dateTo,
-    hf: f.hourFrom === 0 ? null : f.hourFrom,
-    ht: f.hourTo === 23 ? null : f.hourTo,
-    dev: f.device === "all" ? null : f.device,
-    os: f.os === "all" ? null : f.os,
-    page: null,
-  });
+  const setVisitorFilters = (f: VisitorFilterState) => {
+    patchParams({
+      dp: f.datePreset === "all" ? null : f.datePreset,
+      df: f.dateFrom, dt: f.dateTo,
+      hf: f.hourFrom === 0 ? null : f.hourFrom,
+      ht: f.hourTo === 23 ? null : f.hourTo,
+      dev: f.device === "all" ? null : f.device,
+      os: f.os === "all" ? null : f.os,
+      country: f.country === "all" ? null : f.country,
+      region: f.region === "all" ? null : f.region,
+      city: f.city === "all" ? null : f.city,
+      page: null,
+    });
+    // Persiste snapshot dos filtros globais no workspace store para sobreviver troca de rotas.
+    ws.patchRoute(ROUTE_KEY, { filters: f } as unknown as Record<string, unknown>);
+  };
+
 
   // Drawer via URL (?drawer=visitor&id=UUID ou ?drawer=customer&id=UUID)
   const drawerKind = searchParams.get("drawer");
