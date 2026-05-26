@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Pencil, Trash2, Search, Eye, EyeOff, ExternalLink, Scale, Loader2, ArrowUp, ArrowDown, ArrowUpDown, X, CheckSquare, Wand2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Eye, EyeOff, ExternalLink, Scale, Loader2, ArrowUp, ArrowDown, ArrowUpDown, X, CheckSquare, Wand2, AlertTriangle } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import BulkEditProductsDialog from '@/components/admin/BulkEditProductsDialog';
 import {
@@ -434,7 +434,7 @@ const AdminProducts = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-medium">{product.name}</span>
                             <a
                               href={urls.product(product.slug)}
@@ -445,6 +445,30 @@ const AdminProducts = () => {
                             >
                               <ExternalLink className="w-4 h-4" />
                             </a>
+                            {(() => {
+                              // Indicador: produto exige entrega física mas está sem peso/dimensões.
+                              // Bloqueia frete (Melhor Envio) e quebra feed do Google Shopping.
+                              const p: any = product;
+                              const req = p.requires_shipping ?? true;
+                              const bad =
+                                req &&
+                                (!p.weight || Number(p.weight) <= 0 ||
+                                  !p.length_cm || Number(p.length_cm) <= 0 ||
+                                  !p.width_cm || Number(p.width_cm) <= 0 ||
+                                  !p.height_cm || Number(p.height_cm) <= 0);
+                              if (!bad) return null;
+                              return (
+                                <Link
+                                  to={`/admin/produtos/${product.slug}`}
+                                  className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-700 hover:bg-amber-500/20 transition-colors dark:text-amber-300"
+                                  title="Produto sem peso/dimensões — pode quebrar frete e Google Shopping"
+                                  aria-label="Sem dimensões — clique para corrigir"
+                                >
+                                  <AlertTriangle className="w-3 h-3" aria-hidden />
+                                  Sem dimensões
+                                </Link>
+                              );
+                            })()}
                           </div>
                         </TableCell>
                         <TableCell>
