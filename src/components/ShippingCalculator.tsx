@@ -45,6 +45,14 @@ function maskCep(v: string) {
 
 export default function ShippingCalculator({ items, state, initialCep = "", onSelect }: Props) {
   const [cep, setCep] = useState(initialCep);
+
+  // Sincroniza com mudanças externas (ex.: auto-preenchimento por GPS/IP no carrinho)
+  useEffect(() => {
+    if (initialCep && initialCep.replace(/\D/g, '') !== cep.replace(/\D/g, '')) {
+      setCep(maskCep(initialCep));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialCep]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [options, setOptions] = useState<ShippingOption[] | null>(null);
