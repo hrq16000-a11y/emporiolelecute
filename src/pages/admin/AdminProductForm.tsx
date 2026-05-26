@@ -89,6 +89,7 @@ const AdminProductForm = () => {
     length_cm: '',
     width_cm: '',
     height_cm: '',
+    requires_shipping: true,
     category_id: '',
     badge: '',
     rating: '5.0',
