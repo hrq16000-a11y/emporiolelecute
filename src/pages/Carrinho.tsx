@@ -593,35 +593,35 @@ const Carrinho = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="pt-24 pb-16">
-          <div className="container mx-auto px-4 py-16 text-center max-w-lg">
-            <div className="bg-green-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="h-12 w-12 text-green-600" />
+        <main className="pt-20 pb-8 md:pt-24 md:pb-16">
+          <div className="container mx-auto px-4 py-6 md:py-16 text-center max-w-lg">
+            <div className="bg-green-100 rounded-full w-14 h-14 md:w-24 md:h-24 flex items-center justify-center mx-auto mb-3 md:mb-6">
+              <CheckCircle className="h-7 w-7 md:h-12 md:w-12 text-green-600" />
             </div>
-            <h1 className="font-display text-3xl md:text-4xl text-foreground mb-4">
+            <h1 className="font-display text-2xl md:text-4xl text-foreground mb-2 md:mb-4">
               Pedido Enviado!
             </h1>
-            <p className="text-muted-foreground mb-2">
+            <p className="text-sm md:text-base text-muted-foreground mb-1 md:mb-2">
               Seu código de pedido é:
             </p>
-            <p className="text-3xl font-bold text-primary mb-6">
+            <p className="text-2xl md:text-3xl font-bold text-primary mb-3 md:mb-6">
               {orderCode}
             </p>
-            <p className="text-muted-foreground mb-8">
+            <p className="text-sm md:text-base text-muted-foreground mb-4 md:mb-8">
               Finalize seu pedido pelo WhatsApp. O frete será calculado e informado antes da confirmação final.
             </p>
 
             {/* Cadastro rápido de cliente — reaproveita os dados já validados no checkout */}
             {customer.email && !signupDismissed && (
-              <div className="mb-8 rounded-2xl border border-primary/20 bg-primary/5 p-5 text-left">
+              <div className="mb-4 md:mb-8 rounded-2xl border border-primary/20 bg-primary/5 p-3 md:p-5 text-left">
                 {signupDone ? (
                   <div className="flex items-start gap-3">
                     <CheckCircle className="h-6 w-6 text-green-600 shrink-0 mt-0.5" />
                     <div>
-                      <h3 className="font-display text-lg text-foreground mb-1">
+                      <h3 className="font-display text-base md:text-lg text-foreground mb-1">
                         Conta criada com sucesso!
                       </h3>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs md:text-sm text-muted-foreground">
                         Enviamos um link de confirmação para <strong>{customer.email}</strong>.
                         Confirme o e-mail para acessar seus pedidos e acompanhar entregas.
                       </p>
@@ -629,17 +629,16 @@ const Carrinho = () => {
                   </div>
                 ) : (
                   <>
-                    <div className="flex items-start gap-3 mb-4">
-                      <div className="bg-primary/10 rounded-full p-2 shrink-0">
-                        <UserPlus className="h-5 w-5 text-primary" />
+                    <div className="flex items-start gap-2.5 mb-2.5 md:mb-4">
+                      <div className="bg-primary/10 rounded-full p-1.5 md:p-2 shrink-0">
+                        <UserPlus className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                       </div>
                       <div>
-                        <h3 className="font-display text-lg text-foreground mb-1">
+                        <h3 className="font-display text-base md:text-lg text-foreground leading-tight mb-0.5 md:mb-1">
                           Crie sua conta em segundos
                         </h3>
-                        <p className="text-sm text-muted-foreground">
-                          Acompanhe seus pedidos, receba novidades e compre mais rápido na próxima vez.
-                          Já temos seus dados — só falta uma senha.
+                        <p className="text-xs md:text-sm text-muted-foreground leading-snug">
+                          Acompanhe pedidos e compre mais rápido. Já temos seus dados — só falta uma senha.
                         </p>
                       </div>
                     </div>
