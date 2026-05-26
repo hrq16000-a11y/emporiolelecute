@@ -1,6 +1,8 @@
-// Track visit beacon — recebe eventos de tracking do navegador, enriquece com IP/geo
-// e persiste em visitors / visitor_sessions / visitor_pageviews / cookie_consents.
-// Público (sem JWT) — usa SERVICE_ROLE internamente. Respeita consentimento LGPD.
+// Track visit beacon — Fase 2 (Opção B: telemetria agressiva).
+// Coleta IP/UA/device/timeline DESDE o ms zero, sem bloquear por consentimento.
+// Bots conhecidos são identificados, marcados em `visitors.is_bot=true` e descartados
+// (não geram pageviews/heartbeats). Consentimento LGPD continua sendo registrado,
+// mas serve apenas para a decisão jurídica de uso futuro do dado — nunca trava captura.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -12,30 +14,42 @@ const corsHeaders = {
 interface Payload {
   visitor_id: string;
   event: "init" | "pageview" | "heartbeat" | "consent" | "identify" | "gps" | "session_end";
-  // init
   device?: Record<string, unknown>;
   utm?: Record<string, string | null>;
   referrer?: string;
   landing_path?: string;
-  // pageview
   path?: string;
   title?: string;
   product_slug?: string;
-  // heartbeat / session
+  from_path?: string;
+  cta_id?: string;
+  event_type?: string;
   session_id?: string;
-  time_on_page?: number;
+  pageview_id?: string;
+  delta_seconds?: number;
   scroll_depth?: number;
-  // consent
+  // legado (mantido para compatibilidade): se vier, é tratado como delta=time_on_page
+  time_on_page?: number;
   accepted?: boolean;
   categories?: Record<string, boolean>;
-  // identify
   customer_id?: string;
   whatsapp_phone?: string;
   email?: string;
-  // gps
   gps_lat?: number;
   gps_lon?: number;
   gps_accuracy?: number;
+}
+
+// ---- Detecção de bots/scrapers ----
+const BOT_REGEX = /(bot|crawl|spider|slurp|bingbot|googlebot|amazonbot|gptbot|claudebot|perplexitybot|ahrefs|semrush|mj12bot|yandexbot|baiduspider|facebookexternalhit|twitterbot|whatsapp|telegram|headlesschrome|phantomjs|puppeteer|playwright|duckduckbot|applebot|petalbot|seznambot|chrome-lighthouse)/i;
+
+function detectBot(ua: string): { isBot: boolean; name: string | null } {
+  if (!ua) return { isBot: false, name: null };
+  const m = ua.match(BOT_REGEX);
+  if (!m) return { isBot: false, name: null };
+  // Tenta extrair nome amigável: "Googlebot", "AmazonBot", "GPTBot", "Bingbot/2.0"...
+  const named = ua.match(/([A-Za-z0-9_\-]+(?:bot|crawler|spider))/i);
+  return { isBot: true, name: (named?.[1] || m[1] || "bot").toLowerCase() };
 }
 
 function getClientIP(req: Request): string | null {
@@ -96,20 +110,26 @@ Deno.serve(async (req) => {
 
   const ip = getClientIP(req);
   const ua = req.headers.get("user-agent") || "";
+  const bot = detectBot(ua);
 
   try {
-    // Garante visitor existe (upsert mínimo)
+    // ---- Upsert do visitante (sempre, mesmo bot) ----
     const { data: existing } = await supabase
-      .from("visitors").select("visitor_id, consent_status, ip_country")
-      .eq("visitor_id", body.visitor_id).maybeSingle();
+      .from("visitors")
+      .select("visitor_id, is_bot, total_pageviews")
+      .eq("visitor_id", body.visitor_id)
+      .maybeSingle();
 
     if (!existing) {
-      const geo = await lookupIPGeo(ip);
+      const geo = bot.isBot ? {} : await lookupIPGeo(ip);
       const device = body.device || {};
       await supabase.from("visitors").insert({
         visitor_id: body.visitor_id,
         ip,
         user_agent: ua,
+        is_bot: bot.isBot,
+        bot_name: bot.name,
+        lead_status: bot.isBot ? "bot" : "visitor",
         ...geo,
         ...device,
         first_referrer: body.referrer || null,
@@ -121,13 +141,37 @@ Deno.serve(async (req) => {
         utm_content: body.utm?.utm_content || null,
       });
     } else {
-      await supabase.from("visitors").update({
+      // Auto-heal: reenviar device popula campos faltantes; last_seen sempre atualiza
+      const device = body.device || {};
+      const patch: Record<string, unknown> = {
         last_seen_at: new Date().toISOString(),
         ip,
-      }).eq("visitor_id", body.visitor_id);
+        ...device,
+      };
+      if (existing.is_bot !== bot.isBot && bot.isBot) {
+        patch.is_bot = true;
+        patch.bot_name = bot.name;
+        patch.lead_status = "bot";
+      }
+      await supabase.from("visitors").update(patch).eq("visitor_id", body.visitor_id);
     }
 
-    // CONSENT
+    // ---- BOT: registra consentimento (raro) mas ignora pageviews/heartbeats ----
+    if (bot.isBot) {
+      if (body.event === "consent") {
+        await supabase.from("cookie_consents").insert({
+          visitor_id: body.visitor_id,
+          accepted: !!body.accepted,
+          categories: body.categories || {},
+          ip, user_agent: ua,
+        });
+      }
+      return new Response(JSON.stringify({ ok: true, is_bot: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ---- CONSENT (humanos): apenas registra; NÃO bloqueia captura subsequente ----
     if (body.event === "consent") {
       await supabase.from("cookie_consents").insert({
         visitor_id: body.visitor_id,
@@ -144,15 +188,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Bloqueia outros eventos se consentimento ainda não aceito
-    const consent = existing?.consent_status ?? "pending";
-    if (consent !== "accepted") {
-      return new Response(JSON.stringify({ ok: true, blocked: "no_consent" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // IDENTIFY (vincula visitor a customer)
+    // ---- IDENTIFY ----
     if (body.event === "identify") {
       const update: Record<string, unknown> = {};
       if (body.customer_id) update.customer_id = body.customer_id;
@@ -162,7 +198,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // GPS
+    // ---- GPS ----
     if (body.event === "gps" && body.gps_lat && body.gps_lon) {
       await supabase.from("visitors").update({
         gps_lat: body.gps_lat,
@@ -172,47 +208,42 @@ Deno.serve(async (req) => {
       }).eq("visitor_id", body.visitor_id);
     }
 
-    // PAGEVIEW
+    // ---- PAGEVIEW (RPC atômica: insere com step_index e incrementa total) ----
+    let pageviewId: string | null = null;
     if (body.event === "pageview" && body.path) {
-      let productId: string | null = null;
-      if (body.product_slug) {
-        const { data: p } = await supabase.from("products")
-          .select("id").eq("slug", body.product_slug).maybeSingle();
-        productId = p?.id ?? null;
-      }
-      await supabase.from("visitor_pageviews").insert({
-        visitor_id: body.visitor_id,
-        session_id: body.session_id || null,
-        path: body.path.slice(0, 500),
-        title: body.title?.slice(0, 300) || null,
-        product_id: productId,
-        referrer: body.referrer?.slice(0, 500) || null,
+      const { data: pvId, error: rpcErr } = await supabase.rpc("track_pageview", {
+        _visitor_id: body.visitor_id,
+        _session_id: body.session_id || null,
+        _path: body.path,
+        _title: body.title || null,
+        _product_slug: body.product_slug || null,
+        _referrer: body.referrer || null,
+        _from_path: body.from_path || null,
+        _cta_id: body.cta_id || null,
+        _event_type: body.event_type || "pageview",
       });
-      // increment total
-      await supabase.rpc("noop_increment").catch(() => {});
-      // simple update of totals
-      await supabase.from("visitors").update({
-        total_pageviews: ((existing as { total_pageviews?: number } | null)?.total_pageviews ?? 0) + 1,
-        last_seen_at: new Date().toISOString(),
-      }).eq("visitor_id", body.visitor_id);
+      if (rpcErr) console.error("track_pageview rpc error", rpcErr);
+      else pageviewId = pvId as unknown as string;
     }
 
-    // HEARTBEAT (atualiza tempo na última pageview da sessão)
-    if (body.event === "heartbeat" && body.time_on_page) {
-      const { data: last } = await supabase.from("visitor_pageviews")
-        .select("id")
-        .eq("visitor_id", body.visitor_id)
-        .order("viewed_at", { ascending: false })
-        .limit(1).maybeSingle();
-      if (last) {
-        await supabase.from("visitor_pageviews").update({
-          time_on_page_seconds: Math.min(body.time_on_page | 0, 3600),
-          scroll_depth_pct: body.scroll_depth ? Math.min(body.scroll_depth | 0, 100) : null,
-        }).eq("id", last.id);
+    // ---- HEARTBEAT (RPC atômica: SOMA delta em pageview e em visitors.total_time_seconds) ----
+    if (body.event === "heartbeat") {
+      const delta = Math.max(0, Math.min(
+        (body.delta_seconds ?? body.time_on_page ?? 0) | 0,
+        3600,
+      ));
+      if (delta > 0) {
+        const { error: hbErr } = await supabase.rpc("track_heartbeat", {
+          _visitor_id: body.visitor_id,
+          _pageview_id: body.pageview_id || null,
+          _delta_seconds: delta,
+          _scroll_depth: typeof body.scroll_depth === "number" ? body.scroll_depth | 0 : null,
+        });
+        if (hbErr) console.error("track_heartbeat rpc error", hbErr);
       }
     }
 
-    return new Response(JSON.stringify({ ok: true }), {
+    return new Response(JSON.stringify({ ok: true, pageview_id: pageviewId }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
