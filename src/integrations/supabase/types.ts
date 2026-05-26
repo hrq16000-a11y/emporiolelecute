@@ -6050,6 +6050,7 @@ export type Database = {
           default_box_width_cm: number
           handling_fee: number
           id: string
+          is_enabled: boolean
           origin_zip_code: string
           shipping_markup_percentage: number
           singleton: boolean
@@ -6063,6 +6064,7 @@ export type Database = {
           default_box_width_cm?: number
           handling_fee?: number
           id?: string
+          is_enabled?: boolean
           origin_zip_code?: string
           shipping_markup_percentage?: number
           singleton?: boolean
@@ -6076,6 +6078,7 @@ export type Database = {
           default_box_width_cm?: number
           handling_fee?: number
           id?: string
+          is_enabled?: boolean
           origin_zip_code?: string
           shipping_markup_percentage?: number
           singleton?: boolean
