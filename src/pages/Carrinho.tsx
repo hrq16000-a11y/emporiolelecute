@@ -128,19 +128,41 @@ const Carrinho = () => {
     };
   };
 
-  // Fallback por IP – ipwho.is é gratuito e sem chave, retorna postal/city/region_code
+  // Fallback por IP – tenta múltiplos provedores gratuitos sem chave
   const ipFallback = async () => {
-    const r = await fetch('https://ipwho.is/?fields=success,city,region_code,region,postal,country_code');
-    const data = await r.json();
-    if (!data || data.success === false || data.country_code !== 'BR') {
-      throw new Error('ip lookup failed');
+    const providers: Array<() => Promise<{ cep?: string; city?: string; state?: string; country?: string }>> = [
+      async () => {
+        const r = await fetch('https://ipwho.is/?fields=success,city,region_code,region,postal,country_code');
+        const d = await r.json();
+        if (!d || d.success === false) throw new Error('ipwho failed');
+        return { cep: d.postal, city: d.city, state: d.region_code || d.region, country: d.country_code };
+      },
+      async () => {
+        const r = await fetch('https://ipapi.co/json/');
+        const d = await r.json();
+        if (!d || d.error) throw new Error('ipapi failed');
+        return { cep: d.postal, city: d.city, state: d.region_code || d.region, country: d.country_code || d.country };
+      },
+      async () => {
+        const r = await fetch('https://get.geojs.io/v1/ip/geo.json');
+        const d = await r.json();
+        return { cep: undefined, city: d.city, state: d.region, country: d.country_code };
+      },
+    ];
+    for (const p of providers) {
+      try {
+        const res = await p();
+        if (res.city || res.cep) {
+          return { cep: res.cep, city: res.city, state: res.state };
+        }
+      } catch {
+        // tenta próximo
+      }
     }
-    return {
-      cep: data.postal as string | undefined,
-      city: data.city as string | undefined,
-      state: (data.region_code || data.region) as string | undefined,
-    };
+    throw new Error('all ip providers failed');
   };
+
+
 
   const handleAutoFillAddress = async () => {
     if (loadingGeo) return;
