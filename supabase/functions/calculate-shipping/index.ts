@@ -162,27 +162,39 @@ Deno.serve(async (req) => {
 
 // --- Provedores ---
 async function quoteProvider(p: any, ctx: any): Promise<ShippingOption[]> {
+  const ctrl = new AbortController();
+  // Timeout rígido via Promise.race — garante que a Edge nunca espere mais que PROVIDER_TIMEOUT_MS.
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => {
+      ctrl.abort();
+      reject(new ProviderTimeoutError(PROVIDER_TIMEOUT_MS));
+    }, PROVIDER_TIMEOUT_MS);
+  });
+
   try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-    try {
-      if (p.provider_code === 'melhor_envio') {
-        return await quoteMelhorEnvio(p, ctx, ctrl.signal);
-      }
-      // 'correios_estimate' é fallback, tratado fora do loop
-      return [];
-    } finally {
-      clearTimeout(t);
+    if (p.provider_code === 'melhor_envio') {
+      return await Promise.race([quoteMelhorEnvio(p, ctx, ctrl.signal), timeoutPromise]);
     }
+    // 'correios_estimate' é fallback, tratado fora do loop
+    return [];
   } catch (err: any) {
-    console.error('[calculate-shipping] provider error', p.provider_name, err?.message);
+    // Classifica motivo do fallback para a auditoria
+    const status = err?.status as number | undefined;
+    const isTimeout = err instanceof ProviderTimeoutError || err?.name === 'AbortError';
+    const is5xx = typeof status === 'number' && status >= 500 && status < 600;
+    const reason = isTimeout ? 'provider_timeout' : is5xx ? 'provider_error' : 'provider_error';
+
+    console.error('[calculate-shipping] provider fallback', {
+      provider: p.provider_name, reason, status, message: err?.message,
+    });
+
     await ctx.sb.from('shipping_audit_logs').insert({
-      event_type: 'provider_error',
+      event_type: reason,
       destination_zip: ctx.destino,
-      cart_snapshot: { items: ctx.items },
+      cart_snapshot: { items: ctx.items, subtotal: ctx.subtotal, reason },
       provider_name: p.provider_name,
-      error_message: String(err?.message ?? err),
-      http_status: err?.status ?? null,
+      error_message: String(err?.message ?? err).slice(0, 500),
+      http_status: status ?? null,
       total_weight_kg: ctx.totalWeight,
       melhor_envio_has_key: !!p.api_key,
     });
