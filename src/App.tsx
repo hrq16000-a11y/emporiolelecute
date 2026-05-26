@@ -194,6 +194,21 @@ const ScrollToTop = () => {
   return null;
 };
 
+// Registra a última rota pública (exceto /carrinho e /admin) para alimentar o
+// "Continuar comprando" contextual.
+const LastShopPathTracker = () => {
+  const { pathname, search } = useLocation();
+  useEffect(() => {
+    if (pathname.startsWith("/carrinho")) return;
+    if (pathname.startsWith("/admin")) return;
+    if (pathname.startsWith("/checkout")) return;
+    try {
+      sessionStorage.setItem("lc_last_shop_path", pathname + search);
+    } catch {}
+  }, [pathname, search]);
+  return null;
+};
+
 // Mount the reduced-motion controller once. Toggles the `motion-reduced` class
 // on <html> based on user preference (localStorage) or system setting.
 const ReducedMotionMount = () => {
