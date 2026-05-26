@@ -17,6 +17,7 @@ import { optimizeImage } from "@/lib/image";
 import { urls } from "@/lib/urls";
 import { calcCartTotals } from "@/lib/cartTotals";
 import { formatBRL } from "@/lib/format";
+import ShippingCalculator from "@/components/ShippingCalculator";
 
 interface AddressData {
   cep: string;
