@@ -862,85 +862,146 @@ const AdminProductForm = () => {
             </div>
 
             {/* Agrupamento: Peso e Dimensões para Frete */}
-            <div className="mt-6 rounded-lg border border-border/60 bg-muted/20 p-4">
-              <div className="mb-3">
-                <h3 className="text-sm font-semibold text-foreground">Peso e Dimensões para Frete</h3>
-                <p className="text-xs text-muted-foreground">
-                  Usados pelas transportadoras (ex: Melhor Envio) para cotação em tempo real.
-                </p>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className={`space-y-1.5 rounded-md p-2 transition-colors ${
-                  (!formData.weight || parseFloat(formData.weight) <= 0)
+            {(() => {
+              const req = formData.requires_shipping;
+              const wNum = parseFloat(formData.weight);
+              const lNum = parseFloat(formData.length_cm);
+              const wdNum = parseFloat(formData.width_cm);
+              const hNum = parseFloat(formData.height_cm);
+              const invalidNum = (n: number) => !Number.isFinite(n) || n <= 0;
+              const wBad = req && invalidNum(wNum);
+              const lBad = req && invalidNum(lNum);
+              const wdBad = req && invalidNum(wdNum);
+              const hBad = req && invalidNum(hNum);
+              const anyBad = wBad || lBad || wdBad || hBad;
+              const fieldCls = (bad: boolean) =>
+                `space-y-1.5 rounded-md p-2 transition-colors ${
+                  bad
                     ? 'bg-destructive/5 ring-1 ring-destructive/40'
-                    : 'bg-emerald-500/5 ring-1 ring-emerald-500/30'
-                }`}>
-                  <Label htmlFor="weight" className="flex items-center gap-1 text-xs">
-                    Peso (kg) <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="weight"
-                    type="number"
-                    step="0.001"
-                    min="0.001"
-                    required={!isEditing}
-                    value={formData.weight}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, weight: e.target.value }))}
-                    placeholder="0.100"
-                    aria-invalid={!formData.weight || parseFloat(formData.weight) <= 0}
-                  />
+                    : req
+                    ? 'bg-emerald-500/5 ring-1 ring-emerald-500/30'
+                    : 'bg-muted/30'
+                }`;
+              return (
+                <div className="mt-6 rounded-lg border border-border/60 bg-muted/20 p-4">
+                  <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground">Peso e Dimensões para Frete</h3>
+                      <p className="text-xs text-muted-foreground">
+                        Usados pelas transportadoras (ex: Melhor Envio) para cotação em tempo real.
+                      </p>
+                    </div>
+                    <label className="flex items-center gap-2 rounded-md border border-border/60 bg-background px-3 py-2">
+                      <Switch
+                        id="requires_shipping"
+                        checked={formData.requires_shipping}
+                        onCheckedChange={(v) =>
+                          setFormData((prev) => ({ ...prev, requires_shipping: v }))
+                        }
+                      />
+                      <span className="text-xs font-medium">
+                        Requer entrega física
+                      </span>
+                    </label>
+                  </div>
+
+                  {req && anyBad && (
+                    <div
+                      role="alert"
+                      className="mb-3 flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-2.5 text-xs text-destructive"
+                    >
+                      <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" aria-hidden />
+                      <span>
+                        <strong>Obrigatório para produtos com entrega física (Melhor Envio).</strong>{' '}
+                        Preencha peso e as 3 dimensões com valores maiores que zero.
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className={fieldCls(wBad)}>
+                      <Label htmlFor="weight" className="flex items-center gap-1 text-xs">
+                        Peso (kg) {req && <span className="text-destructive">*</span>}
+                      </Label>
+                      <Input
+                        id="weight"
+                        type="number"
+                        step="0.001"
+                        min="0.001"
+                        required={req}
+                        value={formData.weight}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, weight: e.target.value }))}
+                        placeholder="0.100"
+                        aria-invalid={wBad}
+                      />
+                    </div>
+                    <div className={fieldCls(lBad)}>
+                      <Label htmlFor="length_cm" className="flex items-center gap-1 text-xs">
+                        Comprimento (cm) {req && <span className="text-destructive">*</span>}
+                      </Label>
+                      <Input
+                        id="length_cm"
+                        type="number"
+                        step="0.1"
+                        min={req ? '0.1' : '0'}
+                        required={req}
+                        value={formData.length_cm}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, length_cm: e.target.value }))}
+                        placeholder="16"
+                        aria-invalid={lBad}
+                      />
+                    </div>
+                    <div className={fieldCls(wdBad)}>
+                      <Label htmlFor="width_cm" className="flex items-center gap-1 text-xs">
+                        Largura (cm) {req && <span className="text-destructive">*</span>}
+                      </Label>
+                      <Input
+                        id="width_cm"
+                        type="number"
+                        step="0.1"
+                        min={req ? '0.1' : '0'}
+                        required={req}
+                        value={formData.width_cm}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, width_cm: e.target.value }))}
+                        placeholder="11"
+                        aria-invalid={wdBad}
+                      />
+                    </div>
+                    <div className={fieldCls(hBad)}>
+                      <Label htmlFor="height_cm" className="flex items-center gap-1 text-xs">
+                        Altura (cm) {req && <span className="text-destructive">*</span>}
+                      </Label>
+                      <Input
+                        id="height_cm"
+                        type="number"
+                        step="0.1"
+                        min={req ? '0.1' : '0'}
+                        required={req}
+                        value={formData.height_cm}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, height_cm: e.target.value }))}
+                        placeholder="6"
+                        aria-invalid={hBad}
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-3">
+                    {req
+                      ? 'Obrigatório para o cálculo de frete (Melhor Envio) e validação do Google Merchant Center.'
+                      : 'Produto digital/sem entrega física — campos opcionais.'}
+                  </p>
+                  <div className="mt-3 flex items-center gap-2">
+                    <Link
+                      to="/admin/fretes"
+                      className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 hover:underline transition-colors"
+                      aria-label="Ir para gestão de frete"
+                    >
+                      <Truck className="h-3.5 w-3.5" />
+                      Gerenciar configurações de frete
+                    </Link>
+                  </div>
                 </div>
-                <div className="space-y-1.5 rounded-md p-2">
-                  <Label htmlFor="length_cm" className="text-xs">Comprimento (cm)</Label>
-                  <Input
-                    id="length_cm"
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    value={formData.length_cm}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, length_cm: e.target.value }))}
-                    placeholder="16"
-                  />
-                </div>
-                <div className="space-y-1.5 rounded-md p-2">
-                  <Label htmlFor="width_cm" className="text-xs">Largura (cm)</Label>
-                  <Input
-                    id="width_cm"
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    value={formData.width_cm}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, width_cm: e.target.value }))}
-                    placeholder="11"
-                  />
-                </div>
-                <div className="space-y-1.5 rounded-md p-2">
-                  <Label htmlFor="height_cm" className="text-xs">Altura (cm)</Label>
-                  <Input
-                    id="height_cm"
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    value={formData.height_cm}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, height_cm: e.target.value }))}
-                    placeholder="6"
-                  />
-                </div>
-              </div>
-              <p className="text-[11px] text-muted-foreground mt-3">
-                Obrigatório para o cálculo de frete (Melhor Envio).
-              </p>
-              <div className="mt-3 flex items-center gap-2">
-                <Link
-                  to="/admin/fretes"
-                  className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 hover:underline transition-colors"
-                  aria-label="Ir para gestão de frete"
-                >
-                  <Truck className="h-3.5 w-3.5" />
-                  Gerenciar configurações de frete
-                </Link>
-              </div>
-            </div>
+              );
+            })()}
 
 
 
