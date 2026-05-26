@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { usePageById, useCreatePage, useUpdatePage, useSavePageVersion, usePageVersions } from '@/hooks/usePages';
 import WYSIWYGEditor from '@/components/admin/WYSIWYGEditor';
+import { useFormDraft } from '@/hooks/useFormDraft';
 
 const AdminPageForm = () => {
   const { id } = useParams<{ id: string }>();
@@ -38,9 +39,25 @@ const AdminPageForm = () => {
   });
 
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+
+  // Rascunho global: persiste em localStorage e sobrevive à navegação
+  const draft = useFormDraft(formData, hydrated);
+
+  // Hidratação inicial: prioriza rascunho local
+  useEffect(() => {
+    if (hydrated) return;
+    const saved = draft.hydrate<typeof formData>();
+    if (saved) {
+      setFormData(saved);
+      setHydrated(true);
+      return;
+    }
+    if (!isEditing) setHydrated(true);
+  }, [hydrated, isEditing, draft]);
 
   useEffect(() => {
-    if (existingPage) {
+    if (existingPage && !hydrated) {
       setFormData({
         title: existingPage.title,
         slug: existingPage.slug,
@@ -53,8 +70,9 @@ const AdminPageForm = () => {
         status: existingPage.status,
         internal_notes: existingPage.internal_notes || '',
       });
+      setHydrated(true);
     }
-  }, [existingPage]);
+  }, [existingPage, hydrated]);
 
   const generateSlug = (title: string) => {
     return title
@@ -111,9 +129,11 @@ const AdminPageForm = () => {
         });
 
         await updatePage.mutateAsync({ id, ...pageData });
+        draft.clear();
         toast({ title: publish ? 'Página publicada!' : 'Página salva!' });
       } else {
         await createPage.mutateAsync(pageData);
+        draft.clear();
         toast({ title: 'Página criada com sucesso!' });
         navigate('/admin/paginas');
       }
