@@ -640,29 +640,30 @@ const Carrinho = () => {
           />
 
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
             {/* Left Column - Form */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-4 md:space-y-6">
               {/* Cart Items */}
-              <div id="step-cart" className="bg-card rounded-xl border border-border p-4 md:p-6 scroll-mt-32">
+              <div id="step-cart" className="bg-card rounded-xl border border-border p-3 md:p-6 scroll-mt-32">
 
-                <h2 className="font-display text-xl text-foreground mb-4 flex items-center gap-2">
+                <h2 className="font-display text-lg md:text-xl text-foreground mb-3 md:mb-4 flex items-center gap-2">
                   <Package className="h-5 w-5 text-primary" />
                   Produtos ({items.length})
                 </h2>
-                <div className="space-y-4">
+                <div className="space-y-3 md:space-y-4">
                   {items.map((item) => (
                     <div 
                       key={item.id}
-                      className="flex gap-4 pb-4 border-b border-border last:border-0 last:pb-0"
+                      className="flex gap-3 md:gap-4 pb-3 md:pb-4 border-b border-border last:border-0 last:pb-0"
                     >
                       <Link to={urls.product(item.slug)} className="shrink-0">
                         <img 
                           src={optimizeImage(item.image, { width: 160, resize: "contain" })} 
                           alt={item.name}
-                          className="w-20 h-20 object-contain rounded-lg bg-muted p-1"
+                          className="w-16 h-16 md:w-20 md:h-20 object-contain rounded-lg bg-muted p-1"
                         />
                       </Link>
+
                       <div className="flex-1 min-w-0">
                         <Link 
                           to={urls.product(item.slug)}
