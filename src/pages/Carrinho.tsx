@@ -740,11 +740,19 @@ const Carrinho = () => {
                     <Label htmlFor="phone">WhatsApp *</Label>
                     <Input
                       id="phone"
+                      type="tel"
+                      inputMode="tel"
                       placeholder="(41) 99999-9999"
                       value={customer.phone}
-                      onChange={(e) => { setCustomer(prev => ({ ...prev, phone: e.target.value })); clearInvalid('phone'); }}
+                      onChange={(e) => { setCustomer(prev => ({ ...prev, phone: formatPhoneBR(e.target.value) })); clearInvalid('phone'); }}
+                      onBlur={() => { if (customer.phone && !isValidPhoneBR(customer.phone)) setInvalidFields(prev => new Set(prev).add('phone')); }}
+                      maxLength={16}
+                      aria-invalid={invalidFields.has('phone')}
                       className={fieldClass('phone')}
                     />
+                    {invalidFields.has('phone') && customer.phone && !isValidPhoneBR(customer.phone) && (
+                      <p className="mt-1 text-xs text-destructive">Informe um número válido com DDD (10 ou 11 dígitos).</p>
+                    )}
                   </div>
                 </div>
               </div>
