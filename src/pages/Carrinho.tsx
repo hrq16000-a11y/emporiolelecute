@@ -18,6 +18,9 @@ import { urls } from "@/lib/urls";
 import { calcCartTotals } from "@/lib/cartTotals";
 import { formatBRL } from "@/lib/format";
 import ShippingCalculator from "@/components/ShippingCalculator";
+import FreeShippingProgress from "@/components/FreeShippingProgress";
+import { formatPhoneBR, isValidPhoneBR } from "@/lib/phoneMask";
+import { loadCustomer, saveCustomer, loadAddress, saveAddress } from "@/lib/customerCache";
 
 interface AddressData {
   cep: string;
@@ -45,16 +48,22 @@ const Carrinho = () => {
   const { items, removeItem, updateQuantity, total, clearCart } = useCart();
   const { toast } = useToast();
   
-  const [customer, setCustomer] = useState<CustomerData>({
-    name: '',
-    email: '',
-    phone: '',
+  const [customer, setCustomer] = useState<CustomerData>(() => {
+    const cached = loadCustomer();
+    return {
+      name: cached?.name || '',
+      email: cached?.email || '',
+      phone: cached?.phone ? formatPhoneBR(cached.phone) : '',
+    };
   });
-  
-  const [address, setAddress] = useState<AddressData>({
-    cep: '',
-    city: '',
-    state: '',
+
+  const [address, setAddress] = useState<AddressData>(() => {
+    const cached = loadAddress();
+    return {
+      cep: cached?.cep || '',
+      city: cached?.city || '',
+      state: cached?.state || '',
+    };
   });
   
   const [loadingCep, setLoadingCep] = useState(false);
@@ -299,6 +308,21 @@ const Carrinho = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Pula auto-fill por IP/GPS se já existe endereço em cache (evita chamadas repetidas)
+  useEffect(() => {
+    if (address.cep || address.city) autoFilledRef.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persiste dados do cliente e endereço no localStorage (debounced via efeito)
+  useEffect(() => {
+    saveCustomer({ name: customer.name, email: customer.email, phone: customer.phone });
+  }, [customer.name, customer.email, customer.phone]);
+
+  useEffect(() => {
+    saveAddress({ cep: address.cep, city: address.city, state: address.state });
+  }, [address.cep, address.city, address.state]);
+
   const discount = coupon?.discount_applied ?? 0;
   const totalWithDiscount = Math.max(0, total - discount);
 
@@ -387,7 +411,7 @@ const Carrinho = () => {
     const missing = new Set<string>();
     if (!customer.name.trim()) missing.add('name');
     if (!customer.email.trim()) missing.add('email');
-    if (!customer.phone.trim()) missing.add('phone');
+    if (!customer.phone.trim() || !isValidPhoneBR(customer.phone)) missing.add('phone');
     if (!address.cep) missing.add('cep');
     if (!address.city) missing.add('city');
     if (!address.state) missing.add('state');
@@ -716,11 +740,19 @@ const Carrinho = () => {
                     <Label htmlFor="phone">WhatsApp *</Label>
                     <Input
                       id="phone"
+                      type="tel"
+                      inputMode="tel"
                       placeholder="(41) 99999-9999"
                       value={customer.phone}
-                      onChange={(e) => { setCustomer(prev => ({ ...prev, phone: e.target.value })); clearInvalid('phone'); }}
+                      onChange={(e) => { setCustomer(prev => ({ ...prev, phone: formatPhoneBR(e.target.value) })); clearInvalid('phone'); }}
+                      onBlur={() => { if (customer.phone && !isValidPhoneBR(customer.phone)) setInvalidFields(prev => new Set(prev).add('phone')); }}
+                      maxLength={16}
+                      aria-invalid={invalidFields.has('phone')}
                       className={fieldClass('phone')}
                     />
+                    {invalidFields.has('phone') && customer.phone && !isValidPhoneBR(customer.phone) && (
+                      <p className="mt-1 text-xs text-destructive">Informe um número válido com DDD (10 ou 11 dígitos).</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -820,6 +852,11 @@ const Carrinho = () => {
                 <h2 className="font-display text-xl text-foreground mb-4">
                   Resumo do Pedido
                 </h2>
+
+                <div className="mb-4">
+                  <FreeShippingProgress currentTotal={totalWithDiscount} />
+                </div>
+
 
                 <div className="space-y-3 text-sm">
                   {(() => {
