@@ -327,7 +327,7 @@ const AdminCustomers = () => {
       (data || []).forEach((v: { os_name: string | null }) => v.os_name && set.add(v.os_name));
       return Array.from(set).sort();
     },
-    enabled: tab === "visitors",
+    enabled: (tab === "visitors" || tab === "leads"),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -336,12 +336,14 @@ const AdminCustomers = () => {
     queryKey: ["visitor-pageviews", viewVisitor?.visitor_id],
     queryFn: async () => {
       if (!viewVisitor) return [];
+      // Timeline ascendente: ordena por step_index quando disponível, fallback em viewed_at.
       const { data, error } = await supabase
         .from("visitor_pageviews")
         .select("*")
         .eq("visitor_id", viewVisitor.visitor_id)
-        .order("viewed_at", { ascending: false })
-        .limit(200);
+        .order("step_index", { ascending: true, nullsFirst: false })
+        .order("viewed_at", { ascending: true })
+        .limit(500);
       if (error) throw error;
       return (data || []) as PageviewRow[];
     },
