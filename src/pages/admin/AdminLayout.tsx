@@ -258,6 +258,9 @@ const AdminLayout = () => {
       <main className="lg:ml-64 pt-16 lg:pt-0 min-h-screen">
         <Outlet />
       </main>
+
+      {/* Guarda global: avisa sobre rascunhos não salvos antes de sair */}
+      <DraftNavigationGuard />
     </div>
   );
 };
