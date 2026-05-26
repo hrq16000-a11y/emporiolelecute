@@ -167,6 +167,7 @@ const AdminProductForm = () => {
       length_cm: (existingProduct as any).length_cm?.toString() || '',
       width_cm: (existingProduct as any).width_cm?.toString() || '',
       height_cm: (existingProduct as any).height_cm?.toString() || '',
+      requires_shipping: (existingProduct as any).requires_shipping ?? true,
       category_id: existingProduct.category_id || '',
       badge: existingProduct.badge || '',
       rating: existingProduct.rating.toString(),
