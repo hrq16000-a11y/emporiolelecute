@@ -643,24 +643,24 @@ const Carrinho = () => {
                       </div>
                     </div>
 
-                    <div className="space-y-2 text-xs text-muted-foreground bg-background/60 rounded-lg p-3 mb-4">
-                      <div className="flex items-center gap-2"><Mail className="h-3.5 w-3.5" /> {customer.email}</div>
+                    <div className="space-y-1 text-[11px] md:text-xs text-muted-foreground bg-background/60 rounded-lg p-2 md:p-3 mb-3 md:mb-4">
+                      <div className="flex items-center gap-2"><Mail className="h-3 w-3 md:h-3.5 md:w-3.5" /> {customer.email}</div>
                       {customer.name && (
-                        <div className="flex items-center gap-2"><User className="h-3.5 w-3.5" /> {customer.name}</div>
+                        <div className="flex items-center gap-2"><User className="h-3 w-3 md:h-3.5 md:w-3.5" /> {customer.name}</div>
                       )}
                       {customer.phone && (
-                        <div className="flex items-center gap-2"><Phone className="h-3.5 w-3.5" /> {customer.phone}</div>
+                        <div className="flex items-center gap-2"><Phone className="h-3 w-3 md:h-3.5 md:w-3.5" /> {customer.phone}</div>
                       )}
                       {(address.city || address.state || address.cep) && (
                         <div className="flex items-center gap-2">
-                          <MapPin className="h-3.5 w-3.5" />
+                          <MapPin className="h-3 w-3 md:h-3.5 md:w-3.5" />
                           {[address.city, address.state].filter(Boolean).join(' - ')}
                           {address.cep ? ` • CEP ${address.cep}` : ''}
                         </div>
                       )}
                     </div>
 
-                    <Label htmlFor="signup-password" className="text-sm">
+                    <Label htmlFor="signup-password" className="text-xs md:text-sm">
                       Crie uma senha
                     </Label>
                     <div className="relative mt-1">
@@ -671,7 +671,7 @@ const Carrinho = () => {
                         placeholder="Mínimo 6 caracteres"
                         value={signupPassword}
                         onChange={(e) => { setSignupPassword(e.target.value); setSignupError(null); }}
-                        className="pl-9 pr-10"
+                        className="pl-9 pr-10 h-9 md:h-10"
                         autoComplete="new-password"
                         minLength={6}
                         disabled={signupLoading}
@@ -690,11 +690,11 @@ const Carrinho = () => {
                       <p className="text-xs text-destructive mt-2">{signupError}</p>
                     )}
 
-                    <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2 mt-4">
+                    <div className="flex flex-col sm:flex-row gap-2 mt-3 md:mt-4">
                       <Button
                         onClick={handleCustomerSignup}
                         disabled={signupLoading || !signupPassword}
-                        className="w-full"
+                        className="flex-1 h-10"
                       >
                         {signupLoading ? (
                           <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Criando conta...</>
@@ -704,9 +704,10 @@ const Carrinho = () => {
                       </Button>
                       <Button
                         variant="ghost"
+                        size="sm"
                         onClick={() => setSignupDismissed(true)}
                         disabled={signupLoading}
-                        className="text-muted-foreground"
+                        className="text-muted-foreground h-9 sm:h-10"
                       >
                         Agora não
                       </Button>
