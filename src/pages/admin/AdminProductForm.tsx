@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Plus, X, Save, Loader2, Tag, Check, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Plus, X, Save, Loader2, Tag, Check, AlertCircle, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ImageUploader from '@/components/admin/ImageUploader';
 import { Input } from '@/components/ui/input';
@@ -895,6 +895,16 @@ const AdminProductForm = () => {
               <p className="text-[11px] text-muted-foreground mt-3">
                 Obrigatório para o cálculo de frete (Melhor Envio).
               </p>
+              <div className="mt-3 flex items-center gap-2">
+                <Link
+                  to="/admin/fretes"
+                  className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 hover:underline transition-colors"
+                  aria-label="Ir para gestão de frete"
+                >
+                  <Truck className="h-3.5 w-3.5" />
+                  Gerenciar configurações de frete
+                </Link>
+              </div>
             </div>
 
 
