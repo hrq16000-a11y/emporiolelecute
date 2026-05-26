@@ -209,6 +209,18 @@ const AdminCustomers = () => {
     ws.patchRoute(ROUTE_KEY, { filters: f } as unknown as Record<string, unknown>);
   };
 
+  // Hidratação one-shot: se a URL chegou sem filtros mas o store tem snapshot, restaura.
+  useEffect(() => {
+    const hasUrlFilters = ["dp","df","dt","hf","ht","dev","os","country","region","city"]
+      .some((k) => searchParams.get(k));
+    if (hasUrlFilters) return;
+    const saved = ws.getRoute(ROUTE_KEY).filters as VisitorFilterState | undefined;
+    if (saved) setVisitorFilters(saved);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
+
 
   // Drawer via URL (?drawer=visitor&id=UUID ou ?drawer=customer&id=UUID)
   const drawerKind = searchParams.get("drawer");
