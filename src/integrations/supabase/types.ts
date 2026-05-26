@@ -6065,6 +6065,10 @@ export type Database = {
           id: string
           is_enabled: boolean
           origin_zip_code: string
+          pickup_address: string
+          pickup_enabled: boolean
+          pickup_instructions: string
+          pickup_label: string
           shipping_markup_percentage: number
           singleton: boolean
           updated_at: string
@@ -6080,6 +6084,10 @@ export type Database = {
           id?: string
           is_enabled?: boolean
           origin_zip_code?: string
+          pickup_address?: string
+          pickup_enabled?: boolean
+          pickup_instructions?: string
+          pickup_label?: string
           shipping_markup_percentage?: number
           singleton?: boolean
           updated_at?: string
@@ -6095,6 +6103,10 @@ export type Database = {
           id?: string
           is_enabled?: boolean
           origin_zip_code?: string
+          pickup_address?: string
+          pickup_enabled?: boolean
+          pickup_instructions?: string
+          pickup_label?: string
           shipping_markup_percentage?: number
           singleton?: boolean
           updated_at?: string

@@ -147,13 +147,33 @@ Deno.serve(async (req) => {
     // Aplica regras
     options = applyRules(options, { subtotal, state, destino }, rules ?? []);
 
+    // Retirada no local (se habilitada no admin) — aparece como opção adicional, sempre R$ 0
+    if (settings.pickup_enabled) {
+      options.push({
+        provider: 'Empório LeleCute',
+        service_name: settings.pickup_label || 'Retirada no ateliê',
+        price: 0,
+        estimated_delivery_days: '0',
+      });
+    }
+
     options.sort((a, b) => a.price - b.price);
 
     if (options.length === 0) {
       return json({ error: 'Não foi possível calcular o frete para este CEP.' }, 422);
     }
     // is_fallback: true sempre que estamos servindo estimativa em vez de cotação real do provedor.
-    return json({ options, estimated, is_fallback: estimated, melhor_envio_has_key: meHasKey });
+    return json({
+      options,
+      estimated,
+      is_fallback: estimated,
+      melhor_envio_has_key: meHasKey,
+      pickup: settings.pickup_enabled ? {
+        label: settings.pickup_label,
+        address: settings.pickup_address,
+        instructions: settings.pickup_instructions,
+      } : null,
+    });
   } catch (err) {
     console.error('[calculate-shipping] unexpected', err);
     return json({ error: 'Erro interno', message: String(err) }, 500);

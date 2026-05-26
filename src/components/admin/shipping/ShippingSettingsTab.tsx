@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { useShippingSettings } from "@/hooks/useShippingAdmin";
 import { useToast } from "@/hooks/use-toast";
 import { useFormDraft } from "@/hooks/useFormDraft";
-import { Loader2, Power } from "lucide-react";
+import { Loader2, Power, Store } from "lucide-react";
 
 export default function ShippingSettingsTab() {
   const { data, isLoading, update } = useShippingSettings();
@@ -38,6 +39,10 @@ export default function ShippingSettingsTab() {
         default_box_height_cm: Number(form.default_box_height_cm),
         handling_fee: Number(form.handling_fee),
         shipping_markup_percentage: Number(form.shipping_markup_percentage),
+        pickup_enabled: !!form.pickup_enabled,
+        pickup_label: String(form.pickup_label ?? "").trim() || "Retirada no ateliê",
+        pickup_address: String(form.pickup_address ?? "").trim(),
+        pickup_instructions: String(form.pickup_instructions ?? "").trim(),
       });
       draft.clear();
       toast({ title: "Configurações salvas" });
@@ -111,6 +116,71 @@ export default function ShippingSettingsTab() {
           {field("Alt. (cm)", "default_box_height_cm", "number", "0.1")}
         </div>
       </section>
+
+      {/* Retirada no Local — opção adicional, exibida ao cliente quando habilitada */}
+      <section className={`rounded-lg border p-4 space-y-4 transition-colors ${
+        form.pickup_enabled ? "border-primary/30 bg-primary/5" : "border-border"
+      }`}>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <Store className={`h-5 w-5 mt-0.5 ${form.pickup_enabled ? "text-primary" : "text-muted-foreground"}`} />
+            <div>
+              <Label htmlFor="pickup_enabled" className="text-sm font-semibold text-foreground cursor-pointer">
+                Retirada no Local {form.pickup_enabled ? "Disponível" : "Desativada"}
+              </Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Quando ativa, o cliente vê a opção de retirar o pedido sem custo de frete no carrinho.
+              </p>
+            </div>
+          </div>
+          <Switch
+            id="pickup_enabled"
+            checked={!!form.pickup_enabled}
+            onCheckedChange={(checked) => setForm({ ...form, pickup_enabled: checked })}
+            disabled={!form.is_enabled}
+            aria-label="Habilitar opção de retirada no local"
+          />
+        </div>
+
+        {form.pickup_enabled && (
+          <div className="space-y-3 pl-8">
+            <div>
+              <Label htmlFor="pickup_label">Rótulo exibido ao cliente</Label>
+              <Input
+                id="pickup_label"
+                value={form.pickup_label ?? ""}
+                onChange={(e) => setForm({ ...form, pickup_label: e.target.value })}
+                placeholder="Ex.: Retirada no ateliê"
+                className="mt-1"
+                maxLength={80}
+              />
+            </div>
+            <div>
+              <Label htmlFor="pickup_address">Endereço de retirada</Label>
+              <Input
+                id="pickup_address"
+                value={form.pickup_address ?? ""}
+                onChange={(e) => setForm({ ...form, pickup_address: e.target.value })}
+                placeholder="Rua, número, bairro, cidade/UF"
+                className="mt-1"
+                maxLength={200}
+              />
+            </div>
+            <div>
+              <Label htmlFor="pickup_instructions">Instruções (horários, observações)</Label>
+              <Textarea
+                id="pickup_instructions"
+                value={form.pickup_instructions ?? ""}
+                onChange={(e) => setForm({ ...form, pickup_instructions: e.target.value })}
+                placeholder="Ex.: Seg a Sex, 9h–18h. Agendar pelo WhatsApp antes de retirar."
+                className="mt-1 min-h-[80px]"
+                maxLength={500}
+              />
+            </div>
+          </div>
+        )}
+      </section>
+
       <Button onClick={save} disabled={update.isPending || !form.is_enabled}>
         {update.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
         Salvar configurações
