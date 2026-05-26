@@ -437,13 +437,13 @@ const HeroSlider = () => {
           Slides com index > 0 permanecem em lazy loading (loading="lazy"). */}
       <Helmet>
         {lcpMobile && isHttp(lcpMobile) && (
-          <link rel="preload" as="image" href={lcpMobile} fetchpriority="high" media="(max-width: 767px)" />
+          <link rel="preload" as="image" href={lcpMobile} fetchPriority="high" media="(max-width: 767px)" />
         )}
         {lcpDesktop && isHttp(lcpDesktop) && (
-          <link rel="preload" as="image" href={lcpDesktop} fetchpriority="high" media="(min-width: 768px)" />
+          <link rel="preload" as="image" href={lcpDesktop} fetchPriority="high" media="(min-width: 768px)" />
         )}
         {!lcpMobile && !lcpDesktop && lcpFallback && isHttp(lcpFallback) && (
-          <link rel="preload" as="image" href={lcpFallback} fetchpriority="high" />
+          <link rel="preload" as="image" href={lcpFallback} fetchPriority="high" />
         )}
       </Helmet>
 
