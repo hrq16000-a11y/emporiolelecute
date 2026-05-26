@@ -374,23 +374,7 @@ const AdminCustomers = () => {
   });
 
 
-  const pageviewsQ = useQuery({
-    queryKey: ["visitor-pageviews", viewVisitor?.visitor_id],
-    queryFn: async () => {
-      if (!viewVisitor) return [];
-      // Timeline ascendente: ordena por step_index quando disponível, fallback em viewed_at.
-      const { data, error } = await supabase
-        .from("visitor_pageviews")
-        .select("*")
-        .eq("visitor_id", viewVisitor.visitor_id)
-        .order("step_index", { ascending: true, nullsFirst: false })
-        .order("viewed_at", { ascending: true })
-        .limit(500);
-      if (error) throw error;
-      return (data || []) as PageviewRow[];
-    },
-    enabled: !!viewVisitor,
-  });
+  // Timeline foi movida para o UnifiedProfileDrawer (RPC get_unified_timeline).
 
   // ====== Mutations ======
   const saveMut = useMutation({
