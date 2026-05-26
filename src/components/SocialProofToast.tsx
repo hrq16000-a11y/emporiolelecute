@@ -284,7 +284,7 @@ export default function SocialProofToast() {
           : "opacity-0 translate-y-3 pointer-events-none",
       ].join(" ")}
     >
-      <div className="relative flex items-stretch gap-3 rounded-xl border border-border bg-card/95 backdrop-blur shadow-lg p-2.5 pr-7">
+      <div className="relative flex items-stretch gap-3 rounded-xl border border-border bg-card/95 backdrop-blur shadow-lg p-2.5 pr-9">
         <Link
           to={urls.product(review.product.slug)}
           className="shrink-0 self-center"
