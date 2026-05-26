@@ -293,6 +293,9 @@ export function applyVisitorFilters<T extends {
     }
     if (f.device !== "all" && r.device_type !== f.device) return false;
     if (f.os !== "all" && r.os_name !== f.os) return false;
+    if (f.country !== "all" && r.ip_country !== f.country) return false;
+    if (f.region !== "all" && r.ip_region !== f.region) return false;
+    if (f.city !== "all" && r.ip_city !== f.city) return false;
     return true;
   });
 }
