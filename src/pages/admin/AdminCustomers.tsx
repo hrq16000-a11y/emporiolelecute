@@ -413,18 +413,33 @@ const AdminCustomers = () => {
     setEditing(c);
   };
 
-  // Deep-link: abre ficha quando vem /admin/clientes?customer=<id>
+  // Deep-link via ?drawer=customer&id=<id> ou legado ?customer=<id>
   useEffect(() => {
-    const id = searchParams.get("customer");
-    if (!id || !customersQ.data || editing) return;
-    const c = customersQ.data.find((x) => x.id === id);
-    if (c) {
-      openEdit(c);
-      const next = new URLSearchParams(searchParams);
-      next.delete("customer");
-      setSearchParams(next, { replace: true });
+    const legacy = searchParams.get("customer");
+    const wantsCustomer = drawerKind === "customer" ? drawerId : legacy;
+    if (wantsCustomer && customersQ.data && !editing) {
+      const c = customersQ.data.find((x) => x.id === wantsCustomer);
+      if (c) openEdit(c);
+      if (legacy) {
+        const next = new URLSearchParams(searchParams);
+        next.delete("customer");
+        next.set("drawer", "customer");
+        next.set("id", wantsCustomer);
+        setSearchParams(next, { replace: true });
+      }
     }
-  }, [searchParams, customersQ.data]); // eslint-disable-line react-hooks/exhaustive-deps
+    // Deep-link visitante: reabre drawer automaticamente após navegação
+    if (drawerKind === "visitor" && drawerId && !viewVisitor) {
+      const v = (visitorsQ.data?.rows || []).find((x) => x.visitor_id === drawerId);
+      if (v) setViewVisitor(v);
+      else {
+        // Busca pontual quando não está na página atual
+        supabase.from("visitors").select("*").eq("visitor_id", drawerId).maybeSingle()
+          .then(({ data }) => { if (data) setViewVisitor(data as VisitorRow); });
+      }
+    }
+    if (!drawerKind && viewVisitor) setViewVisitor(null);
+  }, [searchParams, customersQ.data, visitorsQ.data, drawerKind, drawerId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ====== Derived data ======
   const filteredCustomers = useMemo(() => {
