@@ -368,6 +368,7 @@ const AdminProductForm = () => {
         length_cm: formData.length_cm ? parseFloat(formData.length_cm) : null,
         width_cm: formData.width_cm ? parseFloat(formData.width_cm) : null,
         height_cm: formData.height_cm ? parseFloat(formData.height_cm) : null,
+        requires_shipping: formData.requires_shipping,
         category_id: formData.category_id || null,
         badge: formData.badge || null,
         rating: parseFloat(formData.rating) || 5.0,
