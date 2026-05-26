@@ -123,6 +123,12 @@
     --soft-gray: 0 0% 45%;
     --cream: 40 10% 12%;
     
+    /* Success / Free Shipping — dark mode */
+    --success: 145 35% 45%;
+    --success-foreground: 0 0% 100%;
+    --success-light: 145 30% 20%;
+    --success-dark: 145 45% 55%;
+    
     --sidebar-background: 0 0% 10%;
     --sidebar-foreground: 0 0% 92%;
     --sidebar-primary: 6 75% 62%;
