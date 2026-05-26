@@ -22,6 +22,9 @@ export interface VisitorFilterState {
   hourTo: number;   // 0-23
   device: DeviceFilter;
   os: string; // "all" | nome
+  country: string; // "all" | nome
+  region: string;  // "all" | nome (estado/região)
+  city: string;    // "all" | nome
 }
 
 export const defaultFilters: VisitorFilterState = {
@@ -32,6 +35,9 @@ export const defaultFilters: VisitorFilterState = {
   hourTo: 23,
   device: "all",
   os: "all",
+  country: "all",
+  region: "all",
+  city: "all",
 };
 
 interface Props {
