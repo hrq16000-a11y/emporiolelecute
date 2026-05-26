@@ -167,11 +167,14 @@ async function quoteProvider(p: any, ctx: any): Promise<ShippingOption[]> {
   } catch (err: any) {
     console.error('[calculate-shipping] provider error', p.provider_name, err?.message);
     await ctx.sb.from('shipping_audit_logs').insert({
+      event_type: 'provider_error',
       destination_zip: ctx.destino,
       cart_snapshot: { items: ctx.items },
       provider_name: p.provider_name,
       error_message: String(err?.message ?? err),
       http_status: err?.status ?? null,
+      total_weight_kg: ctx.totalWeight,
+      melhor_envio_has_key: !!p.api_key,
     });
     return [];
   }
@@ -180,26 +183,16 @@ async function quoteProvider(p: any, ctx: any): Promise<ShippingOption[]> {
 async function quoteMelhorEnvio(p: any, ctx: any, signal: AbortSignal): Promise<ShippingOption[]> {
   if (!p.api_key || !p.endpoint_url) throw new Error('Credenciais Melhor Envio ausentes');
 
-  // EMPACOTAMENTO: consolida o carrinho inteiro em UMA caixa (default_box).
-  // Soma pesos reais; dimensões da caixa entram UMA vez (não por linha).
-  const boxW = Number(ctx.settings.default_box_width_cm) || 16;
-  const boxH = Number(ctx.settings.default_box_height_cm) || 11;
-  const boxL = Number(ctx.settings.default_box_length_cm) || 20;
-
-  const payload = {
-    from: { postal_code: ctx.origin },
-    to: { postal_code: ctx.destino },
-    products: [{
-      id: 'cart-package',
-      width: boxW,
-      height: boxH,
-      length: boxL,
-      weight: Math.max(0.1, ctx.totalWeight),
-      insurance_value: ctx.subtotal,
-      quantity: 1,
-    }],
-    options: { receipt: false, own_hand: false, insurance_value: ctx.subtotal },
-  };
+  // EMPACOTAMENTO consolidado em 1 caixa (lib).
+  const payload = buildMelhorEnvioPayload({
+    origin: ctx.origin,
+    destino: ctx.destino,
+    totalWeight: ctx.totalWeight,
+    subtotal: ctx.subtotal,
+    boxW: Number(ctx.settings.default_box_width_cm) || 16,
+    boxH: Number(ctx.settings.default_box_height_cm) || 11,
+    boxL: Number(ctx.settings.default_box_length_cm) || 20,
+  });
 
   const res = await fetch(p.endpoint_url, {
     method: 'POST',
