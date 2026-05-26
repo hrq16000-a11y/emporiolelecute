@@ -48,6 +48,21 @@ export default function ShippingCalculator({ items, state, initialCep = "", onSe
   const [error, setError] = useState<string | null>(null);
   const [options, setOptions] = useState<ShippingOption[] | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  const [moduleEnabled, setModuleEnabled] = useState<boolean | null>(null);
+
+  // Verifica se o módulo de frete está habilitado no admin
+  useEffect(() => {
+    let cancelled = false;
+    supabase
+      .from("shipping_settings")
+      .select("is_enabled")
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setModuleEnabled(data?.is_enabled !== false);
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   const calculate = async () => {
     setError(null);
