@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { markLead } from "@/lib/visitor";
 
 const QuoteForm = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -22,6 +23,9 @@ const QuoteForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    // Gatilho de conversão: visitante vira lead ao enviar orçamento.
+    markLead("quote_form_submit");
+
 
     try {
       const { data, error } = await supabase.functions.invoke("send-order-email", {

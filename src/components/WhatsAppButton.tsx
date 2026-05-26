@@ -1,5 +1,6 @@
 import { MessageCircle } from "lucide-react";
 import { useContactInfo } from "@/hooks/useContactInfo";
+import { markLead } from "@/lib/visitor";
 
 interface Props {
   /** Mensagem pré-preenchida no WhatsApp. Se omitida, usa a padrão genérica. */
@@ -19,6 +20,7 @@ const WhatsAppButton = ({ message, ariaLabel }: Props = {}) => {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={() => markLead("whatsapp_float")}
       className="whatsapp-float"
       aria-label={ariaLabel || "Contato via WhatsApp"}
     >

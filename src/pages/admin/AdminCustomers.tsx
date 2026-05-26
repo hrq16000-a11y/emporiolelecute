@@ -27,6 +27,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { VisitorFilters, applyVisitorFilters, defaultFilters, type VisitorFilterState, type DatePreset, type DeviceFilter } from "@/components/admin/customers/VisitorFilters";
 import { VisitorCard } from "@/components/admin/customers/VisitorCard";
 import { CustomerCard } from "@/components/admin/customers/CustomerCard";
+import { useAdminWorkspaceStore } from "@/stores/adminWorkspaceStore";
 
 // ============ Ordenação (Visitantes) ============
 type VisitorSort = "last_seen" | "time" | "pageviews";
@@ -95,6 +96,11 @@ interface VisitorRow {
   gps_lon: number | null;
   ip_lat: number | null;
   ip_lon: number | null;
+  is_bot?: boolean | null;
+  bot_name?: string | null;
+  lead_status?: string | null;
+  lead_promoted_at?: string | null;
+  lead_trigger?: string | null;
 }
 
 interface PageviewRow {
@@ -106,6 +112,10 @@ interface PageviewRow {
   scroll_depth_pct: number | null;
   viewed_at: string;
   referrer: string | null;
+  step_index?: number | null;
+  from_path?: string | null;
+  cta_id?: string | null;
+  event_type?: string | null;
 }
 
 const emptyForm = {
@@ -138,13 +148,20 @@ const PAGE_SIZES = [10, 25, 50] as const;
 type PageSize = (typeof PAGE_SIZES)[number];
 
 // ============ Component ============
+const ROUTE_KEY = "/admin/clientes";
+type TabKey = "customers" | "visitors" | "leads";
+
 const AdminCustomers = () => {
   const qc = useQueryClient();
   const isMobile = useIsMobile();
   const [searchParams, setSearchParams] = useSearchParams();
+  const ws = useAdminWorkspaceStore();
 
-  // ============ Persistência URL ============
-  const tab = (searchParams.get("tab") as "customers" | "visitors") || "customers";
+  // ============ Persistência URL + store ============
+  const tabParam = searchParams.get("tab") as TabKey | null;
+  const tab: TabKey = (tabParam === "visitors" || tabParam === "leads" || tabParam === "customers")
+    ? tabParam : "customers";
+  const showBots = searchParams.get("bots") === "1";
   const search = searchParams.get("q") || "";
   const page = Math.max(1, Number(searchParams.get("page") || 1));
   const perPage: PageSize = (PAGE_SIZES.includes(Number(searchParams.get("per")) as PageSize)
@@ -174,15 +191,18 @@ const AdminCustomers = () => {
     setSearchParams(next, { replace: true });
   };
 
-  const setTab = (v: "customers" | "visitors") => patchParams({ tab: v === "customers" ? null : v, page: null });
-  const setSearch = (v: string) => patchParams({ q: v || null, page: null });
+  const setTab = (v: TabKey) => {
+    patchParams({ tab: v === "customers" ? null : v, page: null, bots: null });
+    ws.patchRoute(ROUTE_KEY, { tab: v });
+  };
+  const setShowBots = (v: boolean) => patchParams({ bots: v ? "1" : null, page: null });
+  const setSearch = (v: string) => { patchParams({ q: v || null, page: null }); ws.patchRoute(ROUTE_KEY, { search: v }); };
   const setPage = (n: number) => patchParams({ page: n <= 1 ? null : n });
   const setPerPage = (n: PageSize) => patchParams({ per: n === 25 ? null : n, page: null });
   const setSort = (s: VisitorSort) => patchParams({ sort: s === "last_seen" ? null : s, page: null });
   const setVisitorFilters = (f: VisitorFilterState) => patchParams({
     dp: f.datePreset === "all" ? null : f.datePreset,
-    df: f.dateFrom,
-    dt: f.dateTo,
+    df: f.dateFrom, dt: f.dateTo,
     hf: f.hourFrom === 0 ? null : f.hourFrom,
     ht: f.hourTo === 23 ? null : f.hourTo,
     dev: f.device === "all" ? null : f.device,
@@ -190,6 +210,17 @@ const AdminCustomers = () => {
     page: null,
   });
 
+  // Drawer via URL (?drawer=visitor&id=UUID ou ?drawer=customer&id=UUID)
+  const drawerKind = searchParams.get("drawer");
+  const drawerId = searchParams.get("id");
+  const openDrawer = (kind: "visitor" | "customer", id: string) => {
+    patchParams({ drawer: kind, id });
+    ws.patchRoute(ROUTE_KEY, { drawer: { kind, id } });
+  };
+  const closeDrawer = () => {
+    patchParams({ drawer: null, id: null });
+    ws.patchRoute(ROUTE_KEY, { drawer: null });
+  };
 
   // ============ Estado UI (não persiste) ============
   const [editing, setEditing] = useState<CustomerRow | null>(null);
@@ -197,6 +228,7 @@ const AdminCustomers = () => {
   const [confirmDelete, setConfirmDelete] = useState<CustomerRow | null>(null);
   const [viewVisitor, setViewVisitor] = useState<VisitorRow | null>(null);
   const [form, setForm] = useState(emptyForm);
+
 
   // ====== Queries ======
   const customersQ = useQuery({
@@ -240,12 +272,20 @@ const AdminCustomers = () => {
   }, [visitorFilters]);
 
   const visitorsQ = useQuery({
-    queryKey: ["admin-visitors", { search, page, perPage, sort, hourFilterActive, visitorFilters }],
+    queryKey: ["admin-visitors", { tab, showBots, search, page, perPage, sort, hourFilterActive, visitorFilters }],
     queryFn: async () => {
       let q = supabase
         .from("visitors")
         .select("*", { count: "exact" })
         .order(sortColumn, { ascending: false, nullsFirst: false });
+
+      // Segmentação por aba: visitors humanos / leads (humanos promovidos) / tráfego de bots
+      if (tab === "leads") {
+        q = q.eq("is_bot", false).eq("lead_status", "lead");
+      } else if (tab === "visitors") {
+        if (showBots) q = q.eq("is_bot", true);
+        else q = q.eq("is_bot", false);
+      }
 
       if (dateRange.from) q = q.gte("last_seen_at", dateRange.from.toISOString());
       if (dateRange.to) q = q.lte("last_seen_at", dateRange.to.toISOString());
@@ -262,7 +302,6 @@ const AdminCustomers = () => {
         const from = (page - 1) * perPage;
         q = q.range(from, from + perPage - 1);
       } else {
-        // janela maior pra filtrar localmente sem perder muitos registros
         q = q.limit(1000);
       }
 
@@ -270,7 +309,7 @@ const AdminCustomers = () => {
       if (error) throw error;
       return { rows: (data || []) as VisitorRow[], totalCount: count ?? (data?.length || 0) };
     },
-    enabled: tab === "visitors",
+    enabled: tab === "visitors" || tab === "leads",
     placeholderData: (prev) => prev,
   });
 
@@ -288,7 +327,7 @@ const AdminCustomers = () => {
       (data || []).forEach((v: { os_name: string | null }) => v.os_name && set.add(v.os_name));
       return Array.from(set).sort();
     },
-    enabled: tab === "visitors",
+    enabled: (tab === "visitors" || tab === "leads"),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -297,12 +336,14 @@ const AdminCustomers = () => {
     queryKey: ["visitor-pageviews", viewVisitor?.visitor_id],
     queryFn: async () => {
       if (!viewVisitor) return [];
+      // Timeline ascendente: ordena por step_index quando disponível, fallback em viewed_at.
       const { data, error } = await supabase
         .from("visitor_pageviews")
         .select("*")
         .eq("visitor_id", viewVisitor.visitor_id)
-        .order("viewed_at", { ascending: false })
-        .limit(200);
+        .order("step_index", { ascending: true, nullsFirst: false })
+        .order("viewed_at", { ascending: true })
+        .limit(500);
       if (error) throw error;
       return (data || []) as PageviewRow[];
     },
@@ -372,18 +413,33 @@ const AdminCustomers = () => {
     setEditing(c);
   };
 
-  // Deep-link: abre ficha quando vem /admin/clientes?customer=<id>
+  // Deep-link via ?drawer=customer&id=<id> ou legado ?customer=<id>
   useEffect(() => {
-    const id = searchParams.get("customer");
-    if (!id || !customersQ.data || editing) return;
-    const c = customersQ.data.find((x) => x.id === id);
-    if (c) {
-      openEdit(c);
-      const next = new URLSearchParams(searchParams);
-      next.delete("customer");
-      setSearchParams(next, { replace: true });
+    const legacy = searchParams.get("customer");
+    const wantsCustomer = drawerKind === "customer" ? drawerId : legacy;
+    if (wantsCustomer && customersQ.data && !editing) {
+      const c = customersQ.data.find((x) => x.id === wantsCustomer);
+      if (c) openEdit(c);
+      if (legacy) {
+        const next = new URLSearchParams(searchParams);
+        next.delete("customer");
+        next.set("drawer", "customer");
+        next.set("id", wantsCustomer);
+        setSearchParams(next, { replace: true });
+      }
     }
-  }, [searchParams, customersQ.data]); // eslint-disable-line react-hooks/exhaustive-deps
+    // Deep-link visitante: reabre drawer automaticamente após navegação
+    if (drawerKind === "visitor" && drawerId && !viewVisitor) {
+      const v = (visitorsQ.data?.rows || []).find((x) => x.visitor_id === drawerId);
+      if (v) setViewVisitor(v);
+      else {
+        // Busca pontual quando não está na página atual
+        supabase.from("visitors").select("*").eq("visitor_id", drawerId).maybeSingle()
+          .then(({ data }) => { if (data) setViewVisitor(data as VisitorRow); });
+      }
+    }
+    if (!drawerKind && viewVisitor) setViewVisitor(null);
+  }, [searchParams, customersQ.data, visitorsQ.data, drawerKind, drawerId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ====== Derived data ======
   const filteredCustomers = useMemo(() => {
@@ -443,10 +499,10 @@ const AdminCustomers = () => {
         <div>
           <h1 className="text-2xl lg:text-3xl font-display text-foreground flex items-center gap-3">
             <Users className="h-7 w-7 lg:h-8 lg:w-8 text-primary" />
-            Clientes & Visitantes
+            Clientes, Visitantes e Leads
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            <strong>Visitante</strong>: anônimo (IP/dispositivo). <strong>Cliente</strong>: criado no pedido de orçamento. <strong>Usuário</strong>: login interno.
+            <strong>Cliente (CRM)</strong>: cadastro completo. <strong>Visitante Humano</strong>: anônimo navegando. <strong>Lead</strong>: visitante que demonstrou interesse (clicou em WhatsApp, carrinho ou enviou orçamento).
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -463,13 +519,16 @@ const AdminCustomers = () => {
         </div>
       </div>
 
-      <Tabs value={tab} onValueChange={(v) => setTab(v as "customers" | "visitors")} className="mb-4">
+      <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="mb-4">
         <TabsList>
           <TabsTrigger value="customers">
-            Clientes ({customersQ.data?.length ?? 0})
+            Clientes (CRM) ({customersQ.data?.length ?? 0})
           </TabsTrigger>
           <TabsTrigger value="visitors">
-            Visitantes ({tab === "visitors" ? totalVisitors : "—"})
+            Visitantes Humanos {tab === "visitors" ? `(${totalVisitors})` : ""}
+          </TabsTrigger>
+          <TabsTrigger value="leads">
+            Leads / Potenciais Clientes {tab === "leads" ? `(${totalVisitors})` : ""}
           </TabsTrigger>
         </TabsList>
 
@@ -493,6 +552,21 @@ const AdminCustomers = () => {
         </div>
 
         {tab === "visitors" && (
+          <div className="mb-3 flex items-center justify-between gap-2 px-1">
+            <label className="inline-flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showBots}
+                onChange={(e) => setShowBots(e.target.checked)}
+                className="h-3.5 w-3.5"
+              />
+              <Bot className="h-3.5 w-3.5" />
+              Ver tráfego de bots {showBots && "(ativo)"}
+            </label>
+          </div>
+        )}
+
+        {(tab === "visitors" || tab === "leads") && (
           <div className="mb-4 p-3 bg-muted/30 rounded-lg border border-border space-y-3">
             <VisitorFilters value={visitorFilters} onChange={setVisitorFilters} osOptions={osOptions} />
             <div className="flex items-center gap-2">
@@ -607,92 +681,107 @@ const AdminCustomers = () => {
         </TabsContent>
 
         {/* ============ VISITORS ============ */}
-        <TabsContent value="visitors">
-          {visitorsQ.isLoading ? (
-            isMobile ? <MobileCardsSkeleton /> : <div className="py-16 text-center text-muted-foreground">Carregando…</div>
-
-          ) : filteredVisitors.length === 0 ? (
-            <EmptyState icon={Globe} text="Nenhum visitante encontrado com os filtros atuais." />
-          ) : isMobile ? (
-            <div className="grid grid-cols-1 gap-3">
-              {pagedVisitors.map((v) => (
-                <VisitorCard key={v.visitor_id} visitor={v} onView={() => setViewVisitor(v)} />
-              ))}
-            </div>
-          ) : (
-            <div className="bg-card rounded-xl border border-border overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-muted/50 border-b border-border">
-                    <tr>
-                      <th className="text-left p-3 font-medium">Visitante</th>
-                      <th className="text-left p-3 font-medium">Localização (IP)</th>
-                      <th className="text-left p-3 font-medium">Dispositivo</th>
-                      <th className="text-left p-3 font-medium">Origem</th>
-                      <th className="text-left p-3 font-medium">Engajamento</th>
-                      <th className="text-left p-3 font-medium">Última visita</th>
-                      <th className="text-right p-3 font-medium">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pagedVisitors.map((v) => (
-                      <tr key={v.visitor_id} className="border-b border-border/50 hover:bg-muted/30">
-                        <td className="p-3">
-                          <div className="font-mono text-xs">{v.visitor_id.slice(0, 8)}…</div>
-                          <div className="text-xs text-muted-foreground">{v.ip || "sem IP"}</div>
-                          <Badge variant={v.consent_status === "accepted" ? "default" : "secondary"} className="text-[10px] mt-1">
-                            {v.consent_status}
-                          </Badge>
-                        </td>
-                        <td className="p-3 text-xs">
-                          {v.ip_city && <div>{v.ip_city}, {v.ip_region}</div>}
-                          <div className="text-muted-foreground">{v.ip_country || "—"}</div>
-                          {v.ip_isp && <div className="text-muted-foreground text-[10px]">{v.ip_isp}</div>}
-                        </td>
-                        <td className="p-3 text-xs">
-                          <div className="flex items-center gap-1">
-                            <DeviceIcon t={v.device_type} />
-                            <span>{v.device_brand || ""} {v.device_model || v.device_type || "—"}</span>
-                          </div>
-                          <div className="text-muted-foreground">
-                            {v.os_name} {v.os_version} · {v.browser_name}
-                          </div>
-                        </td>
-                        <td className="p-3 text-xs">
-                          {v.utm_source && <Badge variant="outline" className="text-[10px]">{v.utm_source}</Badge>}
-                          {v.first_referrer && (
-                            <div className="text-muted-foreground truncate max-w-[140px]" title={v.first_referrer}>
-                              {(() => { try { return new URL(v.first_referrer).hostname; } catch { return v.first_referrer; } })()}
-                            </div>
-                          )}
-                        </td>
-                        <td className="p-3 text-xs">
-                          <div>{v.total_pageviews} páginas</div>
-                          <div className="text-muted-foreground">{formatDuration(v.total_time_seconds)}</div>
-                        </td>
-                        <td className="p-3 text-xs">{formatDateTime(v.last_seen_at)}</td>
-                        <td className="p-3 text-right">
-                          <Button variant="ghost" size="sm" onClick={() => setViewVisitor(v)}>
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+        {/* Conteúdo de visitantes E leads compartilha a mesma estrutura, diferindo apenas pela query (lead_status). */}
+        {(["visitors", "leads"] as const).map((kind) => (
+          <TabsContent key={kind} value={kind}>
+            {visitorsQ.isLoading ? (
+              isMobile ? <MobileCardsSkeleton /> : <div className="py-16 text-center text-muted-foreground">Carregando…</div>
+            ) : filteredVisitors.length === 0 ? (
+              <EmptyState icon={Globe} text={kind === "leads"
+                ? "Nenhum lead identificado ainda. Leads aparecem quando um visitante clica em WhatsApp, carrinho ou envia orçamento."
+                : (showBots ? "Nenhum bot detectado com esses filtros." : "Nenhum visitante humano com os filtros atuais.")} />
+            ) : isMobile ? (
+              <div className="grid grid-cols-1 gap-3">
+                {pagedVisitors.map((v) => (
+                  <VisitorCard key={v.visitor_id} visitor={v} onView={() => openDrawer("visitor", v.visitor_id)} />
+                ))}
               </div>
-            </div>
-          )}
-          {!visitorsQ.isLoading && filteredVisitors.length > 0 && (
-            <Pagination
-              page={safePage} totalPages={totalPages} perPage={perPage}
-              total={totalVisitors}
-
-              onPage={setPage} onPerPage={setPerPage}
-            />
-          )}
-        </TabsContent>
+            ) : (
+              <div className="bg-card rounded-xl border border-border overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/50 border-b border-border">
+                      <tr>
+                        <th className="text-left p-3 font-medium">{kind === "leads" ? "Lead" : (showBots ? "Bot" : "Visitante")}</th>
+                        <th className="text-left p-3 font-medium">Localização (IP)</th>
+                        <th className="text-left p-3 font-medium">Dispositivo</th>
+                        <th className="text-left p-3 font-medium">Origem</th>
+                        <th className="text-left p-3 font-medium">Engajamento</th>
+                        {kind === "leads" && <th className="text-left p-3 font-medium">Gatilho</th>}
+                        <th className="text-left p-3 font-medium">Última visita</th>
+                        <th className="text-right p-3 font-medium">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pagedVisitors.map((v) => (
+                        <tr key={v.visitor_id} className="border-b border-border/50 hover:bg-muted/30">
+                          <td className="p-3">
+                            <div className="font-mono text-xs">{v.visitor_id.slice(0, 8)}…</div>
+                            <div className="text-xs text-muted-foreground">{v.ip || "sem IP"}</div>
+                            {v.is_bot && v.bot_name && (
+                              <Badge variant="outline" className="text-[10px] mt-1">{v.bot_name}</Badge>
+                            )}
+                          </td>
+                          <td className="p-3 text-xs">
+                            {v.ip_city && <div>{v.ip_city}, {v.ip_region}</div>}
+                            <div className="text-muted-foreground">{v.ip_country || "—"}</div>
+                            {v.ip_isp && <div className="text-muted-foreground text-[10px]">{v.ip_isp}</div>}
+                          </td>
+                          <td className="p-3 text-xs">
+                            <div className="flex items-center gap-1">
+                              <DeviceIcon t={v.device_type} />
+                              <span>{v.device_brand || ""} {v.device_model || v.device_type || "—"}</span>
+                            </div>
+                            <div className="text-muted-foreground">
+                              {v.os_name} {v.os_version} · {v.browser_name}
+                            </div>
+                          </td>
+                          <td className="p-3 text-xs">
+                            {v.utm_source && <Badge variant="outline" className="text-[10px]">{v.utm_source}</Badge>}
+                            {v.first_referrer && (
+                              <div className="text-muted-foreground truncate max-w-[140px]" title={v.first_referrer}>
+                                {(() => { try { return new URL(v.first_referrer!).hostname; } catch { return v.first_referrer; } })()}
+                              </div>
+                            )}
+                          </td>
+                          <td className="p-3 text-xs">
+                            <div>{v.total_pageviews} páginas</div>
+                            <div className="text-muted-foreground">{formatDuration(v.total_time_seconds)}</div>
+                          </td>
+                          {kind === "leads" && (
+                            <td className="p-3 text-xs">
+                              {v.lead_trigger
+                                ? <Badge variant="default" className="text-[10px]">{v.lead_trigger}</Badge>
+                                : <span className="text-muted-foreground">—</span>}
+                              {v.lead_promoted_at && (
+                                <div className="text-muted-foreground text-[10px] mt-1">{formatDateTime(v.lead_promoted_at)}</div>
+                              )}
+                            </td>
+                          )}
+                          <td className="p-3 text-xs">{formatDateTime(v.last_seen_at)}</td>
+                          <td className="p-3 text-right">
+                            <Button variant="ghost" size="sm" onClick={() => openDrawer("visitor", v.visitor_id)}>
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            {!visitorsQ.isLoading && filteredVisitors.length > 0 && (
+              <Pagination
+                page={safePage} totalPages={totalPages} perPage={perPage}
+                total={totalVisitors}
+                onPage={setPage} onPerPage={setPerPage}
+              />
+            )}
+          </TabsContent>
+        ))}
       </Tabs>
+
 
       {/* ============ Create / Edit Dialog ============ */}
       <Dialog open={!!editing || creating} onOpenChange={(o) => { if (!o) { setEditing(null); setCreating(false); } }}>
@@ -780,19 +869,22 @@ const AdminCustomers = () => {
       </AlertDialog>
 
       {/* ============ Visitor Detail ============ */}
-      <Dialog open={!!viewVisitor} onOpenChange={(o) => !o && setViewVisitor(null)}>
+      <Dialog open={!!viewVisitor} onOpenChange={(o) => { if (!o) { setViewVisitor(null); closeDrawer(); } }}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Globe className="w-5 h-5 text-primary" />
-              Visitante {viewVisitor?.visitor_id.slice(0, 8)}…
+              {viewVisitor?.is_bot ? "Bot" : "Visitante"} {viewVisitor?.visitor_id.slice(0, 8)}…
+              {viewVisitor?.lead_status === "lead" && (
+                <Badge variant="default" className="ml-2 text-[10px]">LEAD</Badge>
+              )}
             </DialogTitle>
           </DialogHeader>
           {viewVisitor && (
             <div className="space-y-4 text-sm">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Info label="IP" value={viewVisitor.ip} />
-                <Info label="Consentimento" value={viewVisitor.consent_status} />
+                <Info label="Status" value={viewVisitor.lead_status || "visitor"} />
                 <Info label="País" value={viewVisitor.ip_country} />
                 <Info label="Cidade" value={[viewVisitor.ip_city, viewVisitor.ip_region].filter(Boolean).join(", ")} />
                 <Info label="Provedor (ISP)" value={viewVisitor.ip_isp} />
@@ -807,32 +899,45 @@ const AdminCustomers = () => {
                 <Info label="UTM" value={[viewVisitor.utm_source, viewVisitor.utm_campaign].filter(Boolean).join(" / ")} />
                 <Info label="Total páginas" value={String(viewVisitor.total_pageviews)} />
                 <Info label="Tempo total" value={formatDuration(viewVisitor.total_time_seconds)} />
-                <Info label="GPS" value={viewVisitor.gps_lat ? `${viewVisitor.gps_lat}, ${viewVisitor.gps_lon}` : null} />
-                <Info label="Geo (IP)" value={viewVisitor.ip_lat ? `${viewVisitor.ip_lat}, ${viewVisitor.ip_lon}` : null} />
+                <Info label="Gatilho de lead" value={viewVisitor.lead_trigger} />
+                <Info label="Virou lead em" value={viewVisitor.lead_promoted_at ? formatDateTime(viewVisitor.lead_promoted_at) : null} />
               </div>
 
+              {/* ============ Timeline (Stepper Vertical) ============ */}
               <div>
-                <h4 className="font-semibold mb-2 flex items-center gap-2"><Calendar className="w-4 h-4" /> Histórico de navegação ({pageviewsQ.data?.length ?? 0})</h4>
-                <div className="border border-border rounded-lg max-h-72 overflow-y-auto">
-                  {pageviewsQ.isLoading && <div className="p-3 text-muted-foreground">Carregando…</div>}
-                  {pageviewsQ.data?.length === 0 && <div className="p-3 text-muted-foreground">Sem páginas registradas.</div>}
-                  {pageviewsQ.data?.map((pv) => (
-                    <div key={pv.id} className="p-2 border-b border-border/50 text-xs last:border-0">
-                      <div className="flex justify-between gap-2">
-                        <span className="font-mono truncate flex-1">{pv.path}</span>
-                        <span className="text-muted-foreground shrink-0">{formatDateTime(pv.viewed_at)}</span>
-                      </div>
-                      <div className="text-muted-foreground">
-                        {pv.title && <>{pv.title} · </>}
-                        ⏱ {formatDuration(pv.time_on_page_seconds)}
-                        {pv.scroll_depth_pct !== null && <> · scroll {pv.scroll_depth_pct}%</>}
-                      </div>
-                    </div>
-                  ))}
+                <h4 className="font-semibold mb-3 flex items-center gap-2">
+                  <Calendar className="w-4 h-4" /> Linha do tempo de navegação ({pageviewsQ.data?.length ?? 0})
+                </h4>
+                <div className="border border-border rounded-lg max-h-[420px] overflow-y-auto p-4">
+                  {pageviewsQ.isLoading && <div className="text-muted-foreground">Carregando…</div>}
+                  {pageviewsQ.data?.length === 0 && <div className="text-muted-foreground">Sem páginas registradas.</div>}
+                  <ol className="relative border-l-2 border-primary/30 ml-2 space-y-4">
+                    {pageviewsQ.data?.map((pv, idx) => (
+                      <li key={pv.id} className="ml-4 relative">
+                        <span className="absolute -left-[1.4rem] flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-[10px] font-bold ring-4 ring-background">
+                          {pv.step_index ?? idx + 1}
+                        </span>
+                        <div className="text-xs">
+                          <div className="font-mono break-all text-foreground">{pv.path}</div>
+                          {pv.title && <div className="text-muted-foreground">{pv.title}</div>}
+                          <div className="text-muted-foreground mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                            <span>⏱ {formatDuration(pv.time_on_page_seconds)}</span>
+                            {pv.scroll_depth_pct !== null && pv.scroll_depth_pct !== undefined && <span>scroll {pv.scroll_depth_pct}%</span>}
+                            {pv.cta_id && <Badge variant="outline" className="text-[10px]">CTA: {pv.cta_id}</Badge>}
+                            {pv.event_type && pv.event_type !== "pageview" && (
+                              <Badge variant="secondary" className="text-[10px]">{pv.event_type}</Badge>
+                            )}
+                            <span className="ml-auto">{formatDateTime(pv.viewed_at)}</span>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
                 </div>
               </div>
             </div>
           )}
+
         </DialogContent>
       </Dialog>
     </div>

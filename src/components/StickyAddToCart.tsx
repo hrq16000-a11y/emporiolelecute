@@ -3,6 +3,7 @@ import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { trackFunnelEvent } from "@/lib/analytics";
+import { markLead } from "@/lib/visitor";
 
 interface StickyAddToCartProps {
   productName: string;
@@ -50,7 +51,7 @@ export const StickyAddToCart = ({
         </div>
 
         <Button
-          onClick={onAddToCart}
+          onClick={() => { markLead("sticky_add_to_cart"); onAddToCart(); }}
           className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full font-bold shadow-lg h-11"
           aria-label="Comprar agora"
         >
