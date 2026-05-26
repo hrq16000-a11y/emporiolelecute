@@ -260,6 +260,9 @@ export function applyVisitorFilters<T extends {
   last_seen_at: string;
   device_type: string | null;
   os_name: string | null;
+  ip_country?: string | null;
+  ip_region?: string | null;
+  ip_city?: string | null;
 }>(rows: T[], f: VisitorFilterState): T[] {
   const now = new Date();
   let from: Date | null = null;
