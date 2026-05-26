@@ -43,6 +43,8 @@ export default function ShippingSettingsTab() {
         pickup_label: String(form.pickup_label ?? "").trim() || "Retirada no ateliê",
         pickup_address: String(form.pickup_address ?? "").trim(),
         pickup_instructions: String(form.pickup_instructions ?? "").trim(),
+        free_shipping_enabled: !!form.free_shipping_enabled,
+        free_shipping_threshold: Math.max(0, Number(form.free_shipping_threshold) || 0),
       });
       draft.clear();
       toast({ title: "Configurações salvas" });
