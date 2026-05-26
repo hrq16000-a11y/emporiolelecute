@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, Trash2, Minus, Plus, ArrowLeft, MessageCircle, MapPin, User, Mail, Phone, Package, Loader2, CheckCircle, Truck, Crosshair } from "lucide-react";
+import { ShoppingCart, Trash2, Minus, Plus, ArrowLeft, MessageCircle, MapPin, User, Mail, Phone, Package, Loader2, CheckCircle, Truck, Crosshair, UserPlus, Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -77,6 +77,60 @@ const Carrinho = () => {
   const [coupon, setCoupon] = useState<ValidCoupon | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
   const [invalidFields, setInvalidFields] = useState<Set<string>>(new Set());
+
+  // Cadastro de cliente pós-pedido (reaproveita os dados já preenchidos no checkout)
+  const [signupPassword, setSignupPassword] = useState('');
+  const [signupShowPassword, setSignupShowPassword] = useState(false);
+  const [signupLoading, setSignupLoading] = useState(false);
+  const [signupDone, setSignupDone] = useState(false);
+  const [signupError, setSignupError] = useState<string | null>(null);
+  const [signupDismissed, setSignupDismissed] = useState(false);
+
+  const handleCustomerSignup = async () => {
+    setSignupError(null);
+    if (!customer.email || !signupPassword) {
+      setSignupError('Informe uma senha para criar sua conta.');
+      return;
+    }
+    if (signupPassword.length < 6) {
+      setSignupError('A senha precisa ter pelo menos 6 caracteres.');
+      return;
+    }
+    setSignupLoading(true);
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+      const { error } = await supabase.auth.signUp({
+        email: customer.email,
+        password: signupPassword,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            full_name: customer.name || null,
+            phone: customer.phone || null,
+            cep: address.cep || null,
+            city: address.city || null,
+            state: address.state || null,
+          },
+        },
+      });
+      if (error) {
+        const msg = /registered|exists/i.test(error.message)
+          ? 'Este e-mail já possui uma conta. Faça login normalmente.'
+          : error.message;
+        setSignupError(msg);
+        return;
+      }
+      setSignupDone(true);
+      toast({
+        title: 'Conta criada! ✉️',
+        description: 'Enviamos um link de confirmação para o seu e-mail.',
+      });
+    } catch (e: any) {
+      setSignupError(e?.message || 'Erro inesperado. Tente novamente.');
+    } finally {
+      setSignupLoading(false);
+    }
+  };
 
   // Classe aplicada nos inputs vazios após tentativa de submit — contorno pulsante
   const errorRing = "ring-2 ring-destructive ring-offset-2 animate-pulse border-destructive";
@@ -548,6 +602,113 @@ const Carrinho = () => {
             <p className="text-muted-foreground mb-8">
               Finalize seu pedido pelo WhatsApp. O frete será calculado e informado antes da confirmação final.
             </p>
+
+            {/* Cadastro rápido de cliente — reaproveita os dados já validados no checkout */}
+            {customer.email && !signupDismissed && (
+              <div className="mb-8 rounded-2xl border border-primary/20 bg-primary/5 p-5 text-left">
+                {signupDone ? (
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="h-6 w-6 text-green-600 shrink-0 mt-0.5" />
+                    <div>
+                      <h3 className="font-display text-lg text-foreground mb-1">
+                        Conta criada com sucesso!
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Enviamos um link de confirmação para <strong>{customer.email}</strong>.
+                        Confirme o e-mail para acessar seus pedidos e acompanhar entregas.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-start gap-3 mb-4">
+                      <div className="bg-primary/10 rounded-full p-2 shrink-0">
+                        <UserPlus className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-display text-lg text-foreground mb-1">
+                          Crie sua conta em segundos
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Acompanhe seus pedidos, receba novidades e compre mais rápido na próxima vez.
+                          Já temos seus dados — só falta uma senha.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 text-xs text-muted-foreground bg-background/60 rounded-lg p-3 mb-4">
+                      <div className="flex items-center gap-2"><Mail className="h-3.5 w-3.5" /> {customer.email}</div>
+                      {customer.name && (
+                        <div className="flex items-center gap-2"><User className="h-3.5 w-3.5" /> {customer.name}</div>
+                      )}
+                      {customer.phone && (
+                        <div className="flex items-center gap-2"><Phone className="h-3.5 w-3.5" /> {customer.phone}</div>
+                      )}
+                      {(address.city || address.state || address.cep) && (
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-3.5 w-3.5" />
+                          {[address.city, address.state].filter(Boolean).join(' - ')}
+                          {address.cep ? ` • CEP ${address.cep}` : ''}
+                        </div>
+                      )}
+                    </div>
+
+                    <Label htmlFor="signup-password" className="text-sm">
+                      Crie uma senha
+                    </Label>
+                    <div className="relative mt-1">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="signup-password"
+                        type={signupShowPassword ? 'text' : 'password'}
+                        placeholder="Mínimo 6 caracteres"
+                        value={signupPassword}
+                        onChange={(e) => { setSignupPassword(e.target.value); setSignupError(null); }}
+                        className="pl-9 pr-10"
+                        autoComplete="new-password"
+                        minLength={6}
+                        disabled={signupLoading}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setSignupShowPassword(v => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        aria-label={signupShowPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                      >
+                        {signupShowPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+
+                    {signupError && (
+                      <p className="text-xs text-destructive mt-2">{signupError}</p>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2 mt-4">
+                      <Button
+                        onClick={handleCustomerSignup}
+                        disabled={signupLoading || !signupPassword}
+                        className="w-full"
+                      >
+                        {signupLoading ? (
+                          <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Criando conta...</>
+                        ) : (
+                          <><UserPlus className="h-4 w-4 mr-2" /> Criar minha conta</>
+                        )}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => setSignupDismissed(true)}
+                        disabled={signupLoading}
+                        className="text-muted-foreground"
+                      >
+                        Agora não
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
             <div className="space-y-3">
               <Button 
                 className="w-full bg-green-500 hover:bg-green-600"

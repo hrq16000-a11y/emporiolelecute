@@ -2270,24 +2270,36 @@ export type Database = {
       }
       profiles: {
         Row: {
+          cep: string | null
+          city: string | null
           created_at: string
           email: string
           full_name: string | null
           id: string
+          phone: string | null
+          state: string | null
           updated_at: string
         }
         Insert: {
+          cep?: string | null
+          city?: string | null
           created_at?: string
           email: string
           full_name?: string | null
           id: string
+          phone?: string | null
+          state?: string | null
           updated_at?: string
         }
         Update: {
+          cep?: string | null
+          city?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
           id?: string
+          phone?: string | null
+          state?: string | null
           updated_at?: string
         }
         Relationships: []
