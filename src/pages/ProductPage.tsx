@@ -99,6 +99,8 @@ const ProductPage = () => {
   const [showStickyCta, setShowStickyCta] = useState(false);
   const [favoriteFeedback, setFavoriteFeedback] = useState("");
   const ctaAnchorRef = useRef<HTMLDivElement | null>(null);
+  // Ref no wrapper do CTA primário — alvo do IntersectionObserver do sticky mobile.
+  const primaryCtaRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
 
   // Ref sempre fresco com estado atual — garante que callbacks (sticky, popup, summary)
