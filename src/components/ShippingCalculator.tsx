@@ -192,9 +192,14 @@ export default function ShippingCalculator({ items, state, initialCep = "", onSe
                     </p>
                   </div>
                 </div>
-                <span className="font-semibold text-foreground">
-                  {o.price === 0 ? "Grátis" : formatBRL(o.price)}
-                </span>
+                <div className="flex items-center gap-2">
+                  {!quoteMeta.estimated && !quoteMeta.local && o.price > 0 && (
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">cotação real</Badge>
+                  )}
+                  <span className="font-semibold text-foreground">
+                    {o.price === 0 ? "Grátis" : formatBRL(o.price)}
+                  </span>
+                </div>
               </Label>
             );
           })}
