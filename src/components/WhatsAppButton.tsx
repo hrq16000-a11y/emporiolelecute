@@ -19,29 +19,47 @@ const WhatsAppButton = ({ message, ariaLabel }: Props = {}) => {
   const { buildWhatsappUrl } = useContactInfo();
   const href = buildWhatsappUrl(message || DEFAULT_MESSAGE);
 
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={() => markLead(isCart ? "whatsapp_float_cart" : "whatsapp_float")}
-      className="whatsapp-float"
-      aria-label={ariaLabel || (isCart ? "Finalizar pelo WhatsApp" : "Contato via WhatsApp")}
-    >
-      {isCart ? (
-        /* Pílula com texto — apenas no carrinho */
+  // No carrinho: dispara o mesmo fluxo do botão "Finalizar pelo WhatsApp" (valida formulário antes)
+  if (isCart) {
+    const handleCartClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      markLead("whatsapp_float_cart");
+      const submitBtn = document.getElementById("finalize-whatsapp-btn") as HTMLButtonElement | null;
+      if (submitBtn) {
+        submitBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+        submitBtn.click();
+      }
+    };
+
+    return (
+      <button
+        type="button"
+        onClick={handleCartClick}
+        className="whatsapp-float"
+        aria-label={ariaLabel || "Finalizar pelo WhatsApp"}
+      >
         <div className="bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 px-5 py-3 sm:px-6 sm:py-3.5">
           <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
           <span className="ml-2 text-white font-medium text-sm sm:text-base whitespace-nowrap">
             Finalizar pelo WhatsApp
           </span>
         </div>
-      ) : (
-        /* Círculo com ícone — todas as outras páginas */
-        <div className="w-14 h-14 sm:w-16 sm:h-16 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110">
-          <MessageCircle className="h-7 w-7 sm:h-8 sm:w-8 text-white" />
-        </div>
-      )}
+      </button>
+    );
+  }
+
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() => markLead("whatsapp_float")}
+      className="whatsapp-float"
+      aria-label={ariaLabel || "Contato via WhatsApp"}
+    >
+      <div className="w-14 h-14 sm:w-16 sm:h-16 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110">
+        <MessageCircle className="h-7 w-7 sm:h-8 sm:w-8 text-white" />
+      </div>
     </a>
   );
 };

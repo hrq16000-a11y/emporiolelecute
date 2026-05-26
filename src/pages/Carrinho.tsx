@@ -766,6 +766,7 @@ const Carrinho = () => {
 
                 <div className="space-y-3">
                   <Button 
+                    id="finalize-whatsapp-btn"
                     size="lg" 
                     className="w-full bg-green-500 hover:bg-green-600 text-white"
                     onClick={handleSubmitOrder}
