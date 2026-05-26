@@ -10,7 +10,7 @@ import {
   Image, MessageSquare, Tag, ArrowRightLeft, BarChart3, ShieldCheck, Bot,
   Activity, Clock, Star, BookOpen, TrendingUp, Network, Rocket, BrainCircuit,
   Brain, Landmark, Cpu, Orbit, Eye, Compass, Crown, Infinity as InfinityIcon,
-  Hexagon, Layers3, ShieldAlert, Boxes, ChevronDown, Cookie,
+  Hexagon, Layers3, ShieldAlert, Boxes, ChevronDown, Cookie, Truck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { EXECUTIVE_NAV, type NavGroup, type NavLeaf } from '@/lib/executiveNavigation';
