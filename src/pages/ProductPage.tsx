@@ -1063,9 +1063,17 @@ const ProductPage = () => {
       <StickyAddToCart
         productName={product.name}
         productSlug={product.slug}
-        price={`R$ ${product.price.toFixed(2).replace(".", ",")}`}
+        price={`R$ ${totalPrice.toFixed(2).replace(".", ",")}`}
+        installments={
+          installments > 1
+            ? `${installments}x sem juros de R$ ${installmentValue.toFixed(2).replace(".", ",")}`
+            : undefined
+        }
+        imageUrl={product.images?.[0]}
         isVisible={showStickyCta}
         onAddToCart={handleAddToCart}
+        onWhatsApp={() => openWhatsApp("sticky_cta")}
+        primaryAction={resolvePrimaryAction(dbProduct).primary}
         enabled={ctaConfig?.sticky?.enabled !== false}
       />
 
