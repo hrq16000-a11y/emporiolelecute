@@ -874,7 +874,7 @@ const ProductPage = () => {
                 );
                 return (
                   <>
-                    <div className="flex min-w-0 items-stretch gap-2 sm:gap-3 mb-4 lg:max-w-[420px]">
+                    <div ref={primaryCtaRef} className="flex min-w-0 items-stretch gap-2 sm:gap-3 mb-4 lg:max-w-[420px]">
                       {cartBtn(true)}
                       {/* Favorite */}
                       <Button
