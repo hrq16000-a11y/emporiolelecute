@@ -119,6 +119,55 @@ export default function ShippingSettingsTab() {
         </div>
       </section>
 
+      {/* Frete Grátis — controla a barra de progresso exibida no Carrinho e no Mini-Cart */}
+      <section className={`rounded-lg border p-4 space-y-4 transition-colors ${
+        form.free_shipping_enabled ? "border-emerald-500/30 bg-emerald-500/5" : "border-border"
+      }`}>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <Gift className={`h-5 w-5 mt-0.5 ${form.free_shipping_enabled ? "text-emerald-600" : "text-muted-foreground"}`} />
+            <div>
+              <Label htmlFor="free_shipping_enabled" className="text-sm font-semibold text-foreground cursor-pointer">
+                Frete Grátis {form.free_shipping_enabled ? "Ativo" : "Desativado"}
+              </Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {form.free_shipping_enabled
+                  ? "Os clientes veem a barra de progresso (\"Faltam R$ X para ganhar frete grátis\") no carrinho."
+                  : "A barra de progresso de frete grátis fica oculta no carrinho e no mini-cart."}
+              </p>
+            </div>
+          </div>
+          <Switch
+            id="free_shipping_enabled"
+            checked={!!form.free_shipping_enabled}
+            onCheckedChange={(checked) => setForm({ ...form, free_shipping_enabled: checked })}
+            disabled={!form.is_enabled}
+            aria-label="Habilitar barra de progresso de frete grátis"
+          />
+        </div>
+
+        {form.free_shipping_enabled && (
+          <div className="pl-8">
+            <Label htmlFor="free_shipping_threshold">Valor mínimo do pedido para frete grátis (R$)</Label>
+            <Input
+              id="free_shipping_threshold"
+              type="number"
+              step="1"
+              min="0"
+              value={form.free_shipping_threshold ?? ""}
+              onChange={(e) => setForm({ ...form, free_shipping_threshold: e.target.value })}
+              placeholder="299"
+              className="mt-1 max-w-xs"
+              disabled={!form.is_enabled}
+            />
+            <p className="text-[11px] text-muted-foreground mt-1.5">
+              Ex.: <strong>299</strong> exibe "Faltam R$ X para você ganhar Frete Grátis em compras acima de R$ 299,00".
+              Defina <strong>0</strong> para ocultar a barra mesmo com o toggle ativo.
+            </p>
+          </div>
+        )}
+      </section>
+
       {/* Retirada no Local — opção adicional, exibida ao cliente quando habilitada */}
       <section className={`rounded-lg border p-4 space-y-4 transition-colors ${
         form.pickup_enabled ? "border-primary/30 bg-primary/5" : "border-border"
