@@ -189,7 +189,9 @@ function flushFunnelQueue(useKeepalive = false) {
   const batch = FUNNEL_QUEUE.splice(0, FUNNEL_QUEUE.length);
   if (funnelFlushTimer) { clearTimeout(funnelFlushTimer); funnelFlushTimer = null; }
 
-  const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/pdp_funnel_events`;
+  // Envia via RPC SECURITY DEFINER `track_pdp_funnel_batch`. O INSERT direto
+  // foi revogado de anon/authenticated para impedir flood público da tabela.
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/track_pdp_funnel_batch`;
   const apikey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
   try {
     void fetch(url, {
@@ -200,7 +202,7 @@ function flushFunnelQueue(useKeepalive = false) {
         Authorization: `Bearer ${apikey}`,
         Prefer: "return=minimal",
       },
-      body: JSON.stringify(batch),
+      body: JSON.stringify({ _events: batch }),
       keepalive: useKeepalive, // garante envio em pagehide/unload
     }).catch(() => { /* fire-and-forget */ });
   } catch { /* noop */ }
