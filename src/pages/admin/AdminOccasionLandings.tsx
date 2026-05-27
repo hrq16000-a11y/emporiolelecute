@@ -152,10 +152,10 @@ const AdminOccasionLandings = () => {
     upsert.mutate({ id: l.id, route_slug: l.route_slug, is_published: !l.is_published } as any);
 
   return (
-    <div className="p-6 lg:p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-display font-bold text-foreground flex items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground flex items-center gap-3">
             <MapPin className="w-8 h-8 text-primary" />
             Landings de Ocasiões
           </h1>

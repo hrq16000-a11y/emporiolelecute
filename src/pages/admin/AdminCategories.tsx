@@ -489,10 +489,10 @@ const AdminCategories = () => {
   const showDnd = !searchQuery; // Drag only makes sense over the full list
 
   return (
-    <div className="p-6 lg:p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-display font-semibold text-foreground">Categorias</h1>
+          <h1 className="text-2xl sm:text-3xl font-display font-semibold text-foreground">Categorias</h1>
           <p className="text-muted-foreground mt-1">
             Arraste para reordenar. Edite nome, slug, ícone (Lucide) e imagem. A ordem aqui define o
             carrossel da home.

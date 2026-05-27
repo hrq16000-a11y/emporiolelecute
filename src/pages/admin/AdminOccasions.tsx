@@ -204,10 +204,10 @@ const AdminOccasions = () => {
   };
 
   return (
-    <div className="p-6 lg:p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-display font-semibold text-foreground flex items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-display font-semibold text-foreground flex items-center gap-3">
             <Calendar className="w-8 h-8 text-primary" />
             Ocasiões
           </h1>

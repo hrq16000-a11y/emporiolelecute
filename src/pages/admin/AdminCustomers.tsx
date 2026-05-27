@@ -531,7 +531,7 @@ const AdminCustomers = () => {
     <div className="p-4 lg:p-8 overflow-x-hidden">
       <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-display text-foreground flex items-center gap-3">
+          <h1 className="text-2xl lg:text-2xl sm:text-3xl font-display text-foreground flex items-center gap-3">
             <Users className="h-7 w-7 lg:h-8 lg:w-8 text-primary" />
             Clientes, Visitantes e Leads
           </h1>

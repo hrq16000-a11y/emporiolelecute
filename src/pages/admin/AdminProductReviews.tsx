@@ -73,10 +73,10 @@ const AdminProductReviews = () => {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
         <div>
-          <h1 className="text-3xl font-display flex items-center gap-2">
+          <h1 className="text-2xl sm:text-3xl font-display flex items-center gap-2">
             <Sparkles className="h-6 w-6 text-primary" /> Avaliações
           </h1>
           <p className="text-muted-foreground">Gestão centralizada de avaliações de produto (reviews) — base do rich snippet.</p>

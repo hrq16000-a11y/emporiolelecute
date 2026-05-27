@@ -45,7 +45,7 @@ export default function AdminCoupons() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-display">Cupons</h1>
+          <h1 className="text-2xl sm:text-3xl font-display">Cupons</h1>
           <p className="text-muted-foreground">Descontos globais aplicados no carrinho.</p>
         </div>
         <Button onClick={() => { setEdit(empty); setOpen(true); }}>

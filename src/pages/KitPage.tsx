@@ -115,7 +115,7 @@ export default function KitPage() {
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 container mx-auto px-4 py-24 text-center">
-          <h1 className="text-3xl font-display font-semibold mb-3">Kit não encontrado</h1>
+          <h1 className="text-2xl sm:text-3xl font-display font-semibold mb-3">Kit não encontrado</h1>
           <p className="text-muted-foreground mb-6">O kit que você procura não existe ou não está mais ativo.</p>
           <Button asChild><Link to="/produtos">Ver todos os produtos</Link></Button>
         </main>
@@ -160,7 +160,7 @@ export default function KitPage() {
                   <Sparkles className="h-3 w-3" />
                   {kit ? BUNDLE_LABEL[kit.bundle_type] || "Kit" : "Kit"}
                 </Badge>
-                <h1 className="text-3xl lg:text-4xl font-display font-semibold text-foreground mb-3">{kit?.name ?? ""}</h1>
+                <h1 className="text-3xl lg:text-3xl sm:text-4xl font-display font-semibold text-foreground mb-3">{kit?.name ?? ""}</h1>
                 {kit?.description && (
                   <p className="text-muted-foreground text-base lg:text-lg max-w-2xl">{kit.description}</p>
                 )}

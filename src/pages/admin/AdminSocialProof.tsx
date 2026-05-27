@@ -115,7 +115,7 @@ export default function AdminSocialProof() {
     <div className="space-y-6 max-w-4xl">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl md:text-3xl font-display flex items-center gap-2">
+          <h1 className="text-2xl md:text-2xl sm:text-3xl font-display flex items-center gap-2">
             <MessageCircle className="h-6 w-6 text-primary" />
             Prova Social Flutuante
           </h1>

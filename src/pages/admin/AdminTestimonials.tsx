@@ -31,10 +31,10 @@ const AdminTestimonials = () => {
   };
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-display">Depoimentos</h1>
+          <h1 className="text-2xl sm:text-3xl font-display">Depoimentos</h1>
           <p className="text-muted-foreground">Gerencie as avaliações exibidas na Home.</p>
         </div>
         <Button onClick={startNew}><Plus className="h-4 w-4 mr-2" /> Novo depoimento</Button>

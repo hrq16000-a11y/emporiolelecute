@@ -100,14 +100,14 @@ const SitemapCheck = () => {
           </p>
 
           {loading && (
-            <Card className="p-6 flex items-center gap-3">
+            <Card className="p-4 sm:p-6 flex items-center gap-3">
               <Loader2 className="h-5 w-5 animate-spin text-primary" />
               <span>Carregando sitemap…</span>
             </Card>
           )}
 
           {error && (
-            <Card className="p-6 border-destructive/40">
+            <Card className="p-4 sm:p-6 border-destructive/40">
               <div className="flex items-center gap-2 text-destructive font-medium">
                 <XCircle className="h-5 w-5" /> Falha
               </div>
@@ -141,7 +141,7 @@ const SitemapCheck = () => {
               </Card>
 
               {result.forbiddenLocs.length > 0 && (
-                <Card className="p-6 border-destructive/40">
+                <Card className="p-4 sm:p-6 border-destructive/40">
                   <h3 className="font-medium mb-2 text-destructive">URLs proibidas encontradas</h3>
                   <ul className="text-xs space-y-1 max-h-48 overflow-auto">
                     {result.forbiddenLocs.map((loc) => (

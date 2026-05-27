@@ -210,7 +210,7 @@ export default function AdminSeoExecutiveHome() {
   ];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">SEO Executive Home</h1>

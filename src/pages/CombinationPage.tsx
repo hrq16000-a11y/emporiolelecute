@@ -216,7 +216,7 @@ const CombinationPage = () => {
         </Helmet>
         <Header />
         <main className="flex-1 container mx-auto px-4 py-24 text-center">
-          <h1 className="text-3xl font-display font-semibold mb-3">Combinação não encontrada</h1>
+          <h1 className="text-2xl sm:text-3xl font-display font-semibold mb-3">Combinação não encontrada</h1>
           <p className="text-muted-foreground mb-6">
             Não localizamos esta combinação de segmento e ocasião.
           </p>
@@ -298,7 +298,7 @@ const CombinationPage = () => {
               <span className="inline-block text-xs uppercase tracking-wider text-primary font-semibold">
                 Coleção temática
               </span>
-              <h1 className="text-3xl lg:text-4xl font-display font-semibold text-foreground">{h1}</h1>
+              <h1 className="text-3xl lg:text-3xl sm:text-4xl font-display font-semibold text-foreground">{h1}</h1>
               {description && (
                 <p className="text-muted-foreground text-base lg:text-lg">{description}</p>
               )}

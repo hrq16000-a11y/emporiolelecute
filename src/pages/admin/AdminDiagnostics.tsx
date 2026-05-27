@@ -200,9 +200,9 @@ const AdminDiagnostics = () => {
   const igSpike = useMemo(() => detectSpike(igFailures), [igFailures]);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-display text-foreground">Diagnóstico</h1>
+        <h1 className="text-2xl sm:text-3xl font-display text-foreground">Diagnóstico</h1>
         <p className="text-muted-foreground">Logs de stale-bundle e falhas de embed do Instagram.</p>
       </div>
 
@@ -296,7 +296,7 @@ const AdminDiagnostics = () => {
                     </tr>
                   ))}
                   {staleLogs.length === 0 && (
-                    <tr><td colSpan={4} className="p-6 text-center text-muted-foreground">Nenhum log no período.</td></tr>
+                    <tr><td colSpan={4} className="p-4 sm:p-6 text-center text-muted-foreground">Nenhum log no período.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -366,7 +366,7 @@ const AdminDiagnostics = () => {
                     </tr>
                   ))}
                   {igFailures.length === 0 && (
-                    <tr><td colSpan={4} className="p-6 text-center text-muted-foreground">Nenhuma falha registrada.</td></tr>
+                    <tr><td colSpan={4} className="p-4 sm:p-6 text-center text-muted-foreground">Nenhuma falha registrada.</td></tr>
                   )}
                 </tbody>
               </table>

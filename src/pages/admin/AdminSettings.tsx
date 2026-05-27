@@ -149,14 +149,14 @@ const AdminSettings = () => {
 
   if (loading) {
     return (
-      <div className="p-6 lg:p-8 flex items-center justify-center min-h-[50vh]">
+      <div className="p-4 sm:p-6 lg:p-8 flex items-center justify-center min-h-[50vh]">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="p-6 lg:p-8 space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

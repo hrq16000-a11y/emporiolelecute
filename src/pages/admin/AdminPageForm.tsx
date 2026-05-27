@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { usePageById, useCreatePage, useUpdatePage, useSavePageVersion, usePageVersions } from '@/hooks/usePages';
 import WYSIWYGEditor from '@/components/admin/WYSIWYGEditor';
 import { useFormDraft } from '@/hooks/useFormDraft';
+import DraftStatusBadge from '@/components/admin/DraftStatusBadge';
 
 const AdminPageForm = () => {
   const { id } = useParams<{ id: string }>();
@@ -153,16 +154,19 @@ const AdminPageForm = () => {
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => navigate('/admin/paginas')}>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6 sm:mb-8">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/admin/paginas')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar
           </Button>
-          <div>
-            <h1 className="text-2xl font-display text-foreground">
-              {isEditing ? 'Editar Página' : 'Nova Página'}
-            </h1>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-display text-foreground truncate">
+                {isEditing ? 'Editar Página' : 'Nova Página'}
+              </h1>
+              <DraftStatusBadge />
+            </div>
             {lastSaved && (
               <p className="text-xs text-muted-foreground mt-1">
                 Último salvamento: {lastSaved.toLocaleTimeString()}
@@ -171,9 +175,10 @@ const AdminPageForm = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           <Button
             variant="outline"
+            size="sm"
             onClick={() => handleSubmit(false)}
             disabled={createPage.isPending || updatePage.isPending}
           >
@@ -182,6 +187,7 @@ const AdminPageForm = () => {
             Salvar Rascunho
           </Button>
           <Button
+            size="sm"
             onClick={() => handleSubmit(true)}
             disabled={createPage.isPending || updatePage.isPending}
             className="bg-primary hover:bg-primary-dark"

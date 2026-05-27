@@ -225,7 +225,7 @@ export default function AdminSeoSystemAudit() {
   };
 
   return (
-    <div className="p-6 space-y-4 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-4 max-w-7xl mx-auto">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">SEO System Audit</h1>

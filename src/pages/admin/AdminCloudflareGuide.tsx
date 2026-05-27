@@ -60,9 +60,9 @@ export default function AdminCloudflareGuide() {
   };
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-display">Cloudflare Worker — robots.txt</h1>
+        <h1 className="text-2xl sm:text-3xl font-display">Cloudflare Worker — robots.txt</h1>
         <p className="text-muted-foreground mt-1">Guia passo a passo para servir o robots.txt dinâmico no domínio raiz sem quebrar a SPA.</p>
       </div>
 

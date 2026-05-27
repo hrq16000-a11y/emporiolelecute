@@ -108,9 +108,9 @@ const AdminContentHealth = () => {
   }, [data, taxonomies]);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-display flex items-center gap-2">
+        <h1 className="text-2xl sm:text-3xl font-display flex items-center gap-2">
           <Activity className="h-6 w-6 text-primary" /> Saúde do Conteúdo
         </h1>
         <p className="text-muted-foreground">Visão consolidada de qualidade editorial e SEO do catálogo.</p>
