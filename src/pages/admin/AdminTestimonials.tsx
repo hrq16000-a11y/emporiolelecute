@@ -95,7 +95,12 @@ const AdminTestimonials = () => {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>{form.id ? 'Editar depoimento' : 'Novo depoimento'}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <div className="flex items-center justify-between gap-3 pr-6">
+              <DialogTitle>{form.id ? 'Editar depoimento' : 'Novo depoimento'}</DialogTitle>
+              <DraftStatusBadge />
+            </div>
+          </DialogHeader>
           <div className="space-y-4">
             <div>
               <Label>Nome do cliente *</Label>
