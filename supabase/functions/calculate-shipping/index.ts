@@ -247,21 +247,25 @@ Deno.serve(async (req) => {
 
 // --- Provedores ---
 async function quoteProvider(p: any, ctx: any): Promise<ShippingOption[]> {
-  const ctrl = new AbortController();
-  // Timeout rígido via Promise.race — garante que a Edge nunca espere mais que PROVIDER_TIMEOUT_MS.
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(() => {
-      ctrl.abort();
-      reject(new ProviderTimeoutError(PROVIDER_TIMEOUT_MS));
-    }, PROVIDER_TIMEOUT_MS);
-  });
-
   try {
-    if (p.provider_code === 'melhor_envio') {
-      return await Promise.race([quoteMelhorEnvio(p, ctx, ctrl.signal), timeoutPromise]);
+    if (p.provider_code !== 'melhor_envio') return [];
+
+    // 1) Cache layer — evita bater no provedor para combinações recentes.
+    const cacheKey = buildQuoteCacheKey('melhor_envio', ctx.origin, ctx.destino, ctx.totalWeight);
+    const cached = await readQuoteCache(ctx.sb, cacheKey);
+    if (cached && cached.length > 0) {
+      console.log('[calculate-shipping] cache hit', { cacheKey, count: cached.length });
+      return cached;
     }
-    // 'correios_estimate' é fallback, tratado fora do loop
-    return [];
+
+    // 2) Chamada real ao provedor com timeout rígido.
+    const options = await quoteMelhorEnvio(p, ctx);
+
+    // 3) Salva no cache de forma best-effort (não bloqueia retorno).
+    if (options.length > 0) {
+      writeQuoteCache(ctx.sb, cacheKey, options).catch(() => {});
+    }
+    return options;
   } catch (err: any) {
     // Classifica motivo do fallback para a auditoria
     const status = err?.status as number | undefined;
@@ -287,7 +291,7 @@ async function quoteProvider(p: any, ctx: any): Promise<ShippingOption[]> {
   }
 }
 
-async function quoteMelhorEnvio(p: any, ctx: any, signal: AbortSignal): Promise<ShippingOption[]> {
+async function quoteMelhorEnvio(p: any, ctx: any): Promise<ShippingOption[]> {
   if (!p.api_key || !p.endpoint_url) throw new Error('Credenciais Melhor Envio ausentes');
 
   // EMPACOTAMENTO consolidado em 1 caixa (lib).
@@ -301,9 +305,9 @@ async function quoteMelhorEnvio(p: any, ctx: any, signal: AbortSignal): Promise<
     boxL: Number(ctx.settings.default_box_length_cm) || 20,
   });
 
-  const res = await fetch(p.endpoint_url, {
+  const res = await fetchWithTimeout(p.endpoint_url, {
     method: 'POST',
-    signal,
+    timeout: PROVIDER_TIMEOUT_MS,
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
@@ -326,6 +330,7 @@ async function quoteMelhorEnvio(p: any, ctx: any, signal: AbortSignal): Promise<
       estimated_delivery_days: `${o.delivery_range?.min ?? '?'}-${o.delivery_range?.max ?? '?'}`,
     }));
 }
+
 
 // (quoteCorreiosEstimate movido para ./lib.ts)
 
