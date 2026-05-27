@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { sortByFeatured } from "@/lib/catalogFilter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/contexts/CartContext";
+import { useCart } from "@/stores/cartStore";
 import { useContactInfo } from "@/hooks/useContactInfo";
 import { buildWhatsAppUrl, trackWhatsAppClick } from "@/lib/analytics";
 import { optimizeImage } from "@/lib/image";

@@ -65,7 +65,7 @@ import { useContactInfo } from "@/hooks/useContactInfo";
 import { toast as sonnerToast } from "sonner";
 import { useConversionCtaConfig } from "@/hooks/useConversionCtaConfig";
 import { renderWhatsAppMessage, normalizeQuantity, normalizePersonalization } from "@/lib/whatsappTemplate";
-import { useCart } from "@/contexts/CartContext";
+import { useCart } from "@/stores/cartStore";
 import { useSemanticContext } from "@/hooks/useSemanticContext";
 import { buildContextualLinksForProduct } from "@/lib/linkOrchestrator";
 import SemanticLinkingBlock from "@/components/SemanticLinkingBlock";

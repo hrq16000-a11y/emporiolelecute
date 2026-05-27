@@ -9,7 +9,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import TrustBadges from "@/components/TrustBadges";
-import { useCart } from "@/contexts/CartContext";
+import { useCart } from "@/stores/cartStore";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { validateCoupon, type ValidCoupon } from "@/hooks/useCoupons";

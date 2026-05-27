@@ -8,7 +8,7 @@ import SocialProofToast from "@/components/SocialProofToast";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useParams, useLocation } from "react-router-dom";
 import { lazy, Suspense, useEffect } from "react";
-import { CartProvider } from "./contexts/CartContext";
+
 import { usePageTracking } from "./lib/analytics";
 import { useReducedMotion } from "./hooks/useReducedMotion";
 import { PageSkeleton, AdminSkeleton } from "./components/ui/skeleton-loading";
@@ -345,8 +345,7 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <CartProvider>
-        <TooltipProvider>
+      <TooltipProvider>
           <ReducedMotionMount />
           <Toaster />
           <Sonner />
@@ -1128,8 +1127,7 @@ const App = () => {
               </Routes>
             </AnalyticsWrapper>
           </BrowserRouter>
-        </TooltipProvider>
-      </CartProvider>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 };

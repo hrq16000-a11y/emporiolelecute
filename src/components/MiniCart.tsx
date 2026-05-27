@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useCart } from "@/contexts/CartContext";
+import { useCart } from "@/stores/cartStore";
 import { formatBRL } from "@/lib/format";
 import { optimizeImage } from "@/lib/image";
 import { cn } from "@/lib/utils";

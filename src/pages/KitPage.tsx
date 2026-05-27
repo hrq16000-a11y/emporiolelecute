@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useKitBySlug } from "@/hooks/useKits";
-import { useCart } from "@/contexts/CartContext";
+import { useCart } from "@/stores/cartStore";
 import { useContactInfo } from "@/hooks/useContactInfo";
 import { trackInquiry, trackWhatsAppClick, buildWhatsAppUrl, event as gaEvent } from "@/lib/analytics";
 import { optimizeImage } from "@/lib/image";
