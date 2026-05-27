@@ -124,6 +124,8 @@ const Chatbot = () => {
     }
   };
 
+  if (flags && !flags.chatbot_enabled) return null;
+
   return (
     <>
       {/* Chat Button */}
