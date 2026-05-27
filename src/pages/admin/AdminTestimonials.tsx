@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAdminTestimonials, useUpsertTestimonial, useDeleteTestimonial, type Testimonial } from '@/hooks/useTestimonials';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,8 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Plus, Pencil, Trash2, Eye, EyeOff, Star } from 'lucide-react';
+import DraftStatusBadge from '@/components/admin/DraftStatusBadge';
+import { useFormDraft } from '@/hooks/useFormDraft';
 
 const empty: Partial<Testimonial> = {
   customer_name: '', customer_text: '', product_name: '', occasion: '', rating: 5, testimonial_date: '', position: 0, is_visible: true,
@@ -19,6 +21,19 @@ const AdminTestimonials = () => {
   const remove = useDeleteTestimonial();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Partial<Testimonial>>(empty);
+  const [hydrated, setHydrated] = useState(false);
+
+  // Rascunho persistente por item (novo OU id em edição)
+  const scopeKey = open ? `testimonial:${form.id ?? 'new'}` : undefined;
+  const { hydrate, clear } = useFormDraft(form, open && hydrated, 1000, scopeKey);
+
+  // Hidrata ao abrir o dialog
+  useEffect(() => {
+    if (!open) { setHydrated(false); return; }
+    const saved = hydrate<Partial<Testimonial>>();
+    if (saved) setForm(saved);
+    setHydrated(true);
+  }, [open, form.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startNew = () => { setForm({ ...empty, position: (data?.length || 0) }); setOpen(true); };
   const startEdit = (t: Testimonial) => { setForm({ ...t, testimonial_date: t.testimonial_date || '' }); setOpen(true); };
@@ -27,6 +42,7 @@ const AdminTestimonials = () => {
     if (!form.customer_name || !form.customer_text) return;
     const payload: Partial<Testimonial> = { ...form, testimonial_date: form.testimonial_date || null };
     await upsert.mutateAsync(payload);
+    clear();
     setOpen(false);
   };
 
