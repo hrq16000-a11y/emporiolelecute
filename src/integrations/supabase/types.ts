@@ -6026,6 +6026,24 @@ export type Database = {
         }
         Relationships: []
       }
+      shipping_quote_cache: {
+        Row: {
+          cache_key: string
+          created_at: string
+          options: Json
+        }
+        Insert: {
+          cache_key: string
+          created_at?: string
+          options: Json
+        }
+        Update: {
+          cache_key?: string
+          created_at?: string
+          options?: Json
+        }
+        Relationships: []
+      }
       shipping_rules: {
         Row: {
           condition_type: Database["public"]["Enums"]["shipping_condition_type"]
