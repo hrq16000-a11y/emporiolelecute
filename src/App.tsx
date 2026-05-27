@@ -167,6 +167,26 @@ const VisitorTracker = () => { useVisitorTracking(); return null; };
 import { logSlugEvent } from "./lib/slugObservability";
 import { urls, PRODUCT_PATH_PREFIX, LEGACY_PRODUCT_PATH_PREFIX } from "./lib/urls";
 
+import { QueryCache, MutationCache } from "@tanstack/react-query";
+import { toast as sonnerToast } from "sonner";
+
+/**
+ * Extrai mensagem amigável de qualquer tipo de erro (Supabase, fetch, JS).
+ */
+function extractErrorMessage(error: unknown): string {
+  if (!error) return "Erro desconhecido";
+  if (typeof error === "string") return error;
+  if (error instanceof Error) return error.message;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const anyErr = error as any;
+  return anyErr?.message || anyErr?.error_description || anyErr?.error || "Erro desconhecido";
+}
+
+/**
+ * Toast global de erro: dispara em QUALQUER mutation/query que falhe sem tratamento.
+ * Garante que nenhuma falha de admin passe silenciosa. Mutations que já chamam
+ * toast no onError continuam funcionando normalmente (sonner deduplica visualmente).
+ */
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -176,6 +196,29 @@ const queryClient = new QueryClient({
       retry: 1,
     },
   },
+  queryCache: new QueryCache({
+    onError: (error, query) => {
+      // Só notifica em rotas admin para não poluir UX pública
+      if (!window.location.pathname.startsWith("/admin")) return;
+      // Evita duplicar quando a query define meta.silent
+      if (query.meta?.silent) return;
+      sonnerToast.error("Falha ao carregar dados", {
+        description: extractErrorMessage(error),
+      });
+    },
+  }),
+  mutationCache: new MutationCache({
+    onError: (error, _vars, _ctx, mutation) => {
+      // Sempre notifica em admin; em rotas públicas, só se a mutation não tratou o erro
+      const inAdmin = window.location.pathname.startsWith("/admin");
+      const hasLocalHandler = !!mutation.options.onError;
+      if (!inAdmin && hasLocalHandler) return;
+      if (mutation.meta?.silent) return;
+      sonnerToast.error("Erro ao salvar", {
+        description: extractErrorMessage(error),
+      });
+    },
+  }),
 });
 
 // Analytics wrapper component
