@@ -10,6 +10,8 @@ import { packCart, buildMelhorEnvioPayload, quoteCorreiosEstimate, round2 } from
 // Timeout rígido para qualquer chamada a provedor externo (ex.: Melhor Envio).
 // Acima disso, devolvemos o fallback estimado para não travar o checkout.
 const PROVIDER_TIMEOUT_MS = 2500;
+// TTL do cache de cotações em ms (5 min) — alinha com a volatilidade típica das tarifas.
+const QUOTE_CACHE_TTL_MS = 5 * 60 * 1000;
 
 class ProviderTimeoutError extends Error {
   constructor(public ms: number) {
@@ -17,6 +19,69 @@ class ProviderTimeoutError extends Error {
     this.name = 'ProviderTimeoutError';
   }
 }
+
+/**
+ * fetch com AbortController + timeout rígido. Garante que o request seja realmente
+ * cancelado no socket e que a Edge nunca fique pendurada além de `timeout` ms.
+ */
+async function fetchWithTimeout(
+  resource: string,
+  options: RequestInit & { timeout?: number } = {},
+): Promise<Response> {
+  const { timeout = PROVIDER_TIMEOUT_MS, signal: externalSignal, ...rest } = options;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  // Propaga abort externo caso fornecido
+  if (externalSignal) {
+    if (externalSignal.aborted) controller.abort();
+    else externalSignal.addEventListener('abort', () => controller.abort(), { once: true });
+  }
+  try {
+    return await fetch(resource, { ...rest, signal: controller.signal });
+  } catch (err: any) {
+    if (err?.name === 'AbortError') throw new ProviderTimeoutError(timeout);
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+/** Gera uma chave estável para cache de cotação. */
+function buildQuoteCacheKey(provider: string, origin: string, destino: string, weightKg: number): string {
+  // Arredonda peso a 2 casas (10g) para maximizar hits sem perder precisão relevante.
+  const w = Math.round(weightKg * 100) / 100;
+  return `${provider}:${origin}:${destino}:${w}`;
+}
+
+async function readQuoteCache(sb: any, key: string): Promise<ShippingOption[] | null> {
+  try {
+    const { data, error } = await sb
+      .from('shipping_quote_cache')
+      .select('options, created_at')
+      .eq('cache_key', key)
+      .maybeSingle();
+    if (error || !data) return null;
+    const age = Date.now() - new Date(data.created_at).getTime();
+    if (age > QUOTE_CACHE_TTL_MS) return null;
+    return Array.isArray(data.options) ? (data.options as ShippingOption[]) : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+async function writeQuoteCache(sb: any, key: string, options: ShippingOption[]): Promise<void> {
+  try {
+    await sb
+      .from('shipping_quote_cache')
+      .upsert(
+        { cache_key: key, options, created_at: new Date().toISOString() },
+        { onConflict: 'cache_key' },
+      );
+  } catch (_) {
+    // Cache é best-effort — falhas nunca devem propagar.
+  }
+}
+
 
 const ItemSchema = z.object({
   product_id: z.string().optional(),
@@ -182,21 +247,25 @@ Deno.serve(async (req) => {
 
 // --- Provedores ---
 async function quoteProvider(p: any, ctx: any): Promise<ShippingOption[]> {
-  const ctrl = new AbortController();
-  // Timeout rígido via Promise.race — garante que a Edge nunca espere mais que PROVIDER_TIMEOUT_MS.
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(() => {
-      ctrl.abort();
-      reject(new ProviderTimeoutError(PROVIDER_TIMEOUT_MS));
-    }, PROVIDER_TIMEOUT_MS);
-  });
-
   try {
-    if (p.provider_code === 'melhor_envio') {
-      return await Promise.race([quoteMelhorEnvio(p, ctx, ctrl.signal), timeoutPromise]);
+    if (p.provider_code !== 'melhor_envio') return [];
+
+    // 1) Cache layer — evita bater no provedor para combinações recentes.
+    const cacheKey = buildQuoteCacheKey('melhor_envio', ctx.origin, ctx.destino, ctx.totalWeight);
+    const cached = await readQuoteCache(ctx.sb, cacheKey);
+    if (cached && cached.length > 0) {
+      console.log('[calculate-shipping] cache hit', { cacheKey, count: cached.length });
+      return cached;
     }
-    // 'correios_estimate' é fallback, tratado fora do loop
-    return [];
+
+    // 2) Chamada real ao provedor com timeout rígido.
+    const options = await quoteMelhorEnvio(p, ctx);
+
+    // 3) Salva no cache de forma best-effort (não bloqueia retorno).
+    if (options.length > 0) {
+      writeQuoteCache(ctx.sb, cacheKey, options).catch(() => {});
+    }
+    return options;
   } catch (err: any) {
     // Classifica motivo do fallback para a auditoria
     const status = err?.status as number | undefined;
@@ -222,7 +291,7 @@ async function quoteProvider(p: any, ctx: any): Promise<ShippingOption[]> {
   }
 }
 
-async function quoteMelhorEnvio(p: any, ctx: any, signal: AbortSignal): Promise<ShippingOption[]> {
+async function quoteMelhorEnvio(p: any, ctx: any): Promise<ShippingOption[]> {
   if (!p.api_key || !p.endpoint_url) throw new Error('Credenciais Melhor Envio ausentes');
 
   // EMPACOTAMENTO consolidado em 1 caixa (lib).
@@ -236,9 +305,9 @@ async function quoteMelhorEnvio(p: any, ctx: any, signal: AbortSignal): Promise<
     boxL: Number(ctx.settings.default_box_length_cm) || 20,
   });
 
-  const res = await fetch(p.endpoint_url, {
+  const res = await fetchWithTimeout(p.endpoint_url, {
     method: 'POST',
-    signal,
+    timeout: PROVIDER_TIMEOUT_MS,
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
@@ -261,6 +330,7 @@ async function quoteMelhorEnvio(p: any, ctx: any, signal: AbortSignal): Promise<
       estimated_delivery_days: `${o.delivery_range?.min ?? '?'}-${o.delivery_range?.max ?? '?'}`,
     }));
 }
+
 
 // (quoteCorreiosEstimate movido para ./lib.ts)
 
