@@ -10,6 +10,8 @@ import { packCart, buildMelhorEnvioPayload, quoteCorreiosEstimate, round2 } from
 // Timeout rígido para qualquer chamada a provedor externo (ex.: Melhor Envio).
 // Acima disso, devolvemos o fallback estimado para não travar o checkout.
 const PROVIDER_TIMEOUT_MS = 2500;
+// TTL do cache de cotações em ms (5 min) — alinha com a volatilidade típica das tarifas.
+const QUOTE_CACHE_TTL_MS = 5 * 60 * 1000;
 
 class ProviderTimeoutError extends Error {
   constructor(public ms: number) {
@@ -17,6 +19,69 @@ class ProviderTimeoutError extends Error {
     this.name = 'ProviderTimeoutError';
   }
 }
+
+/**
+ * fetch com AbortController + timeout rígido. Garante que o request seja realmente
+ * cancelado no socket e que a Edge nunca fique pendurada além de `timeout` ms.
+ */
+async function fetchWithTimeout(
+  resource: string,
+  options: RequestInit & { timeout?: number } = {},
+): Promise<Response> {
+  const { timeout = PROVIDER_TIMEOUT_MS, signal: externalSignal, ...rest } = options;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  // Propaga abort externo caso fornecido
+  if (externalSignal) {
+    if (externalSignal.aborted) controller.abort();
+    else externalSignal.addEventListener('abort', () => controller.abort(), { once: true });
+  }
+  try {
+    return await fetch(resource, { ...rest, signal: controller.signal });
+  } catch (err: any) {
+    if (err?.name === 'AbortError') throw new ProviderTimeoutError(timeout);
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+/** Gera uma chave estável para cache de cotação. */
+function buildQuoteCacheKey(provider: string, origin: string, destino: string, weightKg: number): string {
+  // Arredonda peso a 2 casas (10g) para maximizar hits sem perder precisão relevante.
+  const w = Math.round(weightKg * 100) / 100;
+  return `${provider}:${origin}:${destino}:${w}`;
+}
+
+async function readQuoteCache(sb: any, key: string): Promise<ShippingOption[] | null> {
+  try {
+    const { data, error } = await sb
+      .from('shipping_quote_cache')
+      .select('options, created_at')
+      .eq('cache_key', key)
+      .maybeSingle();
+    if (error || !data) return null;
+    const age = Date.now() - new Date(data.created_at).getTime();
+    if (age > QUOTE_CACHE_TTL_MS) return null;
+    return Array.isArray(data.options) ? (data.options as ShippingOption[]) : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+async function writeQuoteCache(sb: any, key: string, options: ShippingOption[]): Promise<void> {
+  try {
+    await sb
+      .from('shipping_quote_cache')
+      .upsert(
+        { cache_key: key, options, created_at: new Date().toISOString() },
+        { onConflict: 'cache_key' },
+      );
+  } catch (_) {
+    // Cache é best-effort — falhas nunca devem propagar.
+  }
+}
+
 
 const ItemSchema = z.object({
   product_id: z.string().optional(),
