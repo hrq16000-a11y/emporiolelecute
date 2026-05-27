@@ -7083,6 +7083,7 @@ export type Database = {
         }
         Returns: string
       }
+      track_pdp_funnel_batch: { Args: { _events: Json }; Returns: undefined }
       unaccent: { Args: { "": string }; Returns: string }
       update_user_profile: {
         Args: { _full_name: string; _user_id: string }
