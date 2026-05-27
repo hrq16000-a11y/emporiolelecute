@@ -9,7 +9,7 @@ import { Truck, Settings as SettingsIcon, ExternalLink } from "lucide-react";
 
 export default function AdminShipping() {
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-6xl mx-auto">
       <header className="mb-6 flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="font-display text-3xl text-foreground flex items-center gap-2">

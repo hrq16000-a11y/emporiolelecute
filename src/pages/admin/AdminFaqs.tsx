@@ -245,7 +245,7 @@ const AdminFaqs = () => {
 
   if (isLoading) {
     return (
-      <div className="p-6 lg:p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-muted rounded w-1/4" />
           <div className="h-24 bg-muted rounded" />
@@ -257,11 +257,11 @@ const AdminFaqs = () => {
   }
 
   return (
-    <div className="p-6 lg:p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-display font-bold text-foreground flex items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground flex items-center gap-3">
             <HelpCircle className="w-8 h-8 text-primary" />
             Perguntas Frequentes
           </h1>

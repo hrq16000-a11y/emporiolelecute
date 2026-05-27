@@ -98,7 +98,7 @@ export default function AdminKnowledgeGraph() {
   const maxAuth = Math.max(1, ...graph.clusters.map((c) => c.authorityAvg));
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2"><Network className="h-6 w-6 text-primary" /> Knowledge Graph</h1>
         <p className="text-sm text-muted-foreground">Visão semântica completa. {graph.nodes.length} nós · {graph.edges.length} arestas · {graph.clusters.length} clusters</p>

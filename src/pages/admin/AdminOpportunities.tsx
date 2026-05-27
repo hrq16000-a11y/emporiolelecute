@@ -86,9 +86,9 @@ const AdminOpportunities = () => {
   ] : [], [data]);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-display flex items-center gap-2">
+        <h1 className="text-2xl sm:text-3xl font-display flex items-center gap-2">
           <Sparkles className="h-6 w-6 text-primary" /> Oportunidades
         </h1>
         <p className="text-muted-foreground">Próximos passos para enriquecer o catálogo e ganhar cobertura SEO.</p>

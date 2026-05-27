@@ -42,7 +42,7 @@ export default function AdminRobots() {
     <div className="space-y-6 max-w-4xl">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-display flex items-center gap-2"><Bot className="h-7 w-7" /> Robots.txt</h1>
+          <h1 className="text-2xl sm:text-3xl font-display flex items-center gap-2"><Bot className="h-7 w-7" /> Robots.txt</h1>
           <p className="text-muted-foreground">Controle a indexação por buscadores.</p>
         </div>
         <Button onClick={save} disabled={update.isPending}><Save className="h-4 w-4 mr-2" /> Salvar</Button>

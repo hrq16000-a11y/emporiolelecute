@@ -105,10 +105,10 @@ const AdminTaxonomiesHealth = () => {
   const allKinds: TaxonomyKind[] = ['categoria', 'ocasiao', 'segmento', 'tag'];
 
   return (
-    <div className="p-6 lg:p-8 space-y-6 max-w-6xl">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-6xl">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-3xl font-display font-semibold text-foreground">Healthcheck de Taxonomias</h1>
+          <h1 className="text-2xl sm:text-3xl font-display font-semibold text-foreground">Healthcheck de Taxonomias</h1>
           <p className="text-muted-foreground mt-1">Auditoria operacional rápida do estado SEO e vínculos.</p>
         </div>
         <Link to="/admin/taxonomias">
@@ -125,7 +125,7 @@ const AdminTaxonomiesHealth = () => {
                 <CardTitle className="text-base">{TAXONOMY_LABELS[k].plural}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <p className="text-3xl font-display">{s.total}</p>
+                <p className="text-2xl sm:text-3xl font-display">{s.total}</p>
                 <div className="flex flex-wrap gap-1.5 text-xs">
                   {k !== 'tag' && s.noSeo > 0 && (
                     <Badge variant="outline" className="border-amber-400 text-amber-700 dark:text-amber-300 gap-1">

@@ -98,7 +98,7 @@ export default function AdminCookieConsent() {
     } catch {}
   }
 
-  if (loading) return <div className="p-6 text-muted-foreground">Carregando…</div>;
+  if (loading) return <div className="p-4 sm:p-6 text-muted-foreground">Carregando…</div>;
 
   return (
     <>

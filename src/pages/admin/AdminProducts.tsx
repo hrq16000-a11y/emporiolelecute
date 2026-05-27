@@ -188,7 +188,7 @@ const AdminProducts = () => {
     <div className="p-3 sm:p-6 lg:p-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-display font-semibold text-foreground">Produtos</h1>
+          <h1 className="text-2xl sm:text-2xl sm:text-3xl font-display font-semibold text-foreground">Produtos</h1>
           <p className="text-sm sm:text-base text-muted-foreground mt-1">Gerencie todos os produtos da loja</p>
         </div>
         <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">

@@ -258,9 +258,9 @@ const AdminAccessRequestDetail = () => {
     }
   };
 
-  if (loading) return <div className="p-6 text-sm text-muted-foreground">Carregando…</div>;
+  if (loading) return <div className="p-4 sm:p-6 text-sm text-muted-foreground">Carregando…</div>;
   if (!profile) return (
-    <div className="p-6 space-y-3">
+    <div className="p-4 sm:p-6 space-y-3">
       <p className="text-sm text-muted-foreground">Solicitação não encontrada.</p>
       <Button variant="outline" onClick={() => nav('/admin/usuarios/solicitacoes')}>
         <ArrowLeft className="w-4 h-4 mr-2" /> Voltar

@@ -166,7 +166,7 @@ const PreviewPanel = ({ section }: { section: HomeSection | null }) => {
   const Component = HOME_SECTIONS_REGISTRY[section.component_name];
   if (!Component) {
     return (
-      <div className="p-6 text-sm text-destructive">
+      <div className="p-4 sm:p-6 text-sm text-destructive">
         Componente <code>{section.component_name}</code> não está registrado em{" "}
         <code>homeSectionsRegistry.ts</code>.
       </div>

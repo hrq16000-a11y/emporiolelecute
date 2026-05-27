@@ -224,10 +224,10 @@ const AdminMenus = () => {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-display text-foreground flex items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-display text-foreground flex items-center gap-3">
             <Menu className="w-8 h-8 text-primary" />
             Menus
           </h1>

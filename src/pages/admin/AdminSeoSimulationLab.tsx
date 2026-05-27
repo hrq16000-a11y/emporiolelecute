@@ -264,7 +264,7 @@ export default function AdminSeoSimulationLab() {
         </TabsContent>
 
         <TabsContent value="summary">
-          <Card className="p-6 space-y-3">
+          <Card className="p-4 sm:p-6 space-y-3">
             <h3 className="text-lg font-semibold">Resumo Executivo de Simulação</h3>
             <ul className="text-sm space-y-1 list-disc list-inside">
               <li>Confiança da simulação atual: <strong>{growth.confidence}%</strong></li>
