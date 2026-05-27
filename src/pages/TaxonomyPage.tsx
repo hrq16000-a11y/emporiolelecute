@@ -262,7 +262,7 @@ const TaxonomyPage = ({ kind }: Props) => {
         </Helmet>
         <Header />
         <main className="flex-1 container mx-auto px-4 py-24 text-center">
-          <h1 className="text-3xl font-display font-semibold mb-3">{cfg.label} não encontrada</h1>
+          <h1 className="text-2xl sm:text-3xl font-display font-semibold mb-3">{cfg.label} não encontrada</h1>
           <p className="text-muted-foreground mb-6">A página que você procura não existe ou foi removida.</p>
           <Button asChild><Link to="/produtos">Ver todos os produtos</Link></Button>
         </main>
@@ -341,7 +341,7 @@ const TaxonomyPage = ({ kind }: Props) => {
                     <span className="inline-block text-xs uppercase tracking-wider text-primary font-semibold mb-2">{cfg.label}</span>
                   );
                 })()}
-                <h1 className="text-3xl lg:text-4xl font-display font-semibold text-foreground mb-3">{h1}</h1>
+                <h1 className="text-3xl lg:text-3xl sm:text-4xl font-display font-semibold text-foreground mb-3">{h1}</h1>
                 {entity?.description && (
                   <p className="text-muted-foreground text-base lg:text-lg max-w-2xl">{entity.description}</p>
                 )}

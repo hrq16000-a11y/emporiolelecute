@@ -107,7 +107,7 @@ const Blog = () => {
                         />
                       </Link>
                     )}
-                    <div className="p-6 flex-1 flex flex-col">
+                    <div className="p-4 sm:p-6 flex-1 flex flex-col">
                       <span className="text-xs uppercase tracking-wide text-primary font-medium mb-2">
                         {post.category}
                       </span>

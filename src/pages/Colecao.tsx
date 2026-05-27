@@ -77,7 +77,7 @@ const Colecao = () => {
         </Helmet>
         <Header />
         <main className="flex-1 container mx-auto px-4 py-24 text-center">
-          <h1 className="text-3xl font-display font-semibold mb-3">Coleção não encontrada</h1>
+          <h1 className="text-2xl sm:text-3xl font-display font-semibold mb-3">Coleção não encontrada</h1>
           <p className="text-muted-foreground mb-6">A coleção que você procura não existe ou não está mais ativa.</p>
           <Button asChild><Link to="/produtos">Ver todos os produtos</Link></Button>
         </main>
@@ -131,7 +131,7 @@ const Colecao = () => {
             <div className="flex flex-col-reverse lg:flex-row gap-8 items-start lg:items-center">
               <div className="flex-1 min-w-0">
                 <span className="inline-block text-xs uppercase tracking-wider text-primary font-semibold mb-2">Coleção</span>
-                <h1 className="text-3xl lg:text-4xl font-display font-semibold text-foreground mb-3">{collection?.name ?? ""}</h1>
+                <h1 className="text-3xl lg:text-3xl sm:text-4xl font-display font-semibold text-foreground mb-3">{collection?.name ?? ""}</h1>
                 {collection?.description && (
                   <p className="text-muted-foreground text-base lg:text-lg max-w-2xl">{collection.description}</p>
                 )}

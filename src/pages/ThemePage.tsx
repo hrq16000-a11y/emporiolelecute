@@ -226,7 +226,7 @@ const ThemePage = () => {
         </Helmet>
         <Header />
         <main className="flex-1 container mx-auto px-4 py-24 text-center">
-          <h1 className="text-3xl font-display font-semibold mb-3">Tema não encontrado</h1>
+          <h1 className="text-2xl sm:text-3xl font-display font-semibold mb-3">Tema não encontrado</h1>
           <p className="text-muted-foreground mb-6">Este hub temático não está disponível.</p>
           <Button asChild><Link to="/produtos">Ver todos os produtos</Link></Button>
         </main>
@@ -305,7 +305,7 @@ const ThemePage = () => {
                   <Sparkles className="w-3.5 h-3.5" />
                   Hub temático
                 </span>
-                <h1 className="text-3xl lg:text-4xl font-display font-semibold text-foreground">{h1}</h1>
+                <h1 className="text-3xl lg:text-3xl sm:text-4xl font-display font-semibold text-foreground">{h1}</h1>
                 {hub?.intro && (
                   <p className="text-muted-foreground text-base lg:text-lg">{hub.intro}</p>
                 )}
