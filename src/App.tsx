@@ -657,6 +657,11 @@ const App = () => {
                       <AdminSettings />
                     </Suspense>
                   } />
+                  <Route path="recursos" element={
+                    <Suspense fallback={<AdminSkeleton />}>
+                      <AdminFeatures />
+                    </Suspense>
+                  } />
                   <Route path="seo" element={
                     <Suspense fallback={<AdminSkeleton />}>
                       <AdminSEO />
