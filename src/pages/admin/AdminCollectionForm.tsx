@@ -13,6 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useDbProducts } from "@/hooks/useProducts";
 import { useFormDraft } from "@/hooks/useFormDraft";
+import DraftStatusBadge from "@/components/admin/DraftStatusBadge";
 
 interface CollectionRow {
   id: string;
@@ -202,13 +203,15 @@ export default function AdminCollectionForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="container max-w-4xl mx-auto py-8 px-4 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+    <form onSubmit={onSubmit} className="container max-w-4xl mx-auto py-6 sm:py-8 px-3 sm:px-4 space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <Button asChild variant="ghost" size="sm"><Link to="/admin/colecoes"><ArrowLeft className="h-4 w-4" /></Link></Button>
-          <h1 className="text-2xl font-display font-semibold">{isEdit ? "Editar coleção" : "Nova coleção"}</h1>
+          <h1 className="text-xl sm:text-2xl font-display font-semibold truncate">{isEdit ? "Editar coleção" : "Nova coleção"}</h1>
+          <DraftStatusBadge className="hidden sm:inline-flex" />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <DraftStatusBadge className="sm:hidden" />
           {isEdit && form.slug && (
             <Button asChild type="button" variant="outline" size="sm">
               <a href={`/colecao/${form.slug}`} target="_blank" rel="noreferrer">Preview</a>

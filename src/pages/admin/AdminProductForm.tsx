@@ -47,6 +47,7 @@ import { PdpBadge } from '@/components/PdpBadge';
 import type { PdpBadgeConfig } from '@/hooks/useConversionCtaConfig';
 import ProductFaqEditor from '@/components/admin/ProductFaqEditor';
 import { useFormDraft } from '@/hooks/useFormDraft';
+import DraftStatusBadge from '@/components/admin/DraftStatusBadge';
 
 const DEFAULT_BADGE_OVERRIDE: PdpBadgeConfig = {
   enabled: true,
@@ -1419,8 +1420,9 @@ const AdminProductForm = () => {
 
         {/* Dock flutuante de salvar — sempre visível, compacto, canto inferior direito.
             pointer-events controlado para não bloquear cliques fora dos botões. */}
-        <div className="fixed bottom-4 right-4 z-40 pointer-events-none">
-          <div className="pointer-events-auto flex items-center gap-2 bg-background/90 backdrop-blur-md px-2 py-2 rounded-full border shadow-lg">
+        <div className="fixed bottom-4 right-4 left-4 sm:left-auto z-40 pointer-events-none">
+          <div className="pointer-events-auto flex items-center gap-2 bg-background/90 backdrop-blur-md px-2 py-2 rounded-full border shadow-lg w-fit ml-auto">
+            <DraftStatusBadge className="ml-1" />
             <Button
               type="button"
               variant="ghost"
