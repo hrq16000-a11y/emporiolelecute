@@ -183,14 +183,38 @@ function extractErrorMessage(error: unknown): string {
 }
 
 /**
- * Toast global de erro: dispara em QUALQUER mutation/query que falhe sem tratamento.
- * Garante que nenhuma falha de admin passe silenciosa. Mutations que já chamam
- * toast no onError continuam funcionando normalmente (sonner deduplica visualmente).
+ * Toast global de erro com dedupe/throttle + ação Retry.
+ *
+ * - Dedupe: usa `id` do sonner derivado do (título + mensagem). Toast idêntico
+ *   é substituído no lugar em vez de empilhar.
+ * - Throttle: a mesma chave só pode reaparecer após 4s.
+ * - Retry: queries chamam `query.fetch()`; mutations chamam `mutation.execute()`
+ *   com as últimas variáveis. Mutations destrutivas (deletes) podem optar por
+ *   `meta: { noRetry: true }` para esconder o botão.
  */
+const recentToastAt = new Map<string, number>();
+const TOAST_THROTTLE_MS = 4000;
+function shouldEmit(key: string): boolean {
+  const now = Date.now();
+  const last = recentToastAt.get(key) ?? 0;
+  if (now - last < TOAST_THROTTLE_MS) return false;
+  recentToastAt.set(key, now);
+  // Limpa entradas antigas para não vazar memória
+  if (recentToastAt.size > 50) {
+    for (const [k, ts] of recentToastAt) {
+      if (now - ts > 60_000) recentToastAt.delete(k);
+    }
+  }
+  return true;
+}
+function hashKey(...parts: string[]): string {
+  return parts.join("|").slice(0, 200);
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5min — evita refetch em pico de tráfego
+      staleTime: 5 * 60 * 1000,
       gcTime: 30 * 60 * 1000,
       refetchOnWindowFocus: false,
       retry: 1,
@@ -198,24 +222,45 @@ const queryClient = new QueryClient({
   },
   queryCache: new QueryCache({
     onError: (error, query) => {
-      // Só notifica em rotas admin para não poluir UX pública
       if (!window.location.pathname.startsWith("/admin")) return;
-      // Evita duplicar quando a query define meta.silent
       if (query.meta?.silent) return;
+      const description = extractErrorMessage(error);
+      const key = hashKey("query", description);
+      if (!shouldEmit(key)) return;
       sonnerToast.error("Falha ao carregar dados", {
-        description: extractErrorMessage(error),
+        id: key,
+        description,
+        action: {
+          label: "Tentar de novo",
+          onClick: () => {
+            query.fetch().catch(() => {});
+          },
+        },
       });
     },
   }),
   mutationCache: new MutationCache({
-    onError: (error, _vars, _ctx, mutation) => {
-      // Sempre notifica em admin; em rotas públicas, só se a mutation não tratou o erro
+    onError: (error, vars, _ctx, mutation) => {
       const inAdmin = window.location.pathname.startsWith("/admin");
       const hasLocalHandler = !!mutation.options.onError;
       if (!inAdmin && hasLocalHandler) return;
       if (mutation.meta?.silent) return;
+      const description = extractErrorMessage(error);
+      const key = hashKey("mutation", mutation.options.mutationKey?.join(".") ?? "", description);
+      if (!shouldEmit(key)) return;
+      const canRetry = !mutation.meta?.noRetry && typeof mutation.options.mutationFn === "function";
       sonnerToast.error("Erro ao salvar", {
-        description: extractErrorMessage(error),
+        id: key,
+        description,
+        action: canRetry
+          ? {
+              label: "Tentar de novo",
+              onClick: () => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (mutation as any).execute?.(vars);
+              },
+            }
+          : undefined,
       });
     },
   }),
