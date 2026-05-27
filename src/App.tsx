@@ -52,6 +52,7 @@ const AdminBackup = lazyWithRetry(() => import("./pages/admin/AdminBackup"), "Ad
 const AdminOrders = lazyWithRetry(() => import("./pages/admin/AdminOrders"), "AdminOrders");
 const AdminCustomers = lazyWithRetry(() => import("./pages/admin/AdminCustomers"), "AdminCustomers");
 const AdminSettings = lazyWithRetry(() => import("./pages/admin/AdminSettings"), "AdminSettings");
+const AdminFeatures = lazyWithRetry(() => import("./pages/admin/AdminFeatures"), "AdminFeatures");
 const AdminSEO = lazyWithRetry(() => import("./pages/admin/AdminSEO"), "AdminSEO");
 const AdminSEOReport = lazyWithRetry(() => import("./pages/admin/AdminSEOReport"), "AdminSEOReport");
 const AdminPages = lazyWithRetry(() => import("./pages/admin/AdminPages"), "AdminPages");
