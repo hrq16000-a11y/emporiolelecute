@@ -166,6 +166,7 @@ export const EXECUTIVE_NAV: NavGroup[] = [
       { label: "Gestão de Fretes", path: "/admin/fretes", icon: "Truck" },
       { label: "Busca · Cockpit", path: "/admin/busca", icon: "Search" },
       { label: "Configurações", path: "/admin/configuracoes", icon: "Settings" },
+      { label: "Recursos do site", path: "/admin/recursos", icon: "Power" },
       { label: "Merchant Feed", path: "/admin/merchant-feed", icon: "Rss" },
       { label: "SEO & Sitemap", path: "/admin/seo", icon: "Search" },
       { label: "Sitemap → Google", path: "/admin/sitemap-status", icon: "Activity" },
