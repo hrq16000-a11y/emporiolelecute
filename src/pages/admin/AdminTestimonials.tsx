@@ -98,7 +98,7 @@ const AdminTestimonials = () => {
           <DialogHeader>
             <div className="flex items-center justify-between gap-3 pr-6">
               <DialogTitle>{form.id ? 'Editar depoimento' : 'Novo depoimento'}</DialogTitle>
-              <DraftStatusBadge />
+              <DraftStatusBadge scopeKey={scopeKey} />
             </div>
           </DialogHeader>
           <div className="space-y-4">
