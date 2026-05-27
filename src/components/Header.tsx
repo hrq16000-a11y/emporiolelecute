@@ -4,7 +4,7 @@ import { Menu, X, Instagram, Facebook, ShoppingCart, LogIn, Search } from "lucid
 import MiniCart from "@/components/MiniCart";
 import { Button } from "@/components/ui/button";
 import SearchBar from "@/components/SearchBar";
-import { useCart } from "@/contexts/CartContext";
+import { useCart } from "@/stores/cartStore";
 import { useMenuItems } from "@/hooks/useMenus";
 import logo from "@/assets/logo.webp";
 
