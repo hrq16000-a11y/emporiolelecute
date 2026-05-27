@@ -18,8 +18,16 @@ import { useDraftStore } from '@/stores/draftStore';
  * - `clear()`: remove o rascunho — chame após salvamento bem-sucedido.
  * - `hasDraft()`: indica se há rascunho não salvo para a rota atual.
  */
-export function useFormDraft<T>(formData: T, enabled = true, debounceMs = 1000) {
+export function useFormDraft<T>(
+  formData: T,
+  enabled = true,
+  debounceMs = 1000,
+  /** Sufixo opcional para diferenciar rascunhos numa mesma rota
+   *  (ex.: dialogs de edição em listas: `editing:${id ?? 'new'}`). */
+  scopeKey?: string,
+) {
   const { pathname } = useLocation();
+  const key = scopeKey ? `${pathname}#${scopeKey}` : pathname;
   const { setDraft, clearDraft, hasDraft, getDraft } = useDraftStore();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -27,16 +35,16 @@ export function useFormDraft<T>(formData: T, enabled = true, debounceMs = 1000) 
     if (!enabled) return;
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
-      setDraft(pathname, formData);
+      setDraft(key, formData);
     }, debounceMs);
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [formData, enabled, pathname, debounceMs, setDraft]);
+  }, [formData, enabled, key, debounceMs, setDraft]);
 
   return {
-    hydrate: <U = T>() => getDraft<U>(pathname),
-    clear: () => clearDraft(pathname),
-    hasDraft: () => hasDraft(pathname),
+    hydrate: <U = T>() => getDraft<U>(key),
+    clear: () => clearDraft(key),
+    hasDraft: () => hasDraft(key),
   };
 }

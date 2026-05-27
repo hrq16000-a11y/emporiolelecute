@@ -13,7 +13,7 @@ import { useDraftStore } from "@/stores/draftStore";
  *
  * Reage automaticamente ao pathname (uma instância por rota).
  */
-type Props = { className?: string };
+type Props = { className?: string; scopeKey?: string };
 
 function formatAge(ms: number): string {
   if (ms < 5_000) return "agora";
@@ -22,9 +22,10 @@ function formatAge(ms: number): string {
   return `há ${Math.round(ms / 3_600_000)}h`;
 }
 
-export default function DraftStatusBadge({ className }: Props) {
+export default function DraftStatusBadge({ className, scopeKey }: Props) {
   const { pathname } = useLocation();
-  const updatedAt = useDraftStore((s) => s.drafts[pathname]?.updatedAt);
+  const key = scopeKey ? `${pathname}#${scopeKey}` : pathname;
+  const updatedAt = useDraftStore((s) => s.drafts[key]?.updatedAt);
   const [, setTick] = useState(0);
 
   // Atualiza o "há Xs/min" a cada 15s
