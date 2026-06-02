@@ -1,82 +1,79 @@
-# Revisão Mobile-First — Plano em Ondas
+# Backup total + referência estável `img_ref` para todas as imagens
 
-Escopo amplo. Para entregar com qualidade e sem regressões, divido em **4 ondas** sequenciais. Cada onda = auditoria curta + correções + verificação no preview 390×843.
+Objetivo: criar um registro central de mídia onde cada imagem tem uma chave própria e portável (`img_ref`), independente do UID/ID do storage do Lovable, com integridade verificável e exportação completa do cloud para um arquivo local seguro. E fechar a porta que apagou as imagens.
 
-> Toda mudança é **frontend/presentation only** (Tailwind, breakpoints, semântica). Backend (RLS, edge functions, migrations) só será tocado se descobrirmos um bug funcional que afete mobile especificamente. Não há razão para o "backend" estar "não otimizado para mobile" — APIs são form-factor agnostic.
+## Princípio central
 
----
+Hoje cada tabela guarda a `image_url` "crua" do storage. Se o path/ID muda (ou o arquivo é apagado pelo GC), a referência morre. A correção é inverter a dependência: as entidades passam a apontar para um **`img_ref` estável**, e o `img_ref` resolve para a URL atual via um registro central. Assim a identidade da imagem nunca depende da infraestrutura.
 
-## Padrões aplicados em todas as ondas
+```text
+ANTES:  occasions.image_url  ── (URL crua, frágil) ──>  storage object (some → 404)
+DEPOIS: occasions.image_ref ──> media_assets.img_ref ──> { storage_path, public_url, checksum }
+                                       │
+                                       └── manifest exportável (backup local externo)
+```
 
-- **Mobile-first**: classes base = mobile, `sm:` / `md:` / `lg:` adicionam desktop.
-- **Tap targets ≥ 44×44 px** em qualquer botão/ícone interativo.
-- **Sem overflow horizontal**: `overflow-x-hidden` em containers, `min-w-0` em flex children, `break-words` em textos longos.
-- **Tabs com muitos itens**: scroll horizontal suave (`overflow-x-auto`, `snap-x`, `-mx-4 px-4`) em vez de quebrar/cortar.
-- **Tabelas admin**: wrapper `overflow-x-auto` + versão card-stack opcional em `<md`.
-- **Tipografia fluida**: `text-sm md:text-base`, títulos `text-xl md:text-3xl`.
-- **Padding compacto mobile**: `p-3 md:p-6`, `gap-2 md:gap-4`.
-- **Safe-area iOS**: `pb-[env(safe-area-inset-bottom)]` em barras fixas.
-- **Imagens**: `aspect-*` + `object-cover`, `loading="lazy"` em listas.
+## Etapa 1 — Tabela registro `media_assets`
 
----
+Nova tabela `public.media_assets` (admin-only, RLS estrito):
+- `img_ref` (text, PK) — chave estável e legível, ex.: `occ_cha-de-bebe_a1b2c3`. Gerada por nós, nunca reutilizada, **não derivada do UID do storage**.
+- `bucket`, `storage_path` (path relativo dentro do bucket), `public_url`.
+- `content_type`, `size_bytes`, `checksum_sha256` (integridade), `width`/`height` (quando aplicável).
+- `entity_type` + `entity_id` (quem usa: `occasion`, `product`, `hero_slide`, `kit`, `category`, `segment`…), `field` (coluna de origem).
+- `source` (`storage` | `src_assets` | `external`), `status` (`active` | `missing` | `archived`).
+- `created_at`, `updated_at`, `last_verified_at`, `backed_up_at`.
 
-## Onda 1 — Painel Admin (prioridade pelo print enviado)
+Coluna opcional `image_ref` adicionada às tabelas que hoje usam imagem, para migração gradual (sem quebrar o `image_url` atual, que vira fallback).
 
-**Alvos principais:**
-- `AdminLayout` (sidebar/drawer, header)
-- Páginas com Tabs longas: `/admin/conversao`, `/admin/fretes`, `/admin/seo`, `/admin/busca`, `/admin/produtos`
-- Listagens-tabela: produtos, pedidos, cupons, redirects, tags, kits
-- Formulários longos: produto, kit, página, blog
+## Etapa 2 — Backfill (inventário completo)
 
-**Correções típicas:**
-1. `TabsList` → wrapper rolável horizontal + indicador de overflow.
-2. Tabelas → `overflow-x-auto` + larguras mínimas + sticky 1ª coluna quando fizer sentido.
-3. Forms → grid 1 col mobile, 2+ cols `md:`. Labels acima dos inputs no mobile.
-4. Toolbars/filtros → empilhar verticalmente <md, agrupar em `Sheet`/`Drawer` se >3 controles.
-5. Cards de estatística (dashboard) → grid 2 cols mobile, 4 cols desktop.
+Função/edge que monta o inventário inicial:
+1. Varre **todas** as tabelas com colunas de imagem (`products.images[]`, `occasions.image_url`, `hero_slides.image_url`, `kits`, `categories`, `segments`, `elo7-review-images` etc.).
+2. Varre **os objetos reais** do storage (todos os buckets).
+3. Cruza os dois: cada arquivo vira uma linha em `media_assets` com `img_ref` gerado, `checksum` calculado e `status`:
+   - `active` (referenciado e existe no storage),
+   - `missing` (referenciado mas o arquivo sumiu — vai listar exatamente as 8 ocasiões perdidas),
+   - `archived` (existe no storage mas ninguém referencia — candidato real a limpeza, sem apagar).
 
-## Onda 2 — PDP
+Resultado: um mapa auditável de 100% das mídias e do que está são/quebrado.
 
-**Alvos:** `ProductPage.tsx`, `StickyAddToCart`, galeria, reviews, FAQs, relacionados.
+## Etapa 3 — Export "cloud → local seguro"
 
-**Correções típicas:**
-1. Reauditar contra `docs/qa/pdp-mobile-checklist.md` e rodar `e2e/pdp-mobile.spec.ts`.
-2. Garantir que badges/favoritos não se sobrepõem.
-3. Sticky CTA com safe-area + z-index correto.
-4. Reviews list em coluna única + paginação compacta.
-5. Relacionados em grid 2 cols mobile sem estourar.
+Estender a página admin de Backup existente (`/admin/backup`, edge `admin-backup-export`) para um **export binário completo**:
+- Edge function gera um **ZIP** contendo:
+  - `/manifest.json` → todo o `media_assets` (img_ref → metadados + checksum).
+  - `/files/<img_ref>.<ext>` → o binário de cada imagem, nomeado pelo `img_ref` (não pelo nome do storage). Assim o pacote é auto-suficiente e re-importável em qualquer ambiente.
+- Download direto pelo admin e cópia para `/mnt/documents/` (artefato baixável).
+- `backed_up_at` é carimbado em cada asset exportado.
+- **Re-import**: rotina espelho que lê o manifest, re-sobe os binários e recria os `img_ref` — recuperação total mesmo após desastre.
 
-## Onda 3 — Loja / Listagens / Busca
+## Etapa 4 — Resolver por `img_ref` no app
 
-**Alvos:** `Loja.tsx`, `Buscar.tsx`, `Colecao.tsx`, `Ocasioes.tsx`, `KitPage.tsx`.
+Helper único (`resolveImageRef(img_ref)`) que devolve a URL atual a partir de `media_assets`, com fallback para `image_url` legado. Componentes de imagem passam a aceitar `img_ref`. Migração incremental, sem big-bang.
 
-**Correções típicas:**
-1. Filtros → `Sheet` lateral acionado por botão "Filtrar" no mobile.
-2. Grid de produtos → 2 cols mobile (já é padrão; auditar gaps).
-3. Paginação → controles compactos centralizados.
-4. Ordenação → select full-width mobile.
-5. Hero/landing `/loja` → compactar headlines e CTAs em mobile.
+## Etapa 5 — Fechar a porta (corrigir o GC)
 
-## Onda 4 — Checkout / Carrinho
+A `cleanup-orphan-product-images` **não pode mais** decidir órfão olhando só `products.images`. Correções:
+- Passa a consultar `media_assets` (todas as referências de todas as entidades) como allowlist.
+- `dry_run` por padrão; deleção real exige flag explícita.
+- Nunca apaga nada com `status <> 'archived'`.
+- Antes de qualquer deleção, exige que o asset tenha `backed_up_at` recente (sem backup → não deleta).
+- Log de auditoria de tudo que for removido.
 
-**Alvos:** `Carrinho.tsx`, `ShippingCalculator`, modais de cadastro/login.
+## Ordem de execução proposta
 
-**Correções típicas:**
-1. Linha de item → imagem menor, controles de quantidade empilhados se necessário.
-2. Resumo do pedido → card sticky no rodapé mobile com total + CTA.
-3. Inputs CEP/cidade/estado em grid responsivo.
-4. Etapas (modelo → quantidade → frete → envio) com progresso visual mobile.
+1. Migration: `media_assets` + grants + RLS + colunas `image_ref`.
+2. Backfill + checksums (inventário e diagnóstico do que está `missing`).
+3. Export ZIP completo (primeiro backup seguro) — **antes** de mexer em qualquer limpeza.
+4. Endurecer o GC.
+5. (Depois, separado) Re-upload das 8 imagens de ocasião perdidas e correção do hero `/src/assets`.
 
----
+## Notas técnicas
 
-## Entrega
+- `media_assets` é dado sensível de operação → RLS admin-only, `service_role` para edges; sem acesso `anon`.
+- `checksum_sha256` permite detectar corrupção e deduplicar.
+- `img_ref` legível + único via `gen_external_ref`-style (slug + sufixo aleatório), seguindo o padrão `external_ref` que o projeto já usa em products/categories/occasions.
+- Export usa `service_role` para baixar binários ignorando RLS; ZIP em streaming para aguentar centenas de arquivos.
+- Nenhuma correção de dados é feita nesta fase — primeiro inventariar e fazer backup, depois restaurar.
 
-- Cada onda é commitada separadamente com QA visual no viewport 390×843 antes de avançar.
-- Ao final, atualizo `docs/qa/pdp-mobile-checklist.md` e adiciono `docs/qa/admin-mobile-checklist.md`.
-- Memória do projeto recebe uma regra Core: **"Toda nova tela admin precisa passar em 360px sem overflow."**
-
----
-
-## Pergunta antes de começar
-
-Posso iniciar pela **Onda 1 (Admin)** já que o print que você enviou é da `/admin/conversao`? Ou prefere outra ordem (ex.: PDP primeiro por impacto em conversão)?
+Quer que eu já comece pela Etapa 1 + 2 (criar o `media_assets` e rodar o inventário/backfill para listar exatamente o que está são e o que está perdido), ou prefere que eu priorize a Etapa 3 (gerar imediatamente o primeiro ZIP de backup do que ainda existe no cloud)?
