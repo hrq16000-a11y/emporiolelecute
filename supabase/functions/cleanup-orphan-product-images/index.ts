@@ -105,11 +105,11 @@ Deno.serve(async (req) => {
     };
     console.log("[gc] resumo:", JSON.stringify(summary));
 
-    // 4) Auditoria best-effort (não quebra a execução se falhar).
+    // 4) Auditoria best-effort (reusa shipping_audit_logs.cart_snapshot p/ payload).
     try {
       await supabase.from("shipping_audit_logs").insert({
         event_type: dryRun ? "media_gc_dry_run" : "media_gc_delete",
-        payload: summary,
+        cart_snapshot: summary,
       });
     } catch { /* ignore */ }
 
