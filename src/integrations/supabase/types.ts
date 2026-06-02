@@ -7121,6 +7121,15 @@ export type Database = {
         Args: { _trigger: string; _visitor_id: string }
         Returns: Json
       }
+      media_gc_candidates: {
+        Args: { _min_age_days?: number }
+        Returns: {
+          backed_up_at: string
+          bucket: string
+          img_ref: string
+          storage_path: string
+        }[]
+      }
       migrate_customer_to_user_link: {
         Args: { _customer_id: string; _user_id: string }
         Returns: Json
@@ -7139,6 +7148,7 @@ export type Database = {
       }
       promote_user_to_admin: { Args: { _email: string }; Returns: Json }
       rebuild_media_inventory: { Args: never; Returns: Json }
+      rebuild_media_inventory_internal: { Args: never; Returns: Json }
       record_product_slug_hit: { Args: { _slug: string }; Returns: undefined }
       refresh_admin_audit_timeline: { Args: never; Returns: Json }
       reject_admin_request: {
