@@ -100,6 +100,7 @@ const AdminOpportunities = lazyWithRetry(() => import("./pages/admin/AdminOpport
 const AdminBlog = lazyWithRetry(() => import("./pages/admin/AdminBlog"), "AdminBlog");
 const AdminBlogHealth = lazyWithRetry(() => import("./pages/admin/AdminBlogHealth"), "AdminBlogHealth");
 const AdminImageHealth = lazyWithRetry(() => import("./pages/admin/AdminImageHealth"), "AdminImageHealth");
+const AdminMediaBackup = lazyWithRetry(() => import("./pages/admin/AdminMediaBackup"), "AdminMediaBackup");
 const AdminCombinationPages = lazyWithRetry(() => import("./pages/admin/AdminCombinationPages"), "AdminCombinationPages");
 const AdminDiscovery = lazyWithRetry(() => import("./pages/admin/AdminDiscovery"), "AdminDiscovery");
 const AdminThemes = lazyWithRetry(() => import("./pages/admin/AdminThemes"), "AdminThemes");
@@ -870,6 +871,11 @@ const App = () => {
                   <Route path="image-health" element={
                     <Suspense fallback={<AdminSkeleton />}>
                       <AdminImageHealth />
+                    </Suspense>
+                  } />
+                  <Route path="media-backup" element={
+                    <Suspense fallback={<AdminSkeleton />}>
+                      <AdminMediaBackup />
                     </Suspense>
                   } />
                   <Route path="combination-pages" element={

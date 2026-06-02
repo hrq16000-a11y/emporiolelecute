@@ -225,6 +225,7 @@ export type Database = {
           h1_override: string | null
           icon: string | null
           id: string
+          image_ref: string | null
           image_url: string | null
           is_draft: boolean
           is_indexed: boolean
@@ -243,6 +244,7 @@ export type Database = {
           h1_override?: string | null
           icon?: string | null
           id?: string
+          image_ref?: string | null
           image_url?: string | null
           is_draft?: boolean
           is_indexed?: boolean
@@ -261,6 +263,7 @@ export type Database = {
           h1_override?: string | null
           icon?: string | null
           id?: string
+          image_ref?: string | null
           image_url?: string | null
           is_draft?: boolean
           is_indexed?: boolean
@@ -819,6 +822,7 @@ export type Database = {
           image_alt: string | null
           image_desktop_url: string | null
           image_mobile_url: string | null
+          image_ref: string | null
           image_url: string | null
           is_visible: boolean
           position: number
@@ -836,6 +840,7 @@ export type Database = {
           image_alt?: string | null
           image_desktop_url?: string | null
           image_mobile_url?: string | null
+          image_ref?: string | null
           image_url?: string | null
           is_visible?: boolean
           position?: number
@@ -853,6 +858,7 @@ export type Database = {
           image_alt?: string | null
           image_desktop_url?: string | null
           image_mobile_url?: string | null
+          image_ref?: string | null
           image_url?: string | null
           is_visible?: boolean
           position?: number
@@ -1225,6 +1231,7 @@ export type Database = {
           external_ref: string
           home_position: number
           id: string
+          image_ref: string | null
           image_url: string | null
           is_active: boolean
           meta_description: string | null
@@ -1243,6 +1250,7 @@ export type Database = {
           external_ref: string
           home_position?: number
           id?: string
+          image_ref?: string | null
           image_url?: string | null
           is_active?: boolean
           meta_description?: string | null
@@ -1261,6 +1269,7 @@ export type Database = {
           external_ref?: string
           home_position?: number
           id?: string
+          image_ref?: string | null
           image_url?: string | null
           is_active?: boolean
           meta_description?: string | null
@@ -1270,6 +1279,72 @@ export type Database = {
           show_on_home?: boolean
           slug?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      media_assets: {
+        Row: {
+          backed_up_at: string | null
+          bucket: string
+          checksum_sha256: string | null
+          content_type: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          field: string | null
+          height: number | null
+          img_ref: string
+          last_verified_at: string | null
+          public_url: string | null
+          ref_count: number
+          size_bytes: number | null
+          source: string
+          status: string
+          storage_path: string
+          updated_at: string
+          width: number | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          bucket: string
+          checksum_sha256?: string | null
+          content_type?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          field?: string | null
+          height?: number | null
+          img_ref: string
+          last_verified_at?: string | null
+          public_url?: string | null
+          ref_count?: number
+          size_bytes?: number | null
+          source?: string
+          status?: string
+          storage_path: string
+          updated_at?: string
+          width?: number | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          bucket?: string
+          checksum_sha256?: string | null
+          content_type?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          field?: string | null
+          height?: number | null
+          img_ref?: string
+          last_verified_at?: string | null
+          public_url?: string | null
+          ref_count?: number
+          size_bytes?: number | null
+          source?: string
+          status?: string
+          storage_path?: string
+          updated_at?: string
+          width?: number | null
         }
         Relationships: []
       }
@@ -1411,6 +1486,7 @@ export type Database = {
           faqs: Json
           h1_override: string | null
           id: string
+          image_ref: string | null
           image_url: string | null
           is_draft: boolean
           is_indexed: boolean
@@ -1428,6 +1504,7 @@ export type Database = {
           faqs?: Json
           h1_override?: string | null
           id?: string
+          image_ref?: string | null
           image_url?: string | null
           is_draft?: boolean
           is_indexed?: boolean
@@ -1445,6 +1522,7 @@ export type Database = {
           faqs?: Json
           h1_override?: string | null
           id?: string
+          image_ref?: string | null
           image_url?: string | null
           is_draft?: boolean
           is_indexed?: boolean
@@ -2117,6 +2195,7 @@ export type Database = {
           google_product_category: string | null
           height_cm: number | null
           id: string
+          image_refs: string[] | null
           images: string[] | null
           is_active: boolean | null
           keywords: string[] | null
@@ -2157,6 +2236,7 @@ export type Database = {
           google_product_category?: string | null
           height_cm?: number | null
           id?: string
+          image_refs?: string[] | null
           images?: string[] | null
           is_active?: boolean | null
           keywords?: string[] | null
@@ -2197,6 +2277,7 @@ export type Database = {
           google_product_category?: string | null
           height_cm?: number | null
           id?: string
+          image_refs?: string[] | null
           images?: string[] | null
           is_active?: boolean | null
           keywords?: string[] | null
@@ -2596,6 +2677,7 @@ export type Database = {
           faqs: Json
           h1_override: string | null
           id: string
+          image_ref: string | null
           image_url: string | null
           is_draft: boolean
           is_indexed: boolean
@@ -2613,6 +2695,7 @@ export type Database = {
           faqs?: Json
           h1_override?: string | null
           id?: string
+          image_ref?: string | null
           image_url?: string | null
           is_draft?: boolean
           is_indexed?: boolean
@@ -2630,6 +2713,7 @@ export type Database = {
           faqs?: Json
           h1_override?: string | null
           id?: string
+          image_ref?: string | null
           image_url?: string | null
           is_draft?: boolean
           is_indexed?: boolean
@@ -6935,6 +7019,7 @@ export type Database = {
         Args: { _fallback?: string; _prefix: string; _slug: string }
         Returns: string
       }
+      gen_img_ref: { Args: { _hint: string; _prefix: string }; Returns: string }
       get_unified_profile: {
         Args: { _id: string; _kind: string }
         Returns: Json
@@ -7036,6 +7121,15 @@ export type Database = {
         Args: { _trigger: string; _visitor_id: string }
         Returns: Json
       }
+      media_gc_candidates: {
+        Args: { _min_age_days?: number }
+        Returns: {
+          backed_up_at: string
+          bucket: string
+          img_ref: string
+          storage_path: string
+        }[]
+      }
       migrate_customer_to_user_link: {
         Args: { _customer_id: string; _user_id: string }
         Returns: Json
@@ -7053,6 +7147,8 @@ export type Database = {
         Returns: Json
       }
       promote_user_to_admin: { Args: { _email: string }; Returns: Json }
+      rebuild_media_inventory: { Args: never; Returns: Json }
+      rebuild_media_inventory_internal: { Args: never; Returns: Json }
       record_product_slug_hit: { Args: { _slug: string }; Returns: undefined }
       refresh_admin_audit_timeline: { Args: never; Returns: Json }
       reject_admin_request: {

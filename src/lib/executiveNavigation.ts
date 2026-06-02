@@ -58,6 +58,7 @@ export const EXECUTIVE_NAV: NavGroup[] = [
       { label: "Editorial", path: "/admin/editorial-execution", icon: "Sparkles" },
       { label: "Content Gaps", path: "/admin/content-gaps", icon: "Sparkles" },
       { label: "Image Health", path: "/admin/image-health", icon: "Image" },
+      { label: "Backup de Mídia", path: "/admin/media-backup", icon: "Archive" },
       { label: "Blog Health", path: "/admin/blog/health", icon: "Activity" },
       { label: "Product Health", path: "/admin/produtos/health", icon: "ShieldCheck" },
     ],

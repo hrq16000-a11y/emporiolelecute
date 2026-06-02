@@ -1,21 +1,33 @@
-// Edge Function: cleanup-orphan-product-images
-// Rotina mensal de GC para remover imagens órfãs do bucket `product-images`.
-// - Usa service_role para ignorar RLS e poder deletar do Storage.
-// - Considera órfão: arquivo com >7 dias e cuja URL pública NÃO aparece em products.images.
-// - Paginação do Storage em lotes de 1000 (limite do SDK).
+// ============= Edge Function: cleanup-orphan-product-images =============
+// Garbage collector ENDURECIDO para o bucket de mídia.
+//
+// HISTÓRICO / MOTIVO DA REESCRITA:
+// A versão anterior considerava "órfão" qualquer arquivo que NÃO estivesse em
+// `products.images`, varrendo TODAS as pastas exceto `defaults/`. Isso apagou
+// indevidamente imagens de `occasions/` e `hero/` (referenciadas em outras
+// tabelas), pois a função nunca as consultava. Resultado: perda de dados.
+//
+// NOVA POLÍTICA (segura por padrão):
+//  1. Atualiza o inventário central (`media_assets`) via RPC com service_role.
+//  2. Só é candidato a remoção o asset com status='archived' (ninguém referencia)
+//     E `backed_up_at` preenchido (já existe backup) — via RPC `media_gc_candidates`.
+//  3. `dry_run` é o PADRÃO. Para deletar de fato é preciso enviar
+//     { "confirm": "DELETE" } no corpo. Qualquer outro valor => apenas simulação.
+//  4. Toda execução é registrada em `shipping_audit_logs` (reuso de tabela de auditoria).
+//
+// Nunca apaga: arquivos 'active' (em uso) nem 'missing'. Nunca apaga sem backup.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const BUCKET = "product-images";
-const SAFETY_WINDOW_DAYS = 7;
-const PAGE_SIZE = 1000;
+const MIN_AGE_DAYS = 7;
 
-interface StorageFile {
-  name: string;
-  created_at?: string;
-  updated_at?: string;
-  id?: string;
+interface Candidate {
+  img_ref: string;
+  bucket: string;
+  storage_path: string;
+  backed_up_at: string;
 }
 
 Deno.serve(async (req) => {
@@ -23,114 +35,60 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  // dry_run=true → apenas conta e lista (até 50) órfãos, NÃO deleta.
-  const url = new URL(req.url);
-  let dryRun = url.searchParams.get("dry_run") === "true";
-  if (!dryRun && (req.method === "POST" || req.method === "PUT")) {
-    try {
-      const body = await req.clone().json().catch(() => ({}));
-      if (body?.dry_run === true) dryRun = true;
-    } catch { /* ignore */ }
-  }
-
-
   const startedAt = Date.now();
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
   const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  const cutoff = new Date(Date.now() - SAFETY_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+  // Por padrão é simulação. Deleção real só com { confirm: "DELETE" }.
+  let confirmDelete = false;
+  try {
+    const body = await req.clone().json().catch(() => ({}));
+    if (body?.confirm === "DELETE") confirmDelete = true;
+  } catch { /* ignore */ }
+  const dryRun = !confirmDelete;
 
   try {
-    // 1) Carrega TODAS as URLs referenciadas em products.images em um Set para O(1) lookup.
-    // products.images é text[]; iteramos e indexamos por URL completa e por path relativo.
-    const { data: refData, error: refErr2 } = await supabase
-      .from("products")
-      .select("images");
-    if (refErr2) throw new Error(`Falha lendo products.images: ${refErr2.message}`);
+    // 1) Atualiza o inventário central antes de decidir qualquer coisa.
+    const { error: invErr } = await supabase.rpc("rebuild_media_inventory_internal");
+    if (invErr) throw new Error(`Falha ao atualizar inventário: ${invErr.message}`);
 
-    const referenced = new Set<string>();
-    for (const row of refData ?? []) {
-      const imgs = (row as { images?: string[] | null }).images ?? [];
-      for (const u of imgs) {
-        if (typeof u === "string" && u.length > 0) {
-          referenced.add(u);
-          // Adiciona também o "path" relativo (caso comparação por nome seja necessária)
-          const idx = u.indexOf(`/${BUCKET}/`);
-          if (idx >= 0) referenced.add(u.substring(idx + BUCKET.length + 2));
-        }
-      }
+    // 2) Busca SOMENTE candidatos seguros: archived + com backup + idade mínima.
+    const { data: candData, error: candErr } = await supabase.rpc("media_gc_candidates", {
+      _min_age_days: MIN_AGE_DAYS,
+    });
+    if (candErr) throw new Error(`Falha ao listar candidatos: ${candErr.message}`);
+
+    const candidates = (candData ?? []) as Candidate[];
+    const byBucket = new Map<string, string[]>();
+    for (const c of candidates) {
+      if (!byBucket.has(c.bucket)) byBucket.set(c.bucket, []);
+      byBucket.get(c.bucket)!.push(c.storage_path);
     }
 
-    // 2) Paginação do Storage. list() retorna no máx 1000; iteramos por offset.
-    let analyzed = 0;
-    let orphanCandidates = 0;
     let deleted = 0;
     let failed = 0;
-    const toDelete: string[] = [];
 
-    // Função recursiva para varrer subpastas (storage do Supabase é "flat" mas aceita prefixos).
-    async function walk(prefix: string) {
-      let offset = 0;
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        const { data, error } = await supabase.storage.from(BUCKET).list(prefix, {
-          limit: PAGE_SIZE,
-          offset,
-          sortBy: { column: "name", order: "asc" },
-        });
-        if (error) throw new Error(`Storage.list(${prefix}) falhou: ${error.message}`);
-        if (!data || data.length === 0) break;
-
-        for (const entry of data as StorageFile[]) {
-          // Subpasta: id é null
-          if (!entry.id) {
-            const sub = prefix ? `${prefix}/${entry.name}` : entry.name;
-            // Ignora completamente a pasta "defaults" (assets globais de UI)
-            if (sub === "defaults" || sub.startsWith("defaults/")) continue;
-            await walk(sub);
-            continue;
-          }
-          analyzed++;
-          const fullPath = prefix ? `${prefix}/${entry.name}` : entry.name;
-
-          // Assets globais da pasta defaults/ nunca entram no GC
-          if (fullPath === "defaults" || fullPath.startsWith("defaults/")) continue;
-
-          const createdAt = entry.created_at ? new Date(entry.created_at) : null;
-          if (!createdAt || createdAt > cutoff) continue; // dentro da janela de segurança
-
-          // Verifica se está referenciado: por path OU por publicUrl
-          const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(fullPath);
-          const publicUrl = pub?.publicUrl ?? "";
-          const isReferenced = referenced.has(fullPath) || (publicUrl && referenced.has(publicUrl));
-          if (!isReferenced) {
-            orphanCandidates++;
-            toDelete.push(fullPath);
-          }
-        }
-
-        if (data.length < PAGE_SIZE) break;
-        offset += PAGE_SIZE;
-      }
-    }
-
-    await walk("");
-
-    // 3) Em dry_run, NÃO deleta. Apenas reporta candidatos (amostra de 50).
+    // 3) Em dry_run NÃO deleta. Apenas reporta.
     if (!dryRun) {
-      for (let i = 0; i < toDelete.length; i += 100) {
-        const batch = toDelete.slice(i, i + 100);
-        const { data: delData, error: delErr } = await supabase.storage.from(BUCKET).remove(batch);
-        if (delErr) {
-          failed += batch.length;
-          console.error(`[gc] falha ao deletar lote: ${delErr.message}`);
-        } else {
-          deleted += (delData?.length ?? batch.length);
+      for (const [bucket, paths] of byBucket.entries()) {
+        for (let i = 0; i < paths.length; i += 100) {
+          const batch = paths.slice(i, i + 100);
+          const { data: delData, error: delErr } = await supabase.storage.from(bucket).remove(batch);
+          if (delErr) {
+            failed += batch.length;
+            console.error(`[gc] falha ao deletar lote em ${bucket}: ${delErr.message}`);
+          } else {
+            deleted += delData?.length ?? batch.length;
+          }
         }
+      }
+      // Marca como archived/removido no inventário (refletido no próximo rebuild).
+      if (deleted > 0) {
+        const refs = candidates.map((c) => c.img_ref);
+        await supabase.from("media_assets").delete().in("img_ref", refs);
       }
     }
 
@@ -138,17 +96,22 @@ Deno.serve(async (req) => {
       ok: true,
       mode: dryRun ? "dry_run" : "delete",
       bucket: BUCKET,
-      cutoff: cutoff.toISOString(),
-      analyzed,
-      referenced_urls: referenced.size,
-      orphans_found: orphanCandidates,
+      policy: "archived_and_backed_up_only",
+      candidates: candidates.length,
       deleted,
       failed,
-      sample_orphans: toDelete.slice(0, 50),
+      sample: candidates.slice(0, 50).map((c) => `${c.bucket}/${c.storage_path}`),
       duration_ms: Date.now() - startedAt,
     };
     console.log("[gc] resumo:", JSON.stringify(summary));
 
+    // 4) Auditoria best-effort (reusa shipping_audit_logs.cart_snapshot p/ payload).
+    try {
+      await supabase.from("shipping_audit_logs").insert({
+        event_type: dryRun ? "media_gc_dry_run" : "media_gc_delete",
+        cart_snapshot: summary,
+      });
+    } catch { /* ignore */ }
 
     return new Response(JSON.stringify(summary), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
