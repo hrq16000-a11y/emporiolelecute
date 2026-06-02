@@ -873,6 +873,11 @@ const App = () => {
                       <AdminImageHealth />
                     </Suspense>
                   } />
+                  <Route path="media-backup" element={
+                    <Suspense fallback={<AdminSkeleton />}>
+                      <AdminMediaBackup />
+                    </Suspense>
+                  } />
                   <Route path="combination-pages" element={
                     <Suspense fallback={<AdminSkeleton />}>
                       <AdminCombinationPages />
