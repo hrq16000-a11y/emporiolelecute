@@ -187,12 +187,36 @@ const MediaRestorePanel = () => {
     });
   };
 
+  const handlePreview = async () => {
+    setPreviewing(true);
+    try {
+      const imgRefs = selected.size > 0 ? Array.from(selected) : undefined;
+      const { data, error } = await supabase.functions.invoke("admin-media-backup", {
+        body: { action: "relink_preview", img_refs: imgRefs },
+      });
+      if (error) throw error;
+      const rows = (data as { preview?: RelinkPreviewRow[] }).preview ?? [];
+      setPreview(rows);
+      if (rows.length === 0) {
+        toast.info("Nenhuma linha vinculável encontrada (apenas imagens existentes contam).");
+      } else {
+        const changes = rows.filter((r) => r.will_change).length;
+        toast.success(`Pré-visualização: ${changes} de ${rows.length} linha(s) seriam atualizada(s).`);
+      }
+    } catch (e) {
+      toast.error("Falha ao gerar a pré-visualização de re-vínculo.");
+    } finally {
+      setPreviewing(false);
+    }
+  };
+
   const reset = () => {
     setPhase("idle");
     setZip(null);
     setItems([]);
     setSelected(new Set());
     setProgress(0);
+    setPreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
