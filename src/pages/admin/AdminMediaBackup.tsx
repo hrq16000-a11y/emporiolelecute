@@ -259,15 +259,36 @@ const AdminMediaBackup = () => {
           <TabsTrigger value="inventory">Inventário</TabsTrigger>
           <TabsTrigger value="restore">Restaurar</TabsTrigger>
           <TabsTrigger value="audits">Auditorias</TabsTrigger>
+          <TabsTrigger value="alerts">Alertas</TabsTrigger>
         </TabsList>
 
         <TabsContent value="inventory" className="mt-4">
           <Card className="border-rose-200">
             <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-rose-600" />
-                Imagens ausentes
-                <Badge variant="destructive">{missing.length}</Badge>
+              <CardTitle className="text-base flex items-center justify-between gap-2 flex-wrap">
+                <span className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-rose-600" />
+                  Imagens ausentes
+                  <Badge variant="destructive">{missing.length}</Badge>
+                </span>
+                <span className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={exportMissingCSV}
+                    disabled={missing.length === 0}
+                  >
+                    <FileSpreadsheet className="h-4 w-4" /> CSV
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={exportMissingPDF}
+                    disabled={missing.length === 0}
+                  >
+                    <FileText className="h-4 w-4" /> PDF
+                  </Button>
+                </span>
               </CardTitle>
             </CardHeader>
             <CardContent>
