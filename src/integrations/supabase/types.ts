@@ -1348,6 +1348,48 @@ export type Database = {
         }
         Relationships: []
       }
+      media_audit_runs: {
+        Row: {
+          active: number
+          alerted: boolean
+          archived: number
+          created_at: string
+          id: string
+          manifest: Json | null
+          missing: number
+          missing_refs: Json
+          ran_at: string
+          source: string
+          total: number
+        }
+        Insert: {
+          active?: number
+          alerted?: boolean
+          archived?: number
+          created_at?: string
+          id?: string
+          manifest?: Json | null
+          missing?: number
+          missing_refs?: Json
+          ran_at?: string
+          source?: string
+          total?: number
+        }
+        Update: {
+          active?: number
+          alerted?: boolean
+          archived?: number
+          created_at?: string
+          id?: string
+          manifest?: Json | null
+          missing?: number
+          missing_refs?: Json
+          ran_at?: string
+          source?: string
+          total?: number
+        }
+        Relationships: []
+      }
       menu_items: {
         Row: {
           created_at: string | null
@@ -7130,6 +7172,7 @@ export type Database = {
           storage_path: string
         }[]
       }
+      media_relink_references: { Args: { _img_refs?: string[] }; Returns: Json }
       migrate_customer_to_user_link: {
         Args: { _customer_id: string; _user_id: string }
         Returns: Json
