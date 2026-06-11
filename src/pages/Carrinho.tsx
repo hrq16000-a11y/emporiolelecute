@@ -829,7 +829,13 @@ const Carrinho = () => {
                         <img 
                           src={optimizeImage(item.image, { width: 160, resize: "contain" })} 
                           alt={item.name}
+                          loading="lazy"
                           className="w-16 h-16 md:w-20 md:h-20 object-contain rounded-lg bg-muted p-1"
+                          onError={(e) => {
+                            const img = e.currentTarget;
+                            if (img.src.endsWith("/placeholder.svg")) return;
+                            img.src = "/placeholder.svg";
+                          }}
                         />
                       </Link>
 
