@@ -1,12 +1,16 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { saveAs } from "file-saver";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import MediaRestorePanel from "@/components/admin/MediaRestorePanel";
+import MediaAlertEmailsCard from "@/components/admin/MediaAlertEmailsCard";
 import {
   RefreshCw,
   Download,
@@ -17,6 +21,9 @@ import {
   Loader2,
   History,
   MailCheck,
+  PlayCircle,
+  FileText,
+  FileSpreadsheet,
 } from "lucide-react";
 
 interface MissingAsset {
