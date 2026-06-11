@@ -260,6 +260,10 @@ const MediaRestorePanel = () => {
               )}
               Selecionar ZIP
             </Button>
+            <Button variant="ghost" onClick={handlePreview} disabled={previewing || phase === "restoring"}>
+              {previewing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
+              Pré-visualizar re-vínculo
+            </Button>
             <Button variant="ghost" onClick={handleRelinkOnly} disabled={phase === "restoring"}>
               <Link2 className="h-4 w-4" />
               Apenas re-vincular URLs
