@@ -35,6 +35,10 @@ Deno.serve(async (req) => {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
+  // Origem da execução: "cron" (pg_cron) ou "manual" (botão admin).
+  const body = await req.json().catch(() => ({} as Record<string, unknown>));
+  const source = typeof body?.source === "string" ? (body.source as string) : "cron";
+
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
@@ -44,6 +48,7 @@ Deno.serve(async (req) => {
     const { data: summary, error: invErr } = await admin.rpc("rebuild_media_inventory_internal");
     if (invErr) throw new Error(`inventário: ${invErr.message}`);
     const s = (summary ?? {}) as Record<string, number>;
+
 
     // 2) Manifesto completo (por img_ref) + lista de ausentes
     const { data: assets } = await admin
