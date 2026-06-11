@@ -124,6 +124,84 @@ const AdminMediaBackup = () => {
     }
   };
 
+  const handleRunAudit = async () => {
+    setAuditing(true);
+    try {
+      const { data: res, error } = await supabase.functions.invoke("media-backup-cron", {
+        body: { source: "manual" },
+      });
+      if (error) throw error;
+      const r = res as { missing?: number; alerted?: boolean };
+      await queryClient.invalidateQueries({ queryKey: ["admin", "media-backup"] });
+      await refetch();
+      if ((r.missing ?? 0) > 0) {
+        toast.warning(
+          `Auditoria concluída: ${r.missing} ausente(s).${r.alerted ? " Alerta enviado." : " Alerta não enviado."}`,
+        );
+      } else {
+        toast.success("Auditoria concluída: nenhuma imagem ausente ✨");
+      }
+    } catch (e) {
+      toast.error("Falha ao rodar a auditoria de mídia.");
+    } finally {
+      setAuditing(false);
+    }
+  };
+
+  const exportMissingCSV = () => {
+    if (missing.length === 0) {
+      toast.info("Nenhuma imagem ausente para exportar.");
+      return;
+    }
+    const header = ["img_ref", "bucket", "storage_path", "entity_type", "field", "public_url"];
+    const escape = (v: string | null) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const lines = [
+      header.join(","),
+      ...missing.map((m) =>
+        [m.img_ref, m.bucket, m.storage_path, m.entity_type, m.field, m.public_url].map(escape).join(","),
+      ),
+    ];
+    const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    saveAs(blob, `imagens-ausentes-${new Date().toISOString().slice(0, 10)}.csv`);
+    toast.success("CSV exportado.");
+  };
+
+  const exportMissingPDF = () => {
+    if (missing.length === 0) {
+      toast.info("Nenhuma imagem ausente para exportar.");
+      return;
+    }
+    const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+    const today = new Date().toLocaleString("pt-BR");
+    doc.setFontSize(14);
+    doc.text("Empório LeleCute — Imagens ausentes", 40, 40);
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text(
+      `Gerado em ${today} • ${missing.length} imagem(ns) ausente(s) • ` +
+        `Total ${summary?.total ?? "—"} · Ativas ${summary?.active ?? "—"} · Sem uso ${summary?.archived ?? "—"}`,
+      40,
+      56,
+    );
+    doc.setTextColor(0);
+    autoTable(doc, {
+      startY: 72,
+      head: [["Caminho", "Tipo", "Campo", "img_ref"]],
+      body: missing.map((m) => [m.storage_path, m.entity_type ?? "—", m.field ?? "—", m.img_ref]),
+      styles: { fontSize: 8, cellPadding: 4, overflow: "linebreak" },
+      headStyles: { fillColor: [232, 93, 58] },
+      columnStyles: {
+        0: { cellWidth: 240 },
+        1: { cellWidth: 90 },
+        2: { cellWidth: 110 },
+        3: { cellWidth: "auto" },
+      },
+    });
+    doc.save(`imagens-ausentes-${new Date().toISOString().slice(0, 10)}.pdf`);
+    toast.success("PDF exportado.");
+  };
+
+
   const stats = [
     { label: "Total catalogado", value: summary?.total ?? "—", icon: ShieldCheck, tone: "" },
     { label: "Ativas (em uso)", value: summary?.active ?? "—", icon: ShieldCheck, tone: "text-emerald-600" },
