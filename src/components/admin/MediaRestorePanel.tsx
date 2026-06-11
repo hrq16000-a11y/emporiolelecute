@@ -55,6 +55,8 @@ const MediaRestorePanel = () => {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [progress, setProgress] = useState(0);
   const [restoredCount, setRestoredCount] = useState(0);
+  const [previewing, setPreviewing] = useState(false);
+  const [preview, setPreview] = useState<RelinkPreviewRow[] | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback(async (file: File) => {
