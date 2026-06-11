@@ -99,6 +99,62 @@ Deno.serve(async (req) => {
       return json({ ok: true, relink });
     }
 
+    if (action === "relink_preview") {
+      // Pré-visualização (read-only): mostra quais linhas seriam atualizadas
+      // por media_relink_references para os img_refs informados (ou todos ativos).
+      const imgRefs: string[] | null = Array.isArray(body.img_refs) && body.img_refs.length
+        ? (body.img_refs as string[])
+        : null;
+
+      let assetsQ = admin
+        .from("media_assets")
+        .select("img_ref, public_url, entity_type, entity_id, field, status")
+        .eq("status", "active");
+      if (imgRefs) assetsQ = assetsQ.in("img_ref", imgRefs);
+      const { data: assets, error: aErr } = await assetsQ;
+      if (aErr) throw new Error(aErr.message);
+
+      // entity_type+field -> { table, column }
+      const MAP: Record<string, { table: string; column: string }> = {
+        "occasion::image_url": { table: "occasions", column: "image_url" },
+        "hero_slide::image_url": { table: "hero_slides", column: "image_url" },
+        "hero_slide::image_desktop_url": { table: "hero_slides", column: "image_desktop_url" },
+        "hero_slide::image_mobile_url": { table: "hero_slides", column: "image_mobile_url" },
+        "category::image_url": { table: "categories", column: "image_url" },
+        "kit::image_url": { table: "kits", column: "image_url" },
+        "segment::image_url": { table: "segments", column: "image_url" },
+      };
+
+      const preview: Array<Record<string, unknown>> = [];
+      for (const a of assets ?? []) {
+        const key = `${a.entity_type}::${a.field}`;
+        const m = MAP[key];
+        if (!m || !a.entity_id) continue;
+        const { data: row } = await admin
+          .from(m.table)
+          .select(`${m.column}, name`)
+          .eq("id", a.entity_id)
+          .maybeSingle();
+        const current = (row as Record<string, unknown> | null)?.[m.column] as string | null ?? null;
+        const label = (row as Record<string, unknown> | null)?.name as string | undefined;
+        preview.push({
+          img_ref: a.img_ref,
+          entity_type: a.entity_type,
+          entity_id: a.entity_id,
+          name: label ?? null,
+          table: m.table,
+          column: m.column,
+          field: a.field,
+          current_url: current,
+          new_url: a.public_url,
+          will_change: current !== a.public_url,
+          exists: !!row,
+        });
+      }
+      const willChange = preview.filter((p) => p.will_change).length;
+      return json({ ok: true, preview, summary: { total: preview.length, will_change: willChange } });
+    }
+
     if (action === "audit_runs") {
       // Histórico das auditorias periódicas (para o painel admin).
       const { data: runs, error: runsErr } = await admin
