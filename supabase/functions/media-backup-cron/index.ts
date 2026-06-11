@@ -198,7 +198,7 @@ async function sendMissingAlert(
     }
     sent += slice.length;
   }
-  return { sent, admin_count: emails.length, errors };
+  return { sent, recipient_count: emails.length, recipient_source: recipientSource, errors };
 }
 
 function escapeHtml(s: string): string {
