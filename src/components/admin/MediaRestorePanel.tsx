@@ -15,7 +15,21 @@ import {
   CheckCircle2,
   FileArchive,
   Link2,
+  Eye,
+  ArrowRight,
 } from "lucide-react";
+
+interface RelinkPreviewRow {
+  img_ref: string;
+  entity_type: string | null;
+  name: string | null;
+  table: string;
+  column: string;
+  current_url: string | null;
+  new_url: string | null;
+  will_change: boolean;
+  exists: boolean;
+}
 
 interface ManifestAsset {
   img_ref: string;
@@ -41,6 +55,8 @@ const MediaRestorePanel = () => {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [progress, setProgress] = useState(0);
   const [restoredCount, setRestoredCount] = useState(0);
+  const [previewing, setPreviewing] = useState(false);
+  const [preview, setPreview] = useState<RelinkPreviewRow[] | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback(async (file: File) => {
@@ -171,12 +187,36 @@ const MediaRestorePanel = () => {
     });
   };
 
+  const handlePreview = async () => {
+    setPreviewing(true);
+    try {
+      const imgRefs = selected.size > 0 ? Array.from(selected) : undefined;
+      const { data, error } = await supabase.functions.invoke("admin-media-backup", {
+        body: { action: "relink_preview", img_refs: imgRefs },
+      });
+      if (error) throw error;
+      const rows = (data as { preview?: RelinkPreviewRow[] }).preview ?? [];
+      setPreview(rows);
+      if (rows.length === 0) {
+        toast.info("Nenhuma linha vinculável encontrada (apenas imagens existentes contam).");
+      } else {
+        const changes = rows.filter((r) => r.will_change).length;
+        toast.success(`Pré-visualização: ${changes} de ${rows.length} linha(s) seriam atualizada(s).`);
+      }
+    } catch (e) {
+      toast.error("Falha ao gerar a pré-visualização de re-vínculo.");
+    } finally {
+      setPreviewing(false);
+    }
+  };
+
   const reset = () => {
     setPhase("idle");
     setZip(null);
     setItems([]);
     setSelected(new Set());
     setProgress(0);
+    setPreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -220,6 +260,10 @@ const MediaRestorePanel = () => {
               )}
               Selecionar ZIP
             </Button>
+            <Button variant="ghost" onClick={handlePreview} disabled={previewing || phase === "restoring"}>
+              {previewing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
+              Pré-visualizar re-vínculo
+            </Button>
             <Button variant="ghost" onClick={handleRelinkOnly} disabled={phase === "restoring"}>
               <Link2 className="h-4 w-4" />
               Apenas re-vincular URLs
@@ -248,6 +292,70 @@ const MediaRestorePanel = () => {
           )}
         </CardContent>
       </Card>
+
+      {preview && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center justify-between gap-2 flex-wrap">
+              <span className="flex items-center gap-2">
+                <Eye className="h-4 w-4 text-primary" />
+                Pré-visualização do re-vínculo
+                <Badge variant="outline">{preview.length}</Badge>
+              </span>
+              <Badge variant={preview.some((p) => p.will_change) ? "default" : "secondary"}>
+                {preview.filter((p) => p.will_change).length} mudança(s)
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground mb-3">
+              Linhas do banco que seriam atualizadas ao re-vincular as URLs a partir do catálogo.
+              Nada foi alterado ainda — apenas restaure ou re-vincule para aplicar.
+            </p>
+            {preview.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Nenhuma linha vinculável (somente imagens existentes no armazenamento entram).
+              </p>
+            ) : (
+              <div className="space-y-1.5 max-h-[55vh] overflow-y-auto">
+                {preview.map((p) => (
+                  <div
+                    key={`${p.table}-${p.img_ref}-${p.column}`}
+                    className={`p-2.5 rounded-lg border text-xs ${p.will_change ? "" : "opacity-60"}`}
+                  >
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <span className="font-medium truncate">
+                        {p.name ?? p.img_ref}
+                      </span>
+                      <Badge variant="outline" className="shrink-0">
+                        {p.table}.{p.column}
+                      </Badge>
+                      {p.will_change ? (
+                        <Badge variant="default" className="shrink-0">
+                          será atualizada
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="shrink-0">
+                          sem mudança
+                        </Badge>
+                      )}
+                    </div>
+                    {p.will_change && (
+                      <div className="mt-1.5 flex items-center gap-1.5 text-muted-foreground break-all">
+                        <span className="line-through opacity-70">{p.current_url ?? "—"}</span>
+                        <ArrowRight className="h-3 w-3 shrink-0" />
+                        <span className="text-foreground">{p.new_url ?? "—"}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+
 
       {items.length > 0 && (
         <Card>

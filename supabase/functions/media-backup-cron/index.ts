@@ -35,6 +35,10 @@ Deno.serve(async (req) => {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
+  // Origem da execução: "cron" (pg_cron) ou "manual" (botão admin).
+  const body = await req.json().catch(() => ({} as Record<string, unknown>));
+  const source = typeof body?.source === "string" ? (body.source as string) : "cron";
+
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
@@ -44,6 +48,7 @@ Deno.serve(async (req) => {
     const { data: summary, error: invErr } = await admin.rpc("rebuild_media_inventory_internal");
     if (invErr) throw new Error(`inventário: ${invErr.message}`);
     const s = (summary ?? {}) as Record<string, number>;
+
 
     // 2) Manifesto completo (por img_ref) + lista de ausentes
     const { data: assets } = await admin
@@ -87,10 +92,10 @@ Deno.serve(async (req) => {
       missing_refs: missing,
       manifest,
       alerted,
-      source: "cron",
+      source,
     });
 
-    return json({ ok: true, summary: s, missing: missingCount, alerted, email: emailResult });
+    return json({ ok: true, summary: s, missing: missingCount, alerted, source, email: emailResult });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[media-backup-cron] erro:", msg);
@@ -110,17 +115,34 @@ async function sendMissingAlert(
     return { skipped: true, reason: "no_resend" };
   }
 
-  // Resolve e-mails de admin (user_roles -> profiles.email)
-  const { data: roles } = await admin.from("user_roles").select("user_id").eq("role", "admin");
-  const ids = (roles ?? []).map((r: { user_id: string }) => r.user_id);
-  if (ids.length === 0) return { skipped: true, reason: "no_admins" };
-
   const emails: string[] = [];
-  for (let i = 0; i < ids.length; i += 200) {
-    const { data: profs } = await admin.from("profiles").select("email").in("id", ids.slice(i, i + 200));
-    for (const p of profs ?? []) if (p?.email) emails.push(p.email as string);
+  let recipientSource = "admins";
+
+  // 1) Preferência: lista configurável em store_settings.media_alert_config.emails
+  const { data: cfgRow } = await admin
+    .from("store_settings")
+    .select("value")
+    .eq("key", "media_alert_config")
+    .maybeSingle();
+  const cfg = (cfgRow?.value ?? {}) as { emails?: unknown };
+  if (Array.isArray(cfg.emails)) {
+    for (const e of cfg.emails) {
+      if (typeof e === "string" && e.includes("@")) emails.push(e.trim());
+    }
+    if (emails.length > 0) recipientSource = "configured";
   }
-  if (emails.length === 0) return { skipped: true, reason: "no_admin_emails" };
+
+  // 2) Fallback: e-mails dos administradores (user_roles -> profiles.email)
+  if (emails.length === 0) {
+    const { data: roles } = await admin.from("user_roles").select("user_id").eq("role", "admin");
+    const ids = (roles ?? []).map((r: { user_id: string }) => r.user_id);
+    if (ids.length === 0) return { skipped: true, reason: "no_admins" };
+    for (let i = 0; i < ids.length; i += 200) {
+      const { data: profs } = await admin.from("profiles").select("email").in("id", ids.slice(i, i + 200));
+      for (const p of profs ?? []) if (p?.email) emails.push(p.email as string);
+    }
+  }
+  if (emails.length === 0) return { skipped: true, reason: "no_recipients" };
 
   const rows = missing
     .slice(0, 50)
@@ -176,7 +198,7 @@ async function sendMissingAlert(
     }
     sent += slice.length;
   }
-  return { sent, admin_count: emails.length, errors };
+  return { sent, recipient_count: emails.length, recipient_source: recipientSource, errors };
 }
 
 function escapeHtml(s: string): string {

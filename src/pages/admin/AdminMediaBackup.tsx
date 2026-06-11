@@ -1,12 +1,16 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { saveAs } from "file-saver";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import MediaRestorePanel from "@/components/admin/MediaRestorePanel";
+import MediaAlertEmailsCard from "@/components/admin/MediaAlertEmailsCard";
 import {
   RefreshCw,
   Download,
@@ -17,6 +21,9 @@ import {
   Loader2,
   History,
   MailCheck,
+  PlayCircle,
+  FileText,
+  FileSpreadsheet,
 } from "lucide-react";
 
 interface MissingAsset {
@@ -55,6 +62,8 @@ interface AuditRun {
 
 const AdminMediaBackup = () => {
   const [generating, setGenerating] = useState(false);
+  const [auditing, setAuditing] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ["admin", "media-backup", "inventory"],
@@ -115,6 +124,84 @@ const AdminMediaBackup = () => {
     }
   };
 
+  const handleRunAudit = async () => {
+    setAuditing(true);
+    try {
+      const { data: res, error } = await supabase.functions.invoke("media-backup-cron", {
+        body: { source: "manual" },
+      });
+      if (error) throw error;
+      const r = res as { missing?: number; alerted?: boolean };
+      await queryClient.invalidateQueries({ queryKey: ["admin", "media-backup"] });
+      await refetch();
+      if ((r.missing ?? 0) > 0) {
+        toast.warning(
+          `Auditoria concluída: ${r.missing} ausente(s).${r.alerted ? " Alerta enviado." : " Alerta não enviado."}`,
+        );
+      } else {
+        toast.success("Auditoria concluída: nenhuma imagem ausente ✨");
+      }
+    } catch (e) {
+      toast.error("Falha ao rodar a auditoria de mídia.");
+    } finally {
+      setAuditing(false);
+    }
+  };
+
+  const exportMissingCSV = () => {
+    if (missing.length === 0) {
+      toast.info("Nenhuma imagem ausente para exportar.");
+      return;
+    }
+    const header = ["img_ref", "bucket", "storage_path", "entity_type", "field", "public_url"];
+    const escape = (v: string | null) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const lines = [
+      header.join(","),
+      ...missing.map((m) =>
+        [m.img_ref, m.bucket, m.storage_path, m.entity_type, m.field, m.public_url].map(escape).join(","),
+      ),
+    ];
+    const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    saveAs(blob, `imagens-ausentes-${new Date().toISOString().slice(0, 10)}.csv`);
+    toast.success("CSV exportado.");
+  };
+
+  const exportMissingPDF = () => {
+    if (missing.length === 0) {
+      toast.info("Nenhuma imagem ausente para exportar.");
+      return;
+    }
+    const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+    const today = new Date().toLocaleString("pt-BR");
+    doc.setFontSize(14);
+    doc.text("Empório LeleCute — Imagens ausentes", 40, 40);
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text(
+      `Gerado em ${today} • ${missing.length} imagem(ns) ausente(s) • ` +
+        `Total ${summary?.total ?? "—"} · Ativas ${summary?.active ?? "—"} · Sem uso ${summary?.archived ?? "—"}`,
+      40,
+      56,
+    );
+    doc.setTextColor(0);
+    autoTable(doc, {
+      startY: 72,
+      head: [["Caminho", "Tipo", "Campo", "img_ref"]],
+      body: missing.map((m) => [m.storage_path, m.entity_type ?? "—", m.field ?? "—", m.img_ref]),
+      styles: { fontSize: 8, cellPadding: 4, overflow: "linebreak" },
+      headStyles: { fillColor: [232, 93, 58] },
+      columnStyles: {
+        0: { cellWidth: 240 },
+        1: { cellWidth: 90 },
+        2: { cellWidth: 110 },
+        3: { cellWidth: "auto" },
+      },
+    });
+    doc.save(`imagens-ausentes-${new Date().toISOString().slice(0, 10)}.pdf`);
+    toast.success("PDF exportado.");
+  };
+
+
   const stats = [
     { label: "Total catalogado", value: summary?.total ?? "—", icon: ShieldCheck, tone: "" },
     { label: "Ativas (em uso)", value: summary?.active ?? "—", icon: ShieldCheck, tone: "text-emerald-600" },
@@ -138,6 +225,10 @@ const AdminMediaBackup = () => {
           <Button variant="outline" onClick={handleRefresh} disabled={isFetching}>
             {isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             Atualizar inventário
+          </Button>
+          <Button variant="outline" onClick={handleRunAudit} disabled={auditing}>
+            {auditing ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
+            Rodar auditoria agora
           </Button>
           <Button onClick={handleGenerateBackup} disabled={generating || isLoading}>
             {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
@@ -168,15 +259,36 @@ const AdminMediaBackup = () => {
           <TabsTrigger value="inventory">Inventário</TabsTrigger>
           <TabsTrigger value="restore">Restaurar</TabsTrigger>
           <TabsTrigger value="audits">Auditorias</TabsTrigger>
+          <TabsTrigger value="alerts">Alertas</TabsTrigger>
         </TabsList>
 
         <TabsContent value="inventory" className="mt-4">
           <Card className="border-rose-200">
             <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-rose-600" />
-                Imagens ausentes
-                <Badge variant="destructive">{missing.length}</Badge>
+              <CardTitle className="text-base flex items-center justify-between gap-2 flex-wrap">
+                <span className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-rose-600" />
+                  Imagens ausentes
+                  <Badge variant="destructive">{missing.length}</Badge>
+                </span>
+                <span className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={exportMissingCSV}
+                    disabled={missing.length === 0}
+                  >
+                    <FileSpreadsheet className="h-4 w-4" /> CSV
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={exportMissingPDF}
+                    disabled={missing.length === 0}
+                  >
+                    <FileText className="h-4 w-4" /> PDF
+                  </Button>
+                </span>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -251,6 +363,10 @@ const AdminMediaBackup = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="alerts" className="mt-4">
+          <MediaAlertEmailsCard />
         </TabsContent>
       </Tabs>
 
