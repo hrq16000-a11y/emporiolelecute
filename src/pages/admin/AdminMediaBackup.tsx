@@ -364,6 +364,10 @@ const AdminMediaBackup = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="alerts" className="mt-4">
+          <MediaAlertEmailsCard />
+        </TabsContent>
       </Tabs>
 
       <p className="text-xs text-muted-foreground">
