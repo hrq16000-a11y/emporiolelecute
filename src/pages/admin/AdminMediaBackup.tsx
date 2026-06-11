@@ -221,10 +221,14 @@ const AdminMediaBackup = () => {
             auditorias automáticas.
           </p>
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div class="" className="flex gap-2 flex-wrap">
           <Button variant="outline" onClick={handleRefresh} disabled={isFetching}>
             {isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             Atualizar inventário
+          </Button>
+          <Button variant="outline" onClick={handleRunAudit} disabled={auditing}>
+            {auditing ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
+            Rodar auditoria agora
           </Button>
           <Button onClick={handleGenerateBackup} disabled={generating || isLoading}>
             {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
