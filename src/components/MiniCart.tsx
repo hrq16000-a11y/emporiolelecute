@@ -93,6 +93,11 @@ const MiniCart = ({ className, iconClassName, badgeClassName, compact = false }:
                       alt={item.name}
                       className="w-full h-full object-cover"
                       loading="lazy"
+                      onError={(e) => {
+                        const img = e.currentTarget;
+                        if (img.src.endsWith("/placeholder.svg")) return;
+                        img.src = "/placeholder.svg";
+                      }}
                     />
                   </Link>
                   <div className="flex-1 min-w-0">
