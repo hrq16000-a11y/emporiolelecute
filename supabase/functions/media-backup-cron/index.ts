@@ -92,10 +92,10 @@ Deno.serve(async (req) => {
       missing_refs: missing,
       manifest,
       alerted,
-      source: "cron",
+      source,
     });
 
-    return json({ ok: true, summary: s, missing: missingCount, alerted, email: emailResult });
+    return json({ ok: true, summary: s, missing: missingCount, alerted, source, email: emailResult });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[media-backup-cron] erro:", msg);
