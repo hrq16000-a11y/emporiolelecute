@@ -115,17 +115,34 @@ async function sendMissingAlert(
     return { skipped: true, reason: "no_resend" };
   }
 
-  // Resolve e-mails de admin (user_roles -> profiles.email)
-  const { data: roles } = await admin.from("user_roles").select("user_id").eq("role", "admin");
-  const ids = (roles ?? []).map((r: { user_id: string }) => r.user_id);
-  if (ids.length === 0) return { skipped: true, reason: "no_admins" };
-
   const emails: string[] = [];
-  for (let i = 0; i < ids.length; i += 200) {
-    const { data: profs } = await admin.from("profiles").select("email").in("id", ids.slice(i, i + 200));
-    for (const p of profs ?? []) if (p?.email) emails.push(p.email as string);
+  let recipientSource = "admins";
+
+  // 1) Preferência: lista configurável em store_settings.media_alert_config.emails
+  const { data: cfgRow } = await admin
+    .from("store_settings")
+    .select("value")
+    .eq("key", "media_alert_config")
+    .maybeSingle();
+  const cfg = (cfgRow?.value ?? {}) as { emails?: unknown };
+  if (Array.isArray(cfg.emails)) {
+    for (const e of cfg.emails) {
+      if (typeof e === "string" && e.includes("@")) emails.push(e.trim());
+    }
+    if (emails.length > 0) recipientSource = "configured";
   }
-  if (emails.length === 0) return { skipped: true, reason: "no_admin_emails" };
+
+  // 2) Fallback: e-mails dos administradores (user_roles -> profiles.email)
+  if (emails.length === 0) {
+    const { data: roles } = await admin.from("user_roles").select("user_id").eq("role", "admin");
+    const ids = (roles ?? []).map((r: { user_id: string }) => r.user_id);
+    if (ids.length === 0) return { skipped: true, reason: "no_admins" };
+    for (let i = 0; i < ids.length; i += 200) {
+      const { data: profs } = await admin.from("profiles").select("email").in("id", ids.slice(i, i + 200));
+      for (const p of profs ?? []) if (p?.email) emails.push(p.email as string);
+    }
+  }
+  if (emails.length === 0) return { skipped: true, reason: "no_recipients" };
 
   const rows = missing
     .slice(0, 50)
