@@ -84,6 +84,32 @@ Deno.serve(async (req) => {
       return json({ ok: true, manifest });
     }
 
+    if (action === "relink") {
+      // Reescreve as URLs das entidades a partir do catálogo (img_ref),
+      // somente para assets 'active'. Aceita lista opcional de img_refs.
+      const imgRefs: string[] | null = Array.isArray(body.img_refs) && body.img_refs.length
+        ? (body.img_refs as string[])
+        : null;
+      const { data: relink, error: relinkErr } = await admin.rpc("media_relink_references", {
+        _img_refs: imgRefs,
+      });
+      if (relinkErr) throw new Error(`relink: ${relinkErr.message}`);
+      // Atualiza inventário após reescrever as URLs.
+      await admin.rpc("rebuild_media_inventory_internal");
+      return json({ ok: true, relink });
+    }
+
+    if (action === "audit_runs") {
+      // Histórico das auditorias periódicas (para o painel admin).
+      const { data: runs, error: runsErr } = await admin
+        .from("media_audit_runs")
+        .select("id, ran_at, total, active, archived, missing, alerted, source")
+        .order("ran_at", { ascending: false })
+        .limit(30);
+      if (runsErr) throw new Error(runsErr.message);
+      return json({ ok: true, runs: runs ?? [] });
+    }
+
     return json({ error: `Ação desconhecida: ${action}` }, 400);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
