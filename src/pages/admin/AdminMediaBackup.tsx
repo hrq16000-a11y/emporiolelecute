@@ -221,7 +221,7 @@ const AdminMediaBackup = () => {
             auditorias automáticas.
           </p>
         </div>
-        <div class="" className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap">
           <Button variant="outline" onClick={handleRefresh} disabled={isFetching}>
             {isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             Atualizar inventário
