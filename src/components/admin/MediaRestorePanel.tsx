@@ -15,7 +15,21 @@ import {
   CheckCircle2,
   FileArchive,
   Link2,
+  Eye,
+  ArrowRight,
 } from "lucide-react";
+
+interface RelinkPreviewRow {
+  img_ref: string;
+  entity_type: string | null;
+  name: string | null;
+  table: string;
+  column: string;
+  current_url: string | null;
+  new_url: string | null;
+  will_change: boolean;
+  exists: boolean;
+}
 
 interface ManifestAsset {
   img_ref: string;
