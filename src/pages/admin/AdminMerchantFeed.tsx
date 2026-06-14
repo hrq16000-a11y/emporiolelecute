@@ -559,7 +559,10 @@ const AdminMerchantFeed = () => {
           )}
         </CardContent>
       </Card>
+
+      <StickySaveBar saving={saving} onSave={handleSave} label="Salvar Configurações" />
     </div>
+
   );
 };
 
