@@ -85,6 +85,7 @@ const TaxonomyForm = ({
     if (showSeo) {
       payload.description = description || null;
       payload.image_url = imageUrl || null;
+      if (kind === 'ocasiao') payload.icon = icon || null;
       payload.is_indexed = isIndexed;
       payload.is_draft = isDraft;
       payload.meta_title = metaTitle || null;
