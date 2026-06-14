@@ -8,6 +8,7 @@ import {
   Boxes,
   Sparkles,
   Home,
+  Eye,
   Loader2,
   ArrowRight,
 } from "lucide-react";
