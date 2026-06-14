@@ -369,7 +369,9 @@ const AdminOccasions = () => {
                     <>
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted ring-1 ring-border/60 shrink-0 flex items-center justify-center">
-                          {occasion.image_url ? (
+                          {(occasion as any).icon ? (
+                            <LucideIcon name={(occasion as any).icon} className="w-6 h-6 text-primary" />
+                          ) : occasion.image_url ? (
                             <img src={occasion.image_url} alt={occasion.name} className="w-full h-full object-cover" loading="lazy" />
                           ) : (
                             <ImageIcon className="w-5 h-5 text-muted-foreground/60" />
