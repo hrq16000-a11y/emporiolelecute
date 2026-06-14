@@ -180,8 +180,13 @@ const AdminFeedInstagram = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Remover este post do feed?")) return;
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const handleDelete = (id: string) => {
+    setConfirmDeleteId(id);
+  };
+
+  const runDelete = async (id: string) => {
     try {
       await del.mutateAsync(id);
       toast.success("Removido");
