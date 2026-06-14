@@ -49,6 +49,11 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 
 import {
@@ -59,6 +64,10 @@ import {
   useUpdateHomeSection,
 } from "@/hooks/useHomeSections";
 import { HOME_SECTIONS_REGISTRY } from "@/lib/homeSectionsRegistry";
+import {
+  buildSectionDestinationPath,
+  getSectionDestination,
+} from "@/lib/homeSectionsDestinations";
 
 // =====================================================================
 // Card sortable
