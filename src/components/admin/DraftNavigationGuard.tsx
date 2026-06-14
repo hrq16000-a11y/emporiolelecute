@@ -25,7 +25,7 @@ import { useDraftStore } from '@/stores/draftStore';
 export default function DraftNavigationGuard() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { hasDraft, clearDraft } = useDraftStore();
+  const { hasDraftForPath, clearDraftsForPath } = useDraftStore();
   const [pendingHref, setPendingHref] = useState<string | null>(null);
   // Flag para permitir uma navegação após confirmação, sem reabrir o modal
   const bypassRef = useRef(false);
@@ -45,7 +45,7 @@ export default function DraftNavigationGuard() {
       if (!href || href.startsWith('http') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
       if (href.startsWith('#')) return;
       if (href === pathname) return;
-      if (!hasDraft(pathname)) return;
+      if (!hasDraftForPath(pathname)) return;
 
       // Bloqueia e abre o modal informativo
       e.preventDefault();
@@ -55,20 +55,20 @@ export default function DraftNavigationGuard() {
 
     document.addEventListener('click', handleClick, true);
     return () => document.removeEventListener('click', handleClick, true);
-  }, [pathname, hasDraft]);
+  }, [pathname, hasDraftForPath]);
 
   // Aviso nativo apenas para fechar aba/reload (drafts persistem em localStorage,
   // mas o usuário deve saber que tem trabalho não salvo no servidor)
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (!hasDraft(pathname)) return;
+      if (!hasDraftForPath(pathname)) return;
       e.preventDefault();
       e.returnValue = '';
       return '';
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [pathname, hasDraft]);
+  }, [pathname, hasDraftForPath]);
 
   // Sair mantendo o rascunho (padrão seguro — usuário pode voltar e continuar)
   const leaveKeepingDraft = () => {
@@ -85,7 +85,7 @@ export default function DraftNavigationGuard() {
   // Sair descartando explicitamente o rascunho
   const leaveDiscarding = () => {
     if (!pendingHref) return;
-    clearDraft(pathname);
+    clearDraftsForPath(pathname);
     const dest = pendingHref;
     setPendingHref(null);
     bypassRef.current = true;
