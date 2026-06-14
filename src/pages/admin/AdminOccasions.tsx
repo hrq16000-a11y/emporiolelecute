@@ -30,6 +30,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useDbOccasions, useCreateOccasion, useDeleteOccasion, useUpdateOccasion } from '@/hooks/useProducts';
 import { useSlugAvailability } from '@/hooks/useSlugAvailability';
 import ImagePickerWithLibrary from '@/components/admin/ImagePickerWithLibrary';
+import LucideIconPicker from '@/components/admin/LucideIconPicker';
+import { LucideIcon } from '@/components/LucideIcon';
 import { useQueryClient } from '@tanstack/react-query';
 import { markPublicTaxonomyDirty, invalidatePublicTaxonomy } from '@/lib/taxonomyAutomation';
 
