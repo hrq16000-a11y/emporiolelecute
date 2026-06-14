@@ -412,7 +412,7 @@ const TaxonomyForm = ({
 
       <div className="sticky bottom-3 z-40 flex justify-center pt-2 pointer-events-none">
         <div className="pointer-events-auto flex w-full max-w-md items-center justify-between gap-2 rounded-full border border-border bg-background/95 px-3 py-2 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/85">
-          <DraftStatusBadge scopeKey={scopeKey} className="hidden min-[420px]:inline-flex" />
+          <DraftStatusBadge scopeKey={formScopeKey} className="hidden min-[420px]:inline-flex" />
           <div className="ml-auto flex items-center gap-2">
             <Button type="button" variant="outline" size="sm" onClick={onCancel}>Cancelar</Button>
             <Button type="submit" size="sm" disabled={saving || !name.trim() || !slug.trim()}>
