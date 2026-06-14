@@ -255,7 +255,7 @@ const AdminCommandPalette = () => {
       <CommandList>
         {hasTerm && (
           <CommandEmpty>
-            {productsLoading ? (
+            {productsLoading || ordersLoading ? (
               <span className="flex items-center justify-center gap-2 text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Buscando...
