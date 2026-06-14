@@ -174,7 +174,14 @@ const OccasionsThumbs = () => {
                     )}
                     style={{ animationDelay: `${(i % 5) * 0.5}s`, animationDuration: `${6 + (i % 4) * 1.5}s` }}
                   >
-                    {o.image_url ? (
+                    {o.icon ? (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <LucideIcon
+                          name={o.icon}
+                          className="w-6 h-6 md:w-7 md:h-7 text-primary transition-transform duration-300 group-hover:scale-105"
+                        />
+                      </div>
+                    ) : o.image_url ? (
                       <LazyImage
                         src={o.image_url}
                         alt={o.name}
