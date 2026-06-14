@@ -13,8 +13,9 @@ import FAQSection from "@/components/FAQSection";
 import { useDbProducts } from "@/hooks/useProducts";
 import { urls } from "@/lib/urls";
 import logoImg from "@/assets/logo.webp";
+import { useContactInfo } from "@/hooks/useContactInfo";
 
-const WHATSAPP_URL = "https://wa.me/5541992214299?text=Olá! Vim pelo site e gostaria de saber mais sobre as lembrancinhas personalizadas.";
+const WHATSAPP_MESSAGE = "Olá! Vim pelo site e gostaria de saber mais sobre as lembrancinhas personalizadas.";
 
 const benefits = [
   { icon: Heart, title: "Feito à Mão", description: "Cada peça é produzida artesanalmente com carinho" },
