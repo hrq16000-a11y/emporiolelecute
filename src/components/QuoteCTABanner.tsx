@@ -1,10 +1,13 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Heart, MessageCircle, Sparkles } from "lucide-react";
+import { useContactInfo } from "@/hooks/useContactInfo";
 
 const QuoteCTABanner = () => {
-  const whatsappUrl =
-    "https://wa.me/5541992214299?text=Olá! Vim pelo site e gostaria de fazer um orçamento de lembrancinhas personalizadas.";
+  const { buildWhatsappUrl } = useContactInfo();
+  const whatsappUrl = buildWhatsappUrl(
+    "Olá! Vim pelo site e gostaria de fazer um orçamento de lembrancinhas personalizadas."
+  );
 
   return (
     <section className="py-16 px-4">
