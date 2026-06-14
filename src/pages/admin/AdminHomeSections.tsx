@@ -166,6 +166,44 @@ const SortableSectionCard = ({
             onCheckedChange={() => onToggle(section)}
             aria-label={section.is_visible ? "Ocultar seção" : "Exibir seção"}
           />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              {hasDestination ? (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => onConfigure(section)}
+                  aria-label="Configurar conteúdo"
+                  className="text-primary hover:text-primary hover:bg-primary/10"
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
+              ) : (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  disabled
+                  aria-label="Configuração indisponível"
+                  className="opacity-50 cursor-not-allowed"
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
+              )}
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-[220px] text-xs">
+              {hasDestination ? (
+                <span className="flex items-center gap-1">
+                  <ArrowUpRight className="w-3 h-3 shrink-0" />
+                  Configurar conteúdo · {destination.label}
+                </span>
+              ) : (
+                <span>{destination.hint ?? "Configuração indisponível"}</span>
+              )}
+              {hasDestination && destination.hint && (
+                <span className="block mt-1 text-muted-foreground">{destination.hint}</span>
+              )}
+            </TooltipContent>
+          </Tooltip>
           <Button size="icon" variant="ghost" onClick={() => onPreview(section)} title="Prévia">
             <Eye className="w-4 h-4" />
           </Button>
