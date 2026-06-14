@@ -153,7 +153,7 @@ const AdminPageForm = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 pb-28 sm:pb-24">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6 sm:mb-8">
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
