@@ -1,4 +1,5 @@
 import { Suspense, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Eye,
   EyeOff,
@@ -8,6 +9,9 @@ import {
   Loader2,
   Pencil,
   Save,
+  Settings,
+  ArrowUpRight,
+  Info,
 } from "lucide-react";
 import {
   DndContext,
