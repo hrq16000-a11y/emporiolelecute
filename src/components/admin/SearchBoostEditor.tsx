@@ -78,7 +78,6 @@ export default function SearchBoostEditor({ presetTerm, onConsumePreset }: Props
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Remover este pin?")) return;
     await del.mutateAsync(id);
     toast({ title: "Pin removido" });
   };
