@@ -557,6 +557,37 @@ const AdminUsers = () => {
 
       <CreateUserDialog open={createOpen} onClose={() => setCreateOpen(false)}
         onCreated={() => { setCreateOpen(false); qc.invalidateQueries({ queryKey: ["users-pag"] }); }} />
+
+      <AlertDialog open={!!pendingRole} onOpenChange={(o) => !o && setPendingRole(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingRole?.action === "remove" ? "Remover papel?" : "Atribuir papel?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingRole?.action === "remove" ? "Remover" : "Atribuir"} o papel{" "}
+              <strong>{pendingRole?.role}</strong> para <strong>{pendingRole?.email}</strong>?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className={
+                pendingRole?.action === "remove"
+                  ? buttonVariants({ variant: "destructive" })
+                  : undefined
+              }
+              onClick={() => {
+                const p = pendingRole;
+                setPendingRole(null);
+                if (p) setRole.mutate({ user_id: p.user_id, role: p.role, action: p.action });
+              }}
+            >
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
