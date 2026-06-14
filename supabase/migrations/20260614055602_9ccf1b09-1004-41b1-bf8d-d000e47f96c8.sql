@@ -1,0 +1,1 @@
+ALTER TABLE public.occasions ADD COLUMN IF NOT EXISTS icon text;

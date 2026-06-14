@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Info } from 'lucide-react';
 import SeoPreview from './SeoPreview';
+import LucideIconPicker from './LucideIconPicker';
 import { TAXONOMY_LABELS, TaxonomyEntity, TaxonomyKind, TaxonomyFaq, normalizeFaqs, slugify } from '@/lib/taxonomy';
 
 interface Props {
@@ -34,6 +35,7 @@ const TaxonomyForm = ({
   const [position, setPosition] = useState<number>(initial?.position ?? 0);
   const [description, setDescription] = useState(initial?.description ?? '');
   const [imageUrl, setImageUrl] = useState(initial?.image_url ?? '');
+  const [icon, setIcon] = useState<string | null>(initial?.icon ?? null);
   const [isIndexed, setIsIndexed] = useState<boolean>(initial?.is_indexed ?? true);
   // Bloco 3 SAFE: novos itens nascem como rascunho; existentes preservam o estado salvo.
   const [isDraft, setIsDraft] = useState<boolean>(initial?.is_draft ?? true);
@@ -83,6 +85,7 @@ const TaxonomyForm = ({
     if (showSeo) {
       payload.description = description || null;
       payload.image_url = imageUrl || null;
+      if (kind === 'ocasiao') payload.icon = icon || null;
       payload.is_indexed = isIndexed;
       payload.is_draft = isDraft;
       payload.meta_title = metaTitle || null;
@@ -174,6 +177,18 @@ const TaxonomyForm = ({
               />
             </div>
           </div>
+
+          {kind === 'ocasiao' && (
+            <div className="space-y-1.5 rounded-md border border-border p-3 bg-muted/30">
+              <Label>Ícone (Lucide)</Label>
+              <LucideIconPicker value={icon} onChange={setIcon} />
+              <p className="text-xs text-muted-foreground">
+                Quando definido, o ícone aparece no site em "Ocasiões Especiais" no lugar da imagem.
+              </p>
+            </div>
+          )}
+
+
 
           <div className="space-y-1.5">
             <Label htmlFor="tx-desc">Descrição curta</Label>
