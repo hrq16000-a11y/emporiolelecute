@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- lovable:sitemap-source generate-sitemap@v2.1b -->
-<!-- lovable:sitemap-generated-at 2026-06-14T05:43:24.105Z -->
+<!-- lovable:sitemap-generated-at 2026-06-14T20:20:35.138Z -->
 <!-- lovable:sitemap-namespace /produto -->
 <!-- lovable:sitemap-products-count 66 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -714,12 +714,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://emporiolelecute.com.br/ocasiao/batizado</loc>
-    <lastmod>2026-06-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://emporiolelecute.com.br/ocasiao/natal</loc>
     <lastmod>2026-06-14</lastmod>
     <changefreq>weekly</changefreq>
@@ -732,19 +726,25 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://emporiolelecute.com.br/ocasiao/cha-revelacao</loc>
-    <lastmod>2026-06-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://emporiolelecute.com.br/ocasiao/aniversario</loc>
     <lastmod>2026-06-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://emporiolelecute.com.br/ocasiao/batizado</loc>
+    <lastmod>2026-06-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://emporiolelecute.com.br/ocasiao/cha-bebe</loc>
+    <lastmod>2026-06-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://emporiolelecute.com.br/ocasiao/cha-revelacao</loc>
     <lastmod>2026-06-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
