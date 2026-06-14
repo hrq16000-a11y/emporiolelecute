@@ -1,10 +1,12 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Activity } from 'lucide-react';
 import TaxonomyManager from '@/components/admin/TaxonomyManager';
 import { TaxonomyEntity, TaxonomyKind } from '@/lib/taxonomy';
+import { invalidatePublicTaxonomy, markPublicTaxonomyDirty } from '@/lib/taxonomyAutomation';
 import {
   useDbCategories, useDbOccasions,
   useCreateCategory, useUpdateCategory, useDeleteCategory,
@@ -17,6 +19,15 @@ import { useTags, useCreateTag, useUpdateTag, useDeleteTag } from '@/hooks/useTa
 import { supabase } from '@/integrations/supabase/client';
 
 const AdminTaxonomies = () => {
+  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<TaxonomyKind>(() => {
+    try {
+      const saved = localStorage.getItem('admin_taxonomies_tab') as TaxonomyKind | null;
+      return saved && ['categoria', 'ocasiao', 'segmento', 'tag'].includes(saved) ? saved : 'categoria';
+    } catch {
+      return 'categoria';
+    }
+  });
   const cats = useDbCategories();
   const occs = useDbOccasions();
   const segs = useSegments();
@@ -43,21 +54,35 @@ const AdminTaxonomies = () => {
     const { error } = await supabase.from('categories').update(values).eq('id', id);
     if (error) throw error;
     await cats.refetch();
+    invalidatePublicTaxonomy(queryClient, 'categories');
+    void markPublicTaxonomyDirty('categories');
   };
   const createCategoryGeneric = async (values: Partial<TaxonomyEntity>) => {
     const { error } = await supabase.from('categories').insert(values as never);
     if (error) throw error;
     await cats.refetch();
+    invalidatePublicTaxonomy(queryClient, 'categories');
+    void markPublicTaxonomyDirty('categories');
   };
   const updateOccasionGeneric = async (id: string, values: Partial<TaxonomyEntity>) => {
     const { error } = await supabase.from('occasions').update(values).eq('id', id);
     if (error) throw error;
     await occs.refetch();
+    invalidatePublicTaxonomy(queryClient, 'occasions');
+    void markPublicTaxonomyDirty('occasions');
   };
   const createOccasionGeneric = async (values: Partial<TaxonomyEntity>) => {
     const { error } = await supabase.from('occasions').insert(values as never);
     if (error) throw error;
     await occs.refetch();
+    invalidatePublicTaxonomy(queryClient, 'occasions');
+    void markPublicTaxonomyDirty('occasions');
+  };
+  const deleteOccasionSynced = async (id: string) => {
+    await delOcc.mutateAsync(id);
+    await occs.refetch();
+    invalidatePublicTaxonomy(queryClient, 'occasions');
+    void markPublicTaxonomyDirty('occasions');
   };
 
   // Suppress unused-warnings for the original hooks (kept for compat; not used directly here)
@@ -77,15 +102,23 @@ const AdminTaxonomies = () => {
         </Link>
       </div>
 
-      <Tabs defaultValue="categoria" className="space-y-4">
-        <TabsList className="flex-wrap h-auto">
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => {
+          const next = value as TaxonomyKind;
+          setActiveTab(next);
+          try { localStorage.setItem('admin_taxonomies_tab', next); } catch { /* noop */ }
+        }}
+        className="space-y-4"
+      >
+        <TabsList className="h-auto max-w-full justify-start overflow-x-auto md:flex-wrap">
           <TabsTrigger value="categoria">Categorias</TabsTrigger>
           <TabsTrigger value="ocasiao">Ocasiões</TabsTrigger>
           <TabsTrigger value="segmento">Segmentos</TabsTrigger>
           <TabsTrigger value="tag">Tags</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="categoria">
+        <TabsContent value="categoria" forceMount hidden={activeTab !== 'categoria'}>
           <TaxonomyManager
             kind="categoria"
             items={(cats.data ?? []) as TaxonomyEntity[]}
@@ -96,7 +129,7 @@ const AdminTaxonomies = () => {
             onDelete={(id) => delCat.mutateAsync(id)}
           />
         </TabsContent>
-        <TabsContent value="ocasiao">
+        <TabsContent value="ocasiao" forceMount hidden={activeTab !== 'ocasiao'}>
           <TaxonomyManager
             kind="ocasiao"
             items={(occs.data ?? []) as TaxonomyEntity[]}
@@ -104,10 +137,10 @@ const AdminTaxonomies = () => {
             existingSlugsByKind={slugsByKind}
             onCreate={createOccasionGeneric}
             onUpdate={updateOccasionGeneric}
-            onDelete={(id) => delOcc.mutateAsync(id)}
+            onDelete={deleteOccasionSynced}
           />
         </TabsContent>
-        <TabsContent value="segmento">
+        <TabsContent value="segmento" forceMount hidden={activeTab !== 'segmento'}>
           <TaxonomyManager
             kind="segmento"
             items={(segs.data ?? []) as TaxonomyEntity[]}
@@ -118,7 +151,7 @@ const AdminTaxonomies = () => {
             onDelete={(id) => delSeg.mutateAsync(id)}
           />
         </TabsContent>
-        <TabsContent value="tag">
+        <TabsContent value="tag" forceMount hidden={activeTab !== 'tag'}>
           <TaxonomyManager
             kind="tag"
             items={(tagsQ.data ?? []) as TaxonomyEntity[]}
