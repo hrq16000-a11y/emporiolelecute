@@ -30,6 +30,13 @@ export function useFormDraft<T>(
   const key = scopeKey ? `${pathname}#${scopeKey}` : pathname;
   const { setDraft, clearDraft, hasDraft, getDraft } = useDraftStore();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestDataRef = useRef(formData);
+  const enabledRef = useRef(enabled);
+
+  useEffect(() => {
+    latestDataRef.current = formData;
+    enabledRef.current = enabled;
+  }, [formData, enabled]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -41,6 +48,23 @@ export function useFormDraft<T>(
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [formData, enabled, key, debounceMs, setDraft]);
+
+  useEffect(() => {
+    const flushDraft = () => {
+      if (!enabledRef.current) return;
+      if (timerRef.current) clearTimeout(timerRef.current);
+      setDraft(key, latestDataRef.current);
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') flushDraft();
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', flushDraft);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', flushDraft);
+    };
+  }, [key, setDraft]);
 
   return {
     hydrate: <U = T>() => getDraft<U>(key),
