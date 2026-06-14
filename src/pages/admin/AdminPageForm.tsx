@@ -13,6 +13,7 @@ import { usePageById, useCreatePage, useUpdatePage, useSavePageVersion, usePageV
 import WYSIWYGEditor from '@/components/admin/WYSIWYGEditor';
 import { useFormDraft } from '@/hooks/useFormDraft';
 import DraftStatusBadge from '@/components/admin/DraftStatusBadge';
+import StickySaveBar from '@/components/admin/StickySaveBar';
 
 const AdminPageForm = () => {
   const { id } = useParams<{ id: string }>();
