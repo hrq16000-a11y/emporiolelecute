@@ -406,6 +406,12 @@ export default function AdminKitForm() {
           </div>
         </CardContent>
       </Card>
+
+      <StickySaveBar
+        saving={saving}
+        onSave={() => onSubmit({ preventDefault: () => {} } as React.FormEvent)}
+        label="Salvar kit"
+      />
     </form>
   );
 }
