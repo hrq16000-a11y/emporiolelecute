@@ -256,6 +256,7 @@ const AdminLayout = () => {
       </aside>
 
       <main className="lg:ml-64 pt-20 lg:pt-0 min-h-screen min-w-0 overflow-x-hidden">
+        <BackToHomeSections />
         <Outlet />
       </main>
 
