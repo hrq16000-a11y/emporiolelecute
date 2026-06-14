@@ -18,6 +18,7 @@ import { useDbProducts } from "@/hooks/useProducts";
 import type { KitBundleType } from "@/hooks/useKits";
 import { useFormDraft } from "@/hooks/useFormDraft";
 import DraftStatusBadge from "@/components/admin/DraftStatusBadge";
+import StickySaveBar from "@/components/admin/StickySaveBar";
 
 interface KitItem {
   product_id: string;
@@ -219,7 +220,7 @@ export default function AdminKitForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="container max-w-4xl mx-auto py-6 sm:py-8 px-3 sm:px-4 space-y-6">
+    <form onSubmit={onSubmit} className="container max-w-4xl mx-auto py-6 sm:py-8 px-3 sm:px-4 space-y-6 pb-28 sm:pb-24">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <Button asChild variant="ghost" size="sm"><Link to="/admin/kits"><ArrowLeft className="h-4 w-4" /></Link></Button>
@@ -405,6 +406,12 @@ export default function AdminKitForm() {
           </div>
         </CardContent>
       </Card>
+
+      <StickySaveBar
+        saving={saving}
+        onSave={() => onSubmit({ preventDefault: () => {} } as React.FormEvent)}
+        label="Salvar kit"
+      />
     </form>
   );
 }
