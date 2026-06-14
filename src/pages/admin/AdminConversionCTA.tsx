@@ -140,7 +140,10 @@ export default function AdminConversionCTA() {
           <QATab draft={draft} />
         </TabsContent>
       </Tabs>
+
+      <StickySaveBar saving={saveMut.isPending} onSave={handleSave} />
     </div>
+
   );
 }
 
