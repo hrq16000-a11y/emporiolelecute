@@ -247,7 +247,10 @@ export default function AdminCookieConsent() {
             </CardContent>
           </Card>
         </div>
+
+        <StickySaveBar saving={saving} onSave={save} />
       </div>
+
     </>
   );
 }
