@@ -12,6 +12,7 @@ import {
 import { toast } from 'sonner';
 import TaxonomyForm from './TaxonomyForm';
 import { evaluateSeo, hasAnyIssue, TAXONOMY_LABELS, TaxonomyEntity, TaxonomyKind } from '@/lib/taxonomy';
+import { LucideIcon } from '@/components/LucideIcon';
 
 interface Props {
   kind: TaxonomyKind;
@@ -56,6 +57,7 @@ const TaxonomyManager = ({
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Erro ao salvar';
       toast.error(msg);
+      throw e;
     } finally {
       setSaving(false);
     }
@@ -118,10 +120,16 @@ const TaxonomyManager = ({
                       </Button>
                     </div>
                     <div className="w-10 text-center text-xs text-muted-foreground">#{item.position ?? 0}</div>
-                    {showSeo && item.image_url ? (
+                    {showSeo && kind === 'ocasiao' && item.icon ? (
+                      <div className="flex h-10 w-10 items-center justify-center rounded bg-primary/10 text-primary ring-1 ring-border/60">
+                        <LucideIcon name={item.icon} className="h-5 w-5" />
+                      </div>
+                    ) : showSeo && item.image_url ? (
                       <img src={item.image_url} alt="" className="w-10 h-10 rounded object-cover bg-muted" />
                     ) : showSeo ? (
-                      <div className="w-10 h-10 rounded bg-muted" />
+                      <div className="flex h-10 w-10 items-center justify-center rounded bg-muted text-muted-foreground">
+                        <LucideIcon name={kind === 'ocasiao' ? 'Sparkles' : 'Image'} className="h-4 w-4" />
+                      </div>
                     ) : null}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -186,7 +194,7 @@ const TaxonomyManager = ({
           if (!o) { setCreating(false); setEditing(null); }
         }}
       >
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto px-4 sm:px-6">
           <DialogHeader>
             <DialogTitle>
               {editing ? `Editar ${TAXONOMY_LABELS[kind].singular}` : `Nova ${TAXONOMY_LABELS[kind].singular}`}
@@ -198,6 +206,7 @@ const TaxonomyManager = ({
             existingSlugsByKind={existingSlugsByKind}
             showSeo={showSeo}
             saving={saving}
+            scopeKey={`taxonomy:${kind}:${editing?.id ?? 'new'}`}
             onCancel={() => { setCreating(false); setEditing(null); }}
             onSubmit={handleSubmit}
           />
