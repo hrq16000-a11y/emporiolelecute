@@ -177,6 +177,37 @@ const AdminOccasions = () => {
     occ.slug.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Reordenação só é segura sem filtro de busca (a lista reflete a ordem real).
+  const isReorderable = !searchQuery.trim();
+  const [reordering, setReordering] = useState(false);
+
+  const persistOrder = async (ordered: { id: string; position?: number | null }[]) => {
+    const updates = ordered
+      .map((o, i) => ((o.position ?? -1) === i ? null : updateOccasion.mutateAsync({ id: o.id, position: i } as any)))
+      .filter(Boolean) as Promise<unknown>[];
+    if (updates.length) await Promise.all(updates);
+  };
+
+  const handleMove = async (occasionId: string, direction: -1 | 1) => {
+    if (!occasions || reordering) return;
+    const sorted = [...occasions];
+    const idx = sorted.findIndex((o) => o.id === occasionId);
+    const targetIdx = idx + direction;
+    if (idx < 0 || targetIdx < 0 || targetIdx >= sorted.length) return;
+    [sorted[idx], sorted[targetIdx]] = [sorted[targetIdx], sorted[idx]];
+    setReordering(true);
+    try {
+      await persistOrder(sorted);
+      invalidatePublicTaxonomy(queryClient, 'occasions');
+      void markPublicTaxonomyDirty('occasions');
+      toast({ title: 'Ordem atualizada' });
+    } catch {
+      toast({ title: 'Erro ao reordenar', variant: 'destructive' });
+    } finally {
+      setReordering(false);
+    }
+  };
+
   const openContentEditor = (occ: any) => {
     setContentEditId(occ.id);
     setContentForm({
