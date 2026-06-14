@@ -348,7 +348,28 @@ const AdminDiagnostics = () => {
               <Button variant="outline" onClick={() => downloadCSV(`ig-failures-${Date.now()}.csv`, toCSV(igFailures as unknown as Record<string, unknown>[]))}>
                 <Download className="w-4 h-4 mr-2" />CSV
               </Button>
-              <Button variant="destructive" onClick={clearIg}><Trash2 className="w-4 h-4 mr-2" />Limpar período</Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive"><Trash2 className="w-4 h-4 mr-2" />Limpar período</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Apagar todas as falhas de embed do Instagram?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta ação não pode ser desfeita. As falhas do período selecionado serão apagadas.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      className={buttonVariants({ variant: "destructive" })}
+                      onClick={clearIg}
+                    >
+                      Apagar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardContent>
           </Card>
 
