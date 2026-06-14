@@ -286,10 +286,23 @@ const actionLabels: Record<string, string> = {
 // =====================================================================
 const AdminHomeSections = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { data: sections, isLoading } = useAdminHomeSections();
   const { data: audit } = useHomeSectionAudit();
   const updateMut = useUpdateHomeSection();
   const reorderMut = useReorderHomeSections();
+
+  const handleConfigure = (s: HomeSection) => {
+    const path = buildSectionDestinationPath(s.component_name);
+    if (!path) {
+      toast({
+        title: "Configuração indisponível",
+        description: "Esta seção não possui um módulo de configuração no painel.",
+      });
+      return;
+    }
+    navigate(path);
+  };
 
   const [previewSection, setPreviewSection] = useState<HomeSection | null>(null);
   const [editing, setEditing] = useState<HomeSection | null>(null);
