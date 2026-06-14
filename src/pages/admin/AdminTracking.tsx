@@ -110,6 +110,12 @@ export default function AdminTracking() {
           </div>
         </CardContent>
       </Card>
+
+      <StickySaveBar
+        dirty={JSON.stringify(form) !== JSON.stringify(data)}
+        saving={update.isPending}
+        onSave={save}
+      />
     </div>
   );
 }
