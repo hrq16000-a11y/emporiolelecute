@@ -63,6 +63,29 @@ interface ProductHit {
   is_active: boolean;
 }
 
+interface OrderHit {
+  id: string;
+  order_code: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string | null;
+  status: string;
+  total: number;
+}
+
+// Rótulos PT-BR alinhados ao AdminOrders (não altera a fonte de verdade lá).
+const ORDER_STATUS_LABELS: Record<string, string> = {
+  pending: "Pendente",
+  confirmed: "Confirmado",
+  processing: "Em produção",
+  shipped: "Enviado",
+  delivered: "Entregue",
+  cancelled: "Cancelado",
+};
+
+const orderStatusLabel = (status: string) =>
+  ORDER_STATUS_LABELS[status] || status || "—";
+
 const formatPrice = (value: number) =>
   `R$ ${Number(value || 0).toFixed(2).replace(".", ",")}`;
 
