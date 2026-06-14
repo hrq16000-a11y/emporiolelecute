@@ -378,18 +378,42 @@ const AdminHomeSections = () => {
   const openEdit = (s: HomeSection) => {
     setEditing(s);
     setEditForm({ label: s.label, description: s.description || "" });
+    setPropsForm({ ...(s.editable_props || {}) });
   };
 
   const saveEdit = async () => {
     if (!editing) return;
+
+    // Merge seguro: parte das props persistidas e sobrescreve apenas as editadas,
+    // preservando chaves desconhecidas que possam existir em produção.
+    const original = (editing.editable_props || {}) as Record<string, unknown>;
+    const mergedProps: Record<string, unknown> = { ...original };
+
+    for (const [key, value] of Object.entries(propsForm)) {
+      const originalIsNumber = typeof original[key] === "number";
+      if (originalIsNumber) {
+        const parsed = typeof value === "number" ? value : Number(value);
+        const fallback = Number(original[key]);
+        const safe = Number.isFinite(parsed) ? parsed : fallback;
+        // maxItems (e demais numéricos) respeitam faixa mínima 1 e são inteiros.
+        mergedProps[key] = Math.max(1, Math.round(safe));
+      } else if (typeof value === "string") {
+        mergedProps[key] = value.trim();
+      } else {
+        mergedProps[key] = value;
+      }
+    }
+
     await updateMut.mutateAsync({
       id: editing.id,
       label: editForm.label.trim() || editing.label,
       description: editForm.description.trim() || null,
+      editable_props: mergedProps,
     });
     toast({ title: "Seção atualizada" });
     setEditing(null);
   };
+
 
   return (
     <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
