@@ -220,7 +220,7 @@ export default function AdminKitForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="container max-w-4xl mx-auto py-6 sm:py-8 px-3 sm:px-4 space-y-6">
+    <form onSubmit={onSubmit} className="container max-w-4xl mx-auto py-6 sm:py-8 px-3 sm:px-4 space-y-6 pb-28 sm:pb-24">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <Button asChild variant="ghost" size="sm"><Link to="/admin/kits"><ArrowLeft className="h-4 w-4" /></Link></Button>
