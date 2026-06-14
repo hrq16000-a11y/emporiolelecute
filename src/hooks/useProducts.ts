@@ -572,6 +572,9 @@ export function useUpdateOccasion() {
       description?: string | null;
       image_url?: string | null;
       icon?: string | null;
+      position?: number | null;
+      is_draft?: boolean;
+      is_indexed?: boolean;
       meta_title?: string | null;
       meta_description?: string | null;
     }) => {
