@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { AlertTriangle, Info } from 'lucide-react';
 import SeoPreview from './SeoPreview';
 import LucideIconPicker from './LucideIconPicker';
+import ImagePickerWithLibrary from './ImagePickerWithLibrary';
+import DraftStatusBadge from './DraftStatusBadge';
 import { TAXONOMY_LABELS, TaxonomyEntity, TaxonomyKind, TaxonomyFaq, normalizeFaqs, slugify } from '@/lib/taxonomy';
 
 interface Props {
@@ -17,6 +19,7 @@ interface Props {
   existingSlugsByKind: Record<TaxonomyKind, Map<string, string>>; // slug -> name
   showSeo?: boolean; // tags don't have SEO fields
   saving?: boolean;
+  scopeKey?: string;
   onCancel: () => void;
   onSubmit: (values: Partial<TaxonomyEntity>) => Promise<void> | void;
 }
@@ -27,6 +30,7 @@ const TaxonomyForm = ({
   existingSlugsByKind,
   showSeo = true,
   saving,
+  scopeKey,
   onCancel,
   onSubmit,
 }: Props) => {
@@ -98,7 +102,7 @@ const TaxonomyForm = ({
   };
 
   return (
-    <form onSubmit={submit} className="space-y-5">
+    <form onSubmit={submit} className="space-y-5 pb-24 sm:pb-28">
       {/* Recomendação especial para tags */}
       {kind === 'tag' && (
         <div className="flex gap-2 rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-3 text-sm">
@@ -157,14 +161,14 @@ const TaxonomyForm = ({
 
       {showSeo && (
         <>
-          <div className="grid sm:grid-cols-[1fr_140px] gap-4">
+          <div className="grid sm:grid-cols-[minmax(0,1fr)_140px] gap-4 items-start">
             <div className="space-y-1.5">
-              <Label htmlFor="tx-image">URL da imagem</Label>
-              <Input
-                id="tx-image"
+              <Label>Imagem da {TAXONOMY_LABELS[kind].singular.toLowerCase()}</Label>
+              <ImagePickerWithLibrary
                 value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://..."
+                onChange={setImageUrl}
+                folder={kind === 'ocasiao' ? 'occasions' : kind === 'categoria' ? 'categories' : 'misc'}
+                hint="Faça upload, escolha da biblioteca ou cole uma URL."
               />
             </div>
             <div className="space-y-1.5">
@@ -342,11 +346,16 @@ const TaxonomyForm = ({
         </>
       )}
 
-      <div className="flex justify-end gap-2 pt-2">
-        <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
-        <Button type="submit" disabled={saving || !name.trim() || !slug.trim()}>
-          {saving ? 'Salvando...' : 'Salvar'}
-        </Button>
+      <div className="sticky bottom-3 z-40 flex justify-center pt-2 pointer-events-none">
+        <div className="pointer-events-auto flex w-full max-w-md items-center justify-between gap-2 rounded-full border border-border bg-background/95 px-3 py-2 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/85">
+          <DraftStatusBadge scopeKey={scopeKey} className="hidden min-[420px]:inline-flex" />
+          <div className="ml-auto flex items-center gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={onCancel}>Cancelar</Button>
+            <Button type="submit" size="sm" disabled={saving || !name.trim() || !slug.trim()}>
+              {saving ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </div>
+        </div>
       </div>
     </form>
   );
