@@ -119,7 +119,6 @@ const AdminThemes = () => {
   };
 
   const handleDelete = async (hub: ThemeHub) => {
-    if (!confirm(`Excluir hub "${hub.title}"?`)) return;
     try {
       await deleteHub.mutateAsync(hub.id);
       toast.success("Hub excluído.");
