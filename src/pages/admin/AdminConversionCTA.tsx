@@ -973,9 +973,8 @@ function BadgeStatsTab() {
           </div>
         </>
       )}
-
-      <StickySaveBar saving={saveMut.isPending} onSave={handleSave} />
     </div>
+
 
   );
 }
