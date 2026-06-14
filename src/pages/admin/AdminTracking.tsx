@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { BarChart3, Save } from "lucide-react";
+import StickySaveBar from "@/components/admin/StickySaveBar";
 
 export default function AdminTracking() {
   const { data, isLoading } = useTrackingConfig();
