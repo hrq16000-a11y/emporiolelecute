@@ -137,6 +137,12 @@ const AdminInstagram = () => {
   const [bulkRunning, setBulkRunning] = useState(false);
   const [profileRunning, setProfileRunning] = useState(false);
   const [profileResult, setProfileResult] = useState<{ ok: boolean; error?: string; posts?: { shortcode: string; permalink: string }[] } | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const runDeletePost = async (id: string) => {
+    await del.mutateAsync(id);
+    toast({ title: "Post removido" });
+  };
 
   const validation = useMemo(() => validateUrl(instagramUrl), [instagramUrl]);
   const previewPosition = form.id ? form.position ?? 0 : (posts?.length ?? 0) + 1;
