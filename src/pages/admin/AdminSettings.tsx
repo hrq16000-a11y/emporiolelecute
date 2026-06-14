@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { FooterConfig, defaultFooterConfig, defaultTrustBadgesConfig, TrustBadgesConfig, TrustBadgeItem } from '@/hooks/useStoreSettings';
+import StickySaveBar from '@/components/admin/StickySaveBar';
 
 interface StoreSettings {
   homepage_config: {
@@ -971,7 +972,10 @@ const AdminSettings = () => {
           </CardContent>
         </Card>
       </div>
+
+      <StickySaveBar saving={saving} onSave={handleSave} label="Salvar Alterações" />
     </div>
+
   );
 };
 

@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Bot, Save, Copy, ExternalLink } from "lucide-react";
+import StickySaveBar from "@/components/admin/StickySaveBar";
 
 const FUNC_URL = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/robots-txt`;
 
@@ -110,6 +111,12 @@ export default function AdminRobots() {
           <Button variant="outline" size="sm" className="mt-3" onClick={copy}><Copy className="h-3 w-3 mr-1" /> Copiar</Button>
         </CardContent>
       </Card>
+
+      <StickySaveBar
+        dirty={JSON.stringify(form) !== JSON.stringify(data)}
+        saving={update.isPending}
+        onSave={save}
+      />
     </div>
   );
 }

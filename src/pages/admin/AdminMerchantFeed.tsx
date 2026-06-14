@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import StickySaveBar from '@/components/admin/StickySaveBar';
 
 interface MerchantFeedConfig {
   google_product_category: string;
@@ -558,7 +559,10 @@ const AdminMerchantFeed = () => {
           )}
         </CardContent>
       </Card>
+
+      <StickySaveBar saving={saving} onSave={handleSave} label="Salvar Configurações" />
     </div>
+
   );
 };
 

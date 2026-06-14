@@ -13,6 +13,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Cookie, Save, Eye } from "lucide-react";
+import StickySaveBar from "@/components/admin/StickySaveBar";
 
 type Cfg = {
   id?: string;
@@ -246,7 +247,10 @@ export default function AdminCookieConsent() {
             </CardContent>
           </Card>
         </div>
+
+        <StickySaveBar saving={saving} onSave={save} />
       </div>
+
     </>
   );
 }

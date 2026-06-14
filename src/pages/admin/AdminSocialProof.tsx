@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner";
 import { Loader2, Save, RotateCcw, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import StickySaveBar from "@/components/admin/StickySaveBar";
 
 type Settings = {
   is_enabled: boolean;
@@ -367,16 +368,8 @@ export default function AdminSocialProof() {
         </CardContent>
       </Card>
 
-      <div className="flex justify-end gap-2 sticky bottom-3">
-        <Button onClick={handleSave} disabled={saving} size="lg">
-          {saving ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <Save className="h-4 w-4 mr-2" />
-          )}
-          Salvar configurações
-        </Button>
-      </div>
+      <StickySaveBar saving={saving} onSave={handleSave} label="Salvar configurações" />
+
     </div>
   );
 }
