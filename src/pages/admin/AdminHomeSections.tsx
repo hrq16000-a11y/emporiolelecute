@@ -399,6 +399,7 @@ const AdminHomeSections = () => {
                         onToggle={handleToggle}
                         onEdit={openEdit}
                         onPreview={setPreviewSection}
+                        onConfigure={handleConfigure}
                       />
                     ))}
                   </SortableContext>
