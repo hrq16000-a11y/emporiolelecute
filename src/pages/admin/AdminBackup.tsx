@@ -167,10 +167,18 @@ export default function AdminBackup() {
     }
   }
 
-  async function handleImport() {
+  function handleImport() {
     if (!importFile) return;
-    if (importMode === "replace" && !confirm("APAGAR TODO O CATÁLOGO ATUAL antes de importar? Esta ação não pode ser desfeita.")) return;
-    if (importMode === "replace" && !confirm("Confirma novamente: TODOS os produtos, categorias, kits e relacionamentos serão deletados.")) return;
+    if (importMode === "replace") {
+      setReplaceAck(false);
+      setConfirmReplaceOpen(true);
+      return;
+    }
+    void runImport();
+  }
+
+  async function runImport() {
+    if (!importFile) return;
 
     setImporting(true);
     setProgress(2);
