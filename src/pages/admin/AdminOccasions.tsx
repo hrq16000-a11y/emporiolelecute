@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Trash2, Edit, Check, X, Search, Calendar, Loader2, AlertCircle, Image as ImageIcon, FileEdit, Globe, Activity } from 'lucide-react';
+import { Plus, Trash2, Edit, Check, X, Search, Calendar, Loader2, AlertCircle, Image as ImageIcon, FileEdit, Globe, Activity, ArrowUp, ArrowDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { trackAdminEvent } from '@/lib/adminUsage';
@@ -176,6 +176,37 @@ const AdminOccasions = () => {
     occ.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     occ.slug.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Reordenação só é segura sem filtro de busca (a lista reflete a ordem real).
+  const isReorderable = !searchQuery.trim();
+  const [reordering, setReordering] = useState(false);
+
+  const persistOrder = async (ordered: { id: string; position?: number | null }[]) => {
+    const updates = ordered
+      .map((o, i) => ((o.position ?? -1) === i ? null : updateOccasion.mutateAsync({ id: o.id, position: i } as any)))
+      .filter(Boolean) as Promise<unknown>[];
+    if (updates.length) await Promise.all(updates);
+  };
+
+  const handleMove = async (occasionId: string, direction: -1 | 1) => {
+    if (!occasions || reordering) return;
+    const sorted = [...occasions];
+    const idx = sorted.findIndex((o) => o.id === occasionId);
+    const targetIdx = idx + direction;
+    if (idx < 0 || targetIdx < 0 || targetIdx >= sorted.length) return;
+    [sorted[idx], sorted[targetIdx]] = [sorted[targetIdx], sorted[idx]];
+    setReordering(true);
+    try {
+      await persistOrder(sorted);
+      invalidatePublicTaxonomy(queryClient, 'occasions');
+      void markPublicTaxonomyDirty('occasions');
+      toast({ title: 'Ordem atualizada' });
+    } catch {
+      toast({ title: 'Erro ao reordenar', variant: 'destructive' });
+    } finally {
+      setReordering(false);
+    }
+  };
 
   const openContentEditor = (occ: any) => {
     setContentEditId(occ.id);
@@ -378,7 +409,31 @@ const AdminOccasions = () => {
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                        {isReorderable && (
+                          <div className="flex flex-col gap-0.5 shrink-0">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              disabled={reordering || (occasions?.[0]?.id === occasion.id)}
+                              onClick={() => handleMove(occasion.id, -1)}
+                              aria-label="Mover para cima"
+                            >
+                              <ArrowUp className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              disabled={reordering || (occasions?.[occasions.length - 1]?.id === occasion.id)}
+                              onClick={() => handleMove(occasion.id, 1)}
+                              aria-label="Mover para baixo"
+                            >
+                              <ArrowDown className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        )}
                         <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden bg-muted ring-1 ring-border/60 shrink-0 flex items-center justify-center">
                           {(occasion as any).icon ? (
                             <LucideIcon name={(occasion as any).icon} className="w-6 h-6 text-primary" />

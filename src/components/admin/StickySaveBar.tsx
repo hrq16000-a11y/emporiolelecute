@@ -41,15 +41,18 @@ export default function StickySaveBar({
   return (
     <div
       className={cn(
-        "sticky bottom-0 left-0 right-0 z-30 mt-8 -mx-4 md:-mx-6 lg:-mx-8",
-        "bg-background/95 backdrop-blur border-t border-border",
-        "px-4 md:px-6 lg:px-8 py-3 flex items-center gap-3 flex-wrap",
+        "sticky z-30 mt-8 flex items-center gap-3",
+        // Mobile: pílula flutuante centralizada próxima à borda inferior.
+        "bottom-4 mx-auto w-fit max-w-[calc(100%-1.5rem)] rounded-full border border-border shadow-lg",
+        "bg-background/95 backdrop-blur px-3 py-2",
+        // Desktop (sm+): barra fixa de largura total no rodapé do formulário.
+        "sm:bottom-0 sm:mx-0 sm:w-auto sm:max-w-none sm:flex-wrap sm:rounded-none sm:border-x-0 sm:border-b-0 sm:border-t sm:shadow-none sm:px-6 lg:px-8 sm:py-3",
         className,
       )}
       role="region"
       aria-label="Salvar alterações"
     >
-      <div className="flex items-center gap-2 text-sm text-muted-foreground flex-1 min-w-0">
+      <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground flex-1 min-w-0">
         {dirty ? (
           <>
             <AlertCircle className="h-4 w-4 text-primary shrink-0" />
@@ -64,6 +67,14 @@ export default function StickySaveBar({
           <span className="truncate">{hint}</span>
         ) : null}
       </div>
+      {/* Indicador compacto de estado no mobile (somente ícone). */}
+      <div className="flex sm:hidden items-center">
+        {dirty ? (
+          <AlertCircle className="h-4 w-4 text-primary" />
+        ) : savedAt ? (
+          <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+        ) : null}
+      </div>
       <div className="flex items-center gap-2">
         {secondary && (
           <Button variant="ghost" size="sm" onClick={secondary.onClick} disabled={saving}>
@@ -74,7 +85,7 @@ export default function StickySaveBar({
           onClick={onSave}
           disabled={disabled || saving}
           size="sm"
-          className="min-w-[120px]"
+          className="min-w-[120px] rounded-full sm:rounded-md"
         >
           {saving ? (
             <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Salvando</>

@@ -314,7 +314,11 @@ export function useDbOccasions(opts?: { publicOnly?: boolean }) {
   return useQuery({
     queryKey: ['occasions', publicOnly ? 'public' : 'all'],
     queryFn: async () => {
-      let q = supabase.from('occasions').select('*').order('name');
+      let q = supabase
+        .from('occasions')
+        .select('*')
+        .order('position', { ascending: true, nullsFirst: false })
+        .order('name', { ascending: true });
       if (publicOnly) q = q.eq('is_draft', false).eq('is_indexed', true);
       const { data, error } = await q;
       if (error) throw error;
@@ -568,6 +572,9 @@ export function useUpdateOccasion() {
       description?: string | null;
       image_url?: string | null;
       icon?: string | null;
+      position?: number | null;
+      is_draft?: boolean;
+      is_indexed?: boolean;
       meta_title?: string | null;
       meta_description?: string | null;
     }) => {
