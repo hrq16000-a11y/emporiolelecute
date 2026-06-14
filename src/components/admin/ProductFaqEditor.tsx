@@ -163,9 +163,30 @@ export default function ProductFaqEditor({
                     className="w-20 h-8 text-xs"
                     title="Ordem"
                   />
-                  <Button type="button" size="sm" variant="ghost" onClick={() => remove(faq)} disabled={del.isPending}>
-                    <Trash2 className="w-4 h-4 text-rose-600" />
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button type="button" size="sm" variant="ghost" disabled={del.isPending}>
+                        <Trash2 className="w-4 h-4 text-rose-600" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Remover esta FAQ?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                          className={buttonVariants({ variant: "destructive" })}
+                          onClick={() => remove(faq)}
+                        >
+                          Remover
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
               <div className="space-y-1">
