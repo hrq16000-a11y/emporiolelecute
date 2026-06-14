@@ -111,24 +111,32 @@ const AdminTaxonomies = () => {
           />
         </TabsContent>
         <TabsContent value="ocasiao" forceMount hidden={activeTab !== 'ocasiao'}>
-          <div className="mb-3">
-            <Link
-              to="/admin/ocasioes"
-              className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-            >
-              <Activity className="w-3 h-3" /> Abrir gerenciador dedicado de Ocasiões (ícone, imagem & SEO avançado)
-            </Link>
-          </div>
-          <TaxonomyManager
-            kind="ocasiao"
-            items={(occs.data ?? []) as TaxonomyEntity[]}
-            isLoading={occs.isLoading}
-            existingSlugsByKind={slugsByKind}
-            onCreate={createOccasionGeneric}
-            onUpdate={updateOccasionGeneric}
-            onDelete={deleteOccasionSynced}
-          />
+          <Card>
+            <CardContent className="p-6 sm:p-10 flex flex-col items-center text-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                <Calendar className="w-7 h-7" />
+              </div>
+              <div className="space-y-1 max-w-md">
+                <h3 className="font-display text-lg font-semibold text-foreground">
+                  Ocasiões têm um gerenciador dedicado
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Para evitar duplicidade, toda a gestão de ocasiões — ordenação, ícone Lucide, imagem,
+                  descrição e SEO — acontece em uma única página. Os dados são exatamente os mesmos
+                  ({occs.data?.length ?? 0} ocasião(ões) cadastrada(s)); nada se perde.
+                </p>
+              </div>
+              <Link to="/admin/ocasioes">
+                <Button>
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Abrir gerenciador de Ocasiões
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
         </TabsContent>
+
         <TabsContent value="segmento" forceMount hidden={activeTab !== 'segmento'}>
           <TaxonomyManager
             kind="segmento"
