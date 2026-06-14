@@ -10,6 +10,7 @@ import SeoPreview from './SeoPreview';
 import LucideIconPicker from './LucideIconPicker';
 import ImagePickerWithLibrary from './ImagePickerWithLibrary';
 import DraftStatusBadge from './DraftStatusBadge';
+import { useFormDraft } from '@/hooks/useFormDraft';
 import { TAXONOMY_LABELS, TaxonomyEntity, TaxonomyKind, TaxonomyFaq, normalizeFaqs, slugify } from '@/lib/taxonomy';
 
 interface Props {
@@ -23,6 +24,23 @@ interface Props {
   onCancel: () => void;
   onSubmit: (values: Partial<TaxonomyEntity>) => Promise<void> | void;
 }
+
+type TaxonomyDraft = {
+  name: string;
+  slug: string;
+  position: number;
+  description: string;
+  imageUrl: string;
+  icon: string | null;
+  isIndexed: boolean;
+  isDraft: boolean;
+  metaTitle: string;
+  metaDescription: string;
+  h1: string;
+  descSeo: string;
+  faqs: TaxonomyFaq[];
+  slugTouched: boolean;
+};
 
 const TaxonomyForm = ({
   kind,
@@ -54,6 +72,47 @@ const TaxonomyForm = ({
     return padded.slice(0, 3);
   });
   const [slugTouched, setSlugTouched] = useState(!!initial?.slug);
+  const [hydrated, setHydrated] = useState(false);
+  const formScopeKey = scopeKey ?? `taxonomy:${kind}:${initial?.id ?? 'new'}`;
+  const draft = useFormDraft<TaxonomyDraft>({
+    name,
+    slug,
+    position,
+    description,
+    imageUrl,
+    icon,
+    isIndexed,
+    isDraft,
+    metaTitle,
+    metaDescription,
+    h1,
+    descSeo,
+    faqs,
+    slugTouched,
+  }, hydrated, 1000, formScopeKey);
+
+  useEffect(() => {
+    const saved = draft.hydrate<TaxonomyDraft>();
+    if (saved) {
+      setName(saved.name ?? '');
+      setSlug(saved.slug ?? '');
+      setPosition(saved.position ?? 0);
+      setDescription(saved.description ?? '');
+      setImageUrl(saved.imageUrl ?? '');
+      setIcon(saved.icon ?? null);
+      setIsIndexed(saved.isIndexed ?? true);
+      setIsDraft(saved.isDraft ?? true);
+      setMetaTitle(saved.metaTitle ?? '');
+      setMetaDescription(saved.metaDescription ?? '');
+      setH1(saved.h1 ?? '');
+      setDescSeo(saved.descSeo ?? '');
+      setFaqs(saved.faqs?.length ? saved.faqs : faqs);
+      setSlugTouched(saved.slugTouched ?? Boolean(saved.slug));
+    }
+    setHydrated(true);
+    // A hidratação deve rodar só na abertura deste formulário/scope.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formScopeKey]);
 
   useEffect(() => {
     if (!slugTouched) setSlug(slugify(name));
@@ -99,6 +158,7 @@ const TaxonomyForm = ({
       payload.faqs = normalizeFaqs(faqs);
     }
     await onSubmit(payload);
+    draft.clear();
   };
 
   return (
