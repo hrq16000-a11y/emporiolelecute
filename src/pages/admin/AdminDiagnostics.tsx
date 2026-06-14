@@ -257,7 +257,28 @@ const AdminDiagnostics = () => {
               <Button variant="outline" onClick={() => downloadCSV(`stale-bundle-${Date.now()}.csv`, toCSV(staleLogs as unknown as Record<string, unknown>[]))}>
                 <Download className="w-4 h-4 mr-2" />CSV
               </Button>
-              <Button variant="destructive" onClick={clearStale}><Trash2 className="w-4 h-4 mr-2" />Limpar período</Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive"><Trash2 className="w-4 h-4 mr-2" />Limpar período</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Apagar todos os logs de stale-bundle?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta ação não pode ser desfeita. Os logs do período selecionado serão apagados.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      className={buttonVariants({ variant: "destructive" })}
+                      onClick={clearStale}
+                    >
+                      Apagar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardContent>
           </Card>
 
