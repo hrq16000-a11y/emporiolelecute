@@ -309,6 +309,29 @@ const AdminCommandPalette = () => {
           </CommandGroup>
         )}
 
+        {orderResults.length > 0 && (
+          <CommandGroup heading="Pedidos">
+            {orderResults.map((o) => (
+              <CommandItem
+                key={`order-${o.id}`}
+                value={`order-${o.id}-${o.order_code}`}
+                onSelect={() => runAction("/admin/pedidos")}
+              >
+                <Receipt className="mr-2 h-4 w-4 text-muted-foreground" />
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate font-medium">{o.order_code}</span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    {o.customer_name} · {orderStatusLabel(o.status)}
+                  </span>
+                </span>
+                <CommandShortcut>{formatPrice(o.total)}</CommandShortcut>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        )}
+
+
+
         {hasTerm && (
           <CommandGroup heading="Clientes">
             <CommandItem
