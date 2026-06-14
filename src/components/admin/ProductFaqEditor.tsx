@@ -3,7 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Plus, Trash2, Save, Sparkles } from "lucide-react";
@@ -83,7 +87,6 @@ export default function ProductFaqEditor({
   };
 
   const remove = async (faq: ProductFaq) => {
-    if (!confirm("Remover esta FAQ?")) return;
     try {
       await del.mutateAsync({ id: faq.id, product_id: productId });
       toast.success("FAQ removida.");
@@ -160,9 +163,30 @@ export default function ProductFaqEditor({
                     className="w-20 h-8 text-xs"
                     title="Ordem"
                   />
-                  <Button type="button" size="sm" variant="ghost" onClick={() => remove(faq)} disabled={del.isPending}>
-                    <Trash2 className="w-4 h-4 text-rose-600" />
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button type="button" size="sm" variant="ghost" disabled={del.isPending}>
+                        <Trash2 className="w-4 h-4 text-rose-600" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Remover esta FAQ?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                          className={buttonVariants({ variant: "destructive" })}
+                          onClick={() => remove(faq)}
+                        >
+                          Remover
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
               <div className="space-y-1">

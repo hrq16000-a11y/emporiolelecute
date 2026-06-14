@@ -6,7 +6,11 @@ import { useEffect, useMemo, useState } from "react";
 import { Plus, Trash2, Save, Loader2, Tag, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -102,7 +106,6 @@ export default function SynonymEditor({ presetCanonical, onConsumePreset }: Prop
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Excluir este sinônimo?")) return;
     await del.mutateAsync(id);
     toast({ title: "Sinônimo removido" });
     if (draft.id === id) setDraft(empty());
@@ -263,14 +266,34 @@ export default function SynonymEditor({ presetCanonical, onConsumePreset }: Prop
                   <Button size="sm" variant="outline" onClick={() => startEdit(s)}>
                     Editar
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-destructive hover:text-destructive"
-                    onClick={() => remove(s.id)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Excluir este sinônimo?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                          className={buttonVariants({ variant: "destructive" })}
+                          onClick={() => remove(s.id)}
+                        >
+                          Excluir
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </li>
             ))}

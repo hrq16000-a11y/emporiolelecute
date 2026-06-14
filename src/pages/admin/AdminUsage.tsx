@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Activity, Download, RotateCcw, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
@@ -48,7 +52,6 @@ const AdminUsage = () => {
   };
 
   const handleReset = () => {
-    if (!confirm('Limpar todos os eventos coletados? Esta ação não pode ser desfeita.')) return;
     resetUsage();
     refresh();
     toast.success('Eventos limpos');
@@ -79,14 +82,34 @@ const AdminUsage = () => {
           <Button variant="outline" size="sm" onClick={handleExport} disabled={!data.totalEvents}>
             <Download className="w-4 h-4 mr-2" /> Exportar JSON
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleReset}
-            className="text-destructive hover:text-destructive"
-          >
-            <RotateCcw className="w-4 h-4 mr-2" /> Limpar
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-destructive hover:text-destructive"
+              >
+                <RotateCcw className="w-4 h-4 mr-2" /> Limpar
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Limpar todos os eventos coletados?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta ação não pode ser desfeita. Toda a telemetria local deste navegador será apagada.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  className={buttonVariants({ variant: "destructive" })}
+                  onClick={handleReset}
+                >
+                  Limpar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 

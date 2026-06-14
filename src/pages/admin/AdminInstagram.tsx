@@ -1,6 +1,10 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -133,6 +137,12 @@ const AdminInstagram = () => {
   const [bulkRunning, setBulkRunning] = useState(false);
   const [profileRunning, setProfileRunning] = useState(false);
   const [profileResult, setProfileResult] = useState<{ ok: boolean; error?: string; posts?: { shortcode: string; permalink: string }[] } | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const runDeletePost = async (id: string) => {
+    await del.mutateAsync(id);
+    toast({ title: "Post removido" });
+  };
 
   const validation = useMemo(() => validateUrl(instagramUrl), [instagramUrl]);
   const previewPosition = form.id ? form.position ?? 0 : (posts?.length ?? 0) + 1;
@@ -503,12 +513,7 @@ const AdminInstagram = () => {
                         key={p.id}
                         post={p}
                         onEdit={() => setForm(p)}
-                        onDelete={async () => {
-                          if (confirm("Excluir este post?")) {
-                            await del.mutateAsync(p.id);
-                            toast({ title: "Post removido" });
-                          }
-                        }}
+                        onDelete={() => setConfirmDeleteId(p.id)}
                       />
                     ))}
                   </div>
@@ -526,6 +531,30 @@ const AdminInstagram = () => {
           )}
         </CardContent>
       </Card>
+
+      <AlertDialog open={!!confirmDeleteId} onOpenChange={(o) => !o && setConfirmDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir este post?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className={buttonVariants({ variant: "destructive" })}
+              onClick={() => {
+                const id = confirmDeleteId;
+                setConfirmDeleteId(null);
+                if (id) runDeletePost(id);
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

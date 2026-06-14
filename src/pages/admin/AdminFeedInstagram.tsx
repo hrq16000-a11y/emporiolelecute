@@ -25,7 +25,11 @@ import {
 import { useInstagramFeedConfig, useSaveInstagramFeedConfig } from "@/hooks/useInstagramFeedConfig";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -176,8 +180,13 @@ const AdminFeedInstagram = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Remover este post do feed?")) return;
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const handleDelete = (id: string) => {
+    setConfirmDeleteId(id);
+  };
+
+  const runDelete = async (id: string) => {
     try {
       await del.mutateAsync(id);
       toast.success("Removido");
@@ -385,6 +394,30 @@ const AdminFeedInstagram = () => {
           </SortableContext>
         </DndContext>
       </div>
+
+      <AlertDialog open={!!confirmDeleteId} onOpenChange={(o) => !o && setConfirmDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover este post do feed?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className={buttonVariants({ variant: "destructive" })}
+              onClick={() => {
+                const id = confirmDeleteId;
+                setConfirmDeleteId(null);
+                if (id) runDelete(id);
+              }}
+            >
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

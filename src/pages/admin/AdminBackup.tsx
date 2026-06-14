@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -36,6 +40,8 @@ export default function AdminBackup() {
   const [importMode, setImportMode] = useState<"merge" | "replace">("merge");
   const [importPreview, setImportPreview] = useState<{ products: number; cats: number; occs: number; tags: number; kits: number; images: number; orders: number } | null>(null);
   const [importReport, setImportReport] = useState<unknown>(null);
+  const [confirmReplaceOpen, setConfirmReplaceOpen] = useState(false);
+  const [replaceAck, setReplaceAck] = useState(false);
 
   // Per-product selection
   const [productList, setProductList] = useState<{ external_ref: string; name: string; slug: string; is_active: boolean }[]>([]);
@@ -161,10 +167,18 @@ export default function AdminBackup() {
     }
   }
 
-  async function handleImport() {
+  function handleImport() {
     if (!importFile) return;
-    if (importMode === "replace" && !confirm("APAGAR TODO O CATÁLOGO ATUAL antes de importar? Esta ação não pode ser desfeita.")) return;
-    if (importMode === "replace" && !confirm("Confirma novamente: TODOS os produtos, categorias, kits e relacionamentos serão deletados.")) return;
+    if (importMode === "replace") {
+      setReplaceAck(false);
+      setConfirmReplaceOpen(true);
+      return;
+    }
+    void runImport();
+  }
+
+  async function runImport() {
+    if (!importFile) return;
 
     setImporting(true);
     setProgress(2);
@@ -401,6 +415,42 @@ export default function AdminBackup() {
           <AuditTab />
         </TabsContent>
       </Tabs>
+
+      <AlertDialog open={confirmReplaceOpen} onOpenChange={(o) => { if (!o) { setConfirmReplaceOpen(false); setReplaceAck(false); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" /> Apagar TODO o catálogo atual?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. <strong>TODOS</strong> os produtos, categorias,
+              kits e relacionamentos serão deletados antes da importação.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <label className="flex items-start gap-2 text-sm py-2">
+            <Checkbox
+              checked={replaceAck}
+              onCheckedChange={(v) => setReplaceAck(v === true)}
+              className="mt-0.5"
+            />
+            <span>Entendo que todo o catálogo será apagado permanentemente.</span>
+          </label>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={!replaceAck}
+              className={buttonVariants({ variant: "destructive" })}
+              onClick={() => {
+                setConfirmReplaceOpen(false);
+                setReplaceAck(false);
+                void runImport();
+              }}
+            >
+              Apagar e importar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

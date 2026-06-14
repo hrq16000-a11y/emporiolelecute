@@ -9,7 +9,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -199,6 +203,13 @@ const AdminUsers = () => {
     onError: (e: any) => toast.error(e.message || "Falha ao atualizar papel"),
   });
 
+  const [pendingRole, setPendingRole] = useState<{
+    user_id: string;
+    role: "admin" | "editor";
+    action: "add" | "remove";
+    email: string | null;
+  } | null>(null);
+
   const toggleRole = (u: UserRow, role: "admin" | "editor") => {
     if (u.source !== "auth") { toast.error("Contato sem login. Crie ou convide o usuário primeiro."); return; }
     const has = u.roles.includes(role);
@@ -207,8 +218,7 @@ const AdminUsers = () => {
       toast.error("O papel de admin não pode ser removido. Administradores têm acesso permanente.");
       return;
     }
-    if (!confirm(`Confirmar ${has ? "remoção" : "atribuição"} do papel ${role} para ${u.email}?`)) return;
-    setRole.mutate({ user_id: authId, role, action: has ? "remove" : "add" });
+    setPendingRole({ user_id: authId, role, action: has ? "remove" : "add", email: u.email });
   };
 
   const [editingName, setEditingName] = useState("");
@@ -547,6 +557,37 @@ const AdminUsers = () => {
 
       <CreateUserDialog open={createOpen} onClose={() => setCreateOpen(false)}
         onCreated={() => { setCreateOpen(false); qc.invalidateQueries({ queryKey: ["users-pag"] }); }} />
+
+      <AlertDialog open={!!pendingRole} onOpenChange={(o) => !o && setPendingRole(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingRole?.action === "remove" ? "Remover papel?" : "Atribuir papel?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingRole?.action === "remove" ? "Remover" : "Atribuir"} o papel{" "}
+              <strong>{pendingRole?.role}</strong> para <strong>{pendingRole?.email}</strong>?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className={
+                pendingRole?.action === "remove"
+                  ? buttonVariants({ variant: "destructive" })
+                  : undefined
+              }
+              onClick={() => {
+                const p = pendingRole;
+                setPendingRole(null);
+                if (p) setRole.mutate({ user_id: p.user_id, role: p.role, action: p.action });
+              }}
+            >
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

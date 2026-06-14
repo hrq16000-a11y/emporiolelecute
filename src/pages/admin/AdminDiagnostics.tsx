@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -157,14 +161,12 @@ const AdminDiagnostics = () => {
   };
 
   const clearStale = async () => {
-    if (!confirm("Apagar TODOS os logs de stale-bundle?")) return;
     const since = sinceISO(stalePeriod) ?? new Date(0).toISOString();
     await supabase.from("stale_bundle_logs").delete().gte("occurred_at", since);
     loadStale();
   };
 
   const clearIg = async () => {
-    if (!confirm("Apagar TODAS as falhas de embed do Instagram?")) return;
     const since = sinceISO(igPeriod) ?? new Date(0).toISOString();
     await supabase.from("instagram_embed_failures").delete().gte("occurred_at", since);
     loadIg();
@@ -255,7 +257,28 @@ const AdminDiagnostics = () => {
               <Button variant="outline" onClick={() => downloadCSV(`stale-bundle-${Date.now()}.csv`, toCSV(staleLogs as unknown as Record<string, unknown>[]))}>
                 <Download className="w-4 h-4 mr-2" />CSV
               </Button>
-              <Button variant="destructive" onClick={clearStale}><Trash2 className="w-4 h-4 mr-2" />Limpar período</Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive"><Trash2 className="w-4 h-4 mr-2" />Limpar período</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Apagar todos os logs de stale-bundle?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta ação não pode ser desfeita. Os logs do período selecionado serão apagados.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      className={buttonVariants({ variant: "destructive" })}
+                      onClick={clearStale}
+                    >
+                      Apagar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardContent>
           </Card>
 
@@ -325,7 +348,28 @@ const AdminDiagnostics = () => {
               <Button variant="outline" onClick={() => downloadCSV(`ig-failures-${Date.now()}.csv`, toCSV(igFailures as unknown as Record<string, unknown>[]))}>
                 <Download className="w-4 h-4 mr-2" />CSV
               </Button>
-              <Button variant="destructive" onClick={clearIg}><Trash2 className="w-4 h-4 mr-2" />Limpar período</Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive"><Trash2 className="w-4 h-4 mr-2" />Limpar período</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Apagar todas as falhas de embed do Instagram?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta ação não pode ser desfeita. As falhas do período selecionado serão apagadas.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      className={buttonVariants({ variant: "destructive" })}
+                      onClick={clearIg}
+                    >
+                      Apagar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardContent>
           </Card>
 

@@ -238,6 +238,7 @@ const AdminCustomers = () => {
   const [editing, setEditing] = useState<CustomerRow | null>(null);
   const [creating, setCreating] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<CustomerRow | null>(null);
+  const [confirmInvite, setConfirmInvite] = useState<CustomerRow | null>(null);
   const [viewVisitor, setViewVisitor] = useState<VisitorRow | null>(null);
   const [form, setForm] = useState(emptyForm);
 
@@ -511,9 +512,13 @@ const AdminCustomers = () => {
     : filteredVisitors;
 
 
-  const handleInvite = async (c: CustomerRow) => {
+  const handleInvite = (c: CustomerRow) => {
     if (!c.email) return;
-    if (!confirm(`Enviar convite de login para ${c.email}?`)) return;
+    setConfirmInvite(c);
+  };
+
+  const runInvite = async (c: CustomerRow) => {
+    if (!c.email) return;
     try {
       const { data, error } = await supabase.functions.invoke("admin-create-user", {
         body: { email: c.email, full_name: c.name, whatsapp: c.whatsapp, send_invite: true },
@@ -918,6 +923,32 @@ const AdminCustomers = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* ============ Invite Confirm ============ */}
+      <AlertDialog open={!!confirmInvite} onOpenChange={(o) => !o && setConfirmInvite(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Enviar convite de login?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Um convite de acesso será enviado para <strong>{confirmInvite?.email}</strong>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const c = confirmInvite;
+                setConfirmInvite(null);
+                if (c) runInvite(c);
+              }}
+            >
+              Enviar convite
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+
 
       {/* ============ Drawer unificado (Visitante / Cliente / Usuário) ============ */}
       <UnifiedProfileDrawer
