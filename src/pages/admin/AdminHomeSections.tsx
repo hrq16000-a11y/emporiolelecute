@@ -77,6 +77,7 @@ interface SortableSectionCardProps {
   onToggle: (s: HomeSection) => void;
   onEdit: (s: HomeSection) => void;
   onPreview: (s: HomeSection) => void;
+  onConfigure: (s: HomeSection) => void;
 }
 
 const SortableSectionCard = ({
@@ -84,6 +85,7 @@ const SortableSectionCard = ({
   onToggle,
   onEdit,
   onPreview,
+  onConfigure,
 }: SortableSectionCardProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: section.id });
@@ -96,6 +98,8 @@ const SortableSectionCard = ({
   };
 
   const isRegistered = Boolean(HOME_SECTIONS_REGISTRY[section.component_name]);
+  const destination = getSectionDestination(section.component_name);
+  const hasDestination = Boolean(destination.route);
 
   return (
     <Card
