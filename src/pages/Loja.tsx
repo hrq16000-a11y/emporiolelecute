@@ -26,6 +26,8 @@ const benefits = [
 
 const Loja = () => {
   const { data: dbProducts, isLoading } = useDbProducts();
+  const { buildWhatsappUrl } = useContactInfo();
+  const WHATSAPP_URL = buildWhatsappUrl(WHATSAPP_MESSAGE);
 
   // Get top 8 active products sorted by rating
   const featuredProducts = (dbProducts || [])
