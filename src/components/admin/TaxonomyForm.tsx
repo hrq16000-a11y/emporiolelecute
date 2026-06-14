@@ -178,6 +178,18 @@ const TaxonomyForm = ({
             </div>
           </div>
 
+          {kind === 'ocasiao' && (
+            <div className="space-y-1.5 rounded-md border border-border p-3 bg-muted/30">
+              <Label>Ícone (Lucide)</Label>
+              <LucideIconPicker value={icon} onChange={setIcon} />
+              <p className="text-xs text-muted-foreground">
+                Quando definido, o ícone aparece no site em "Ocasiões Especiais" no lugar da imagem.
+              </p>
+            </div>
+          )}
+
+
+
           <div className="space-y-1.5">
             <Label htmlFor="tx-desc">Descrição curta</Label>
             <Textarea
