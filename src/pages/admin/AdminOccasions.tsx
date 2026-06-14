@@ -429,7 +429,7 @@ const AdminOccasions = () => {
                           aria-label="Imagem e SEO"
                         >
                           <ImageIcon className="w-4 h-4" />
-                          <span className="hidden xs:inline sm:inline">Imagem & SEO</span>
+                          <span>Imagem & SEO</span>
                         </Button>
                         <Button
                           variant="ghost"
