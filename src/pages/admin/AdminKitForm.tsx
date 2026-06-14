@@ -18,6 +18,7 @@ import { useDbProducts } from "@/hooks/useProducts";
 import type { KitBundleType } from "@/hooks/useKits";
 import { useFormDraft } from "@/hooks/useFormDraft";
 import DraftStatusBadge from "@/components/admin/DraftStatusBadge";
+import StickySaveBar from "@/components/admin/StickySaveBar";
 
 interface KitItem {
   product_id: string;
