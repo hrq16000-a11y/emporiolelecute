@@ -359,6 +359,12 @@ export default function AdminCollectionForm() {
           </div>
         </CardContent>
       </Card>
+
+      <StickySaveBar
+        saving={saving}
+        onSave={() => onSubmit({ preventDefault: () => {} } as React.FormEvent)}
+        label="Salvar coleção"
+      />
     </form>
   );
 }
