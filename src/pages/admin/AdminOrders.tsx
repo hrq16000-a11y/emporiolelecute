@@ -93,6 +93,7 @@ const getStatusInfo = (status: string) => {
 };
 
 const AdminOrders = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>(() => {
