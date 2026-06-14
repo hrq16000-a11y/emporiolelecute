@@ -19,6 +19,7 @@ import { trackAdminEvent } from '@/lib/adminUsage';
 import AdminSearchBar from '@/components/admin/AdminSearchBar';
 import DraftNavigationGuard from '@/components/admin/DraftNavigationGuard';
 import BackToHomeSections from '@/components/admin/BackToHomeSections';
+import AdminCommandPalette from '@/components/admin/AdminCommandPalette';
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   LayoutDashboard, Package, Tags, Calendar, Home, Sparkles, ShoppingCart, Users,
@@ -263,6 +264,9 @@ const AdminLayout = () => {
 
       {/* Guarda global: avisa sobre rascunhos não salvos antes de sair */}
       <DraftNavigationGuard />
+
+      {/* Command Palette global (Cmd/Ctrl + K) — aditiva, Fase 1 */}
+      <AdminCommandPalette />
     </div>
   );
 };
