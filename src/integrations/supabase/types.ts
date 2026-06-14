@@ -1527,6 +1527,7 @@ export type Database = {
           external_ref: string
           faqs: Json
           h1_override: string | null
+          icon: string | null
           id: string
           image_ref: string | null
           image_url: string | null
@@ -1545,6 +1546,7 @@ export type Database = {
           external_ref: string
           faqs?: Json
           h1_override?: string | null
+          icon?: string | null
           id?: string
           image_ref?: string | null
           image_url?: string | null
@@ -1563,6 +1565,7 @@ export type Database = {
           external_ref?: string
           faqs?: Json
           h1_override?: string | null
+          icon?: string | null
           id?: string
           image_ref?: string | null
           image_url?: string | null
