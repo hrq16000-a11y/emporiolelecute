@@ -26,6 +26,8 @@ export interface TaxonomyEntity {
   position?: number;
   description?: string | null;
   image_url?: string | null;
+  // Nome de ícone Lucide (PascalCase). Usado em ocasiões para exibição no site.
+  icon?: string | null;
   meta_title?: string | null;
   meta_description?: string | null;
   h1_override?: string | null;
