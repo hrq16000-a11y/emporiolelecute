@@ -56,6 +56,7 @@ const AdminOccasions = () => {
   // Advanced content editor (image + descrição + meta tags)
   const [contentEditId, setContentEditId] = useState<string | null>(null);
   const [contentForm, setContentForm] = useState({
+    icon: '' as string | null,
     image_url: '',
     description: '',
     meta_title: '',
