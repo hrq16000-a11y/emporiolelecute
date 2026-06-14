@@ -541,11 +541,12 @@ const AdminHomeSections = () => {
 
       {/* ============== DIALOG EDITAR ============== */}
       <Dialog open={!!editing} onOpenChange={(open) => !open && setEditing(null)}>
-        <DialogContent>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar seção</DialogTitle>
             <DialogDescription>
-              Alterações no rótulo e descrição são apenas internas ao painel.
+              O rótulo e a descrição são internos ao painel. Os campos de conteúdo público
+              aparecem na home.
             </DialogDescription>
           </DialogHeader>
           {editing && (
@@ -565,6 +566,113 @@ const AdminHomeSections = () => {
                   onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
                 />
               </div>
+
+              {/* ===== Conteúdo público (editable_props) ===== */}
+              {Object.keys(propsForm).length > 0 ? (
+                <div className="space-y-4 border-t pt-4">
+                  <div>
+                    <Label className="text-sm font-semibold">Conteúdo público da seção</Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Estes campos são exibidos na página inicial.
+                    </p>
+                  </div>
+
+                  {Object.entries(propsForm).map(([key, value]) => {
+                    const label = PROP_LABELS[key] ?? key;
+                    const originalIsNumber =
+                      typeof (editing.editable_props || {})[key] === "number";
+
+                    if (key === "bundleType") {
+                      return (
+                        <div className="space-y-2" key={key}>
+                          <Label>{label}</Label>
+                          <Select
+                            value={String(value ?? "")}
+                            onValueChange={(v) =>
+                              setPropsForm((f) => ({ ...f, [key]: v }))
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {getBundleOptions(value).map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      );
+                    }
+
+                    if (originalIsNumber || typeof value === "number") {
+                      return (
+                        <div className="space-y-2" key={key}>
+                          <Label>{label}</Label>
+                          <Input
+                            type="number"
+                            min={1}
+                            value={value === "" || value == null ? "" : String(value)}
+                            onChange={(e) =>
+                              setPropsForm((f) => ({
+                                ...f,
+                                [key]:
+                                  e.target.value === "" ? "" : Number(e.target.value),
+                              }))
+                            }
+                          />
+                        </div>
+                      );
+                    }
+
+                    if (typeof value === "boolean") {
+                      return (
+                        <div
+                          className="flex items-center justify-between gap-2"
+                          key={key}
+                        >
+                          <Label>{label}</Label>
+                          <Switch
+                            checked={value}
+                            onCheckedChange={(c) =>
+                              setPropsForm((f) => ({ ...f, [key]: c }))
+                            }
+                          />
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="space-y-2" key={key}>
+                        <Label>{label}</Label>
+                        {MULTILINE_KEYS.has(key) ? (
+                          <Textarea
+                            rows={2}
+                            value={String(value ?? "")}
+                            onChange={(e) =>
+                              setPropsForm((f) => ({ ...f, [key]: e.target.value }))
+                            }
+                          />
+                        ) : (
+                          <Input
+                            value={String(value ?? "")}
+                            onChange={(e) =>
+                              setPropsForm((f) => ({ ...f, [key]: e.target.value }))
+                            }
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground border-t pt-4">
+                  Esta seção não possui campos de conteúdo editáveis.
+                </p>
+              )}
+
               <div className="text-xs text-muted-foreground font-mono">
                 section_key: {editing.section_key} · component: {editing.component_name}
               </div>
