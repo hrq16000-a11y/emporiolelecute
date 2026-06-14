@@ -68,7 +68,10 @@ export function useFormDraft<T>(
 
   return {
     hydrate: <U = T>() => getDraft<U>(key),
-    clear: () => clearDraft(key),
+    clear: () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      clearDraft(key);
+    },
     hasDraft: () => hasDraft(key),
   };
 }
