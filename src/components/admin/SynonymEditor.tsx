@@ -106,7 +106,6 @@ export default function SynonymEditor({ presetCanonical, onConsumePreset }: Prop
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Excluir este sinônimo?")) return;
     await del.mutateAsync(id);
     toast({ title: "Sinônimo removido" });
     if (draft.id === id) setDraft(empty());
