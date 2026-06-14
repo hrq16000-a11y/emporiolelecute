@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Trash2, Edit, Check, X, Search, Calendar, Loader2, AlertCircle, Image as ImageIcon, FileEdit, Globe } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Plus, Trash2, Edit, Check, X, Search, Calendar, Loader2, AlertCircle, Image as ImageIcon, FileEdit, Globe, Activity } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { trackAdminEvent } from '@/lib/adminUsage';
@@ -219,6 +220,12 @@ const AdminOccasions = () => {
             Ocasiões
           </h1>
           <p className="text-muted-foreground mt-1">Gerencie as ocasiões dos produtos</p>
+          <Link
+            to="/admin/taxonomias"
+            className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1"
+          >
+            <Activity className="w-3 h-3" /> Ver também em Taxonomias (categorias, segmentos e tags)
+          </Link>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -306,24 +313,24 @@ const AdminOccasions = () => {
               {filteredOccasions.map((occasion) => (
                 <div
                   key={occasion.id}
-                  className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                  className="flex flex-col gap-3 p-3 sm:p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors sm:flex-row sm:items-center sm:justify-between"
                 >
                   {editingId === occasion.id ? (
-                    <div className="flex-1 flex items-center gap-3">
+                    <div className="flex-1 flex flex-col gap-3 sm:flex-row sm:items-start">
                       <Input
                         value={editName}
                         onChange={(e) => {
                           setEditName(e.target.value);
                           setEditSlug(generateSlug(e.target.value));
                         }}
-                        className="max-w-xs"
+                        className="w-full sm:max-w-[14rem]"
                         placeholder="Nome"
                       />
                       <div className="flex-1 min-w-0">
                         <Input
                           value={editSlug}
                           onChange={(e) => setEditSlug(e.target.value)}
-                          className="max-w-xs"
+                          className="w-full"
                           placeholder="Slug"
                           aria-describedby="edit-slug-status"
                           aria-invalid={editSlugCheck.status === 'taken' || editSlugCheck.status === 'invalid'}
@@ -347,28 +354,32 @@ const AdminOccasions = () => {
                           <span>{editSlugCheck.message}</span>
                         </p>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={handleSaveEdit}
-                        disabled={updateOccasion.isPending}
-                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                      >
-                        <Check className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={handleCancelEdit}
-                        className="text-muted-foreground hover:text-foreground"
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
+                      <div className="flex items-center gap-2 self-end sm:self-start">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={handleSaveEdit}
+                          disabled={updateOccasion.isPending}
+                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                          aria-label="Salvar"
+                        >
+                          <Check className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={handleCancelEdit}
+                          className="text-muted-foreground hover:text-foreground"
+                          aria-label="Cancelar"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   ) : (
                     <>
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted ring-1 ring-border/60 shrink-0 flex items-center justify-center">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden bg-muted ring-1 ring-border/60 shrink-0 flex items-center justify-center">
                           {(occasion as any).icon ? (
                             <LucideIcon name={(occasion as any).icon} className="w-6 h-6 text-primary" />
                           ) : occasion.image_url ? (
@@ -377,9 +388,9 @@ const AdminOccasions = () => {
                             <ImageIcon className="w-5 h-5 text-muted-foreground/60" />
                           )}
                         </div>
-                        <div className="cursor-pointer min-w-0" onClick={() => handleStartEdit(occasion)}>
-                          <p className="font-medium text-foreground truncate flex items-center gap-2 flex-wrap">
-                            {occasion.name}
+                        <div className="cursor-pointer min-w-0 flex-1" onClick={() => handleStartEdit(occasion)}>
+                          <p className="font-medium text-foreground flex items-center gap-2 flex-wrap">
+                            <span className="truncate">{occasion.name}</span>
                             {(occasion as any).is_draft === true ? (
                               <Badge variant="outline" className="gap-1 border-amber-400 text-amber-700 dark:text-amber-300 text-[10px] px-1.5 py-0">
                                 <FileEdit className="w-3 h-3" /> Rascunho
@@ -398,9 +409,9 @@ const AdminOccasions = () => {
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        {/* Bloco 3 SAFE: toggle inline rascunho/publicado */}
-                        <label className="hidden md:flex items-center gap-1.5 text-xs cursor-pointer mr-1" title="Publicado / Rascunho">
+                      <div className="flex items-center gap-1 sm:gap-2 shrink-0 justify-end border-t border-border/40 pt-3 sm:border-t-0 sm:pt-0">
+                        {/* Toggle inline rascunho/publicado */}
+                        <label className="flex items-center gap-1.5 text-xs cursor-pointer mr-auto sm:mr-1" title="Publicado / Rascunho">
                           <Switch
                             checked={(occasion as any).is_draft === false}
                             onCheckedChange={async (checked) => {
@@ -413,15 +424,19 @@ const AdminOccasions = () => {
                             }}
                             aria-label="Alternar publicado/rascunho"
                           />
+                          <span className="text-muted-foreground">
+                            {(occasion as any).is_draft === false ? 'Publicado' : 'Rascunho'}
+                          </span>
                         </label>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => openContentEditor(occasion)}
                           className="gap-2"
+                          aria-label="Imagem e SEO"
                         >
                           <ImageIcon className="w-4 h-4" />
-                          Imagem & SEO
+                          <span>Imagem & SEO</span>
                         </Button>
                         <Button
                           variant="ghost"
