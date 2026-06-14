@@ -28,6 +28,7 @@ import { renderWhatsAppMessage } from "@/lib/whatsappTemplate";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDbProducts } from "@/hooks/useProducts";
+import StickySaveBar from "@/components/admin/StickySaveBar";
 import { urls, CANONICAL_ORIGIN } from "@/lib/urls";
 import { PdpBadge } from "@/components/PdpBadge";
 import WhatsAppPreview from "@/components/admin/WhatsAppPreview";
