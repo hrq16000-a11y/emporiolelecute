@@ -481,6 +481,17 @@ const AdminOccasions = () => {
           </DialogHeader>
           <div className="space-y-5 pt-2">
             <div className="space-y-2">
+              <Label>Ícone (Lucide)</Label>
+              <p className="text-xs text-muted-foreground">
+                Exibido no carrossel de ocasiões da home. Quando definido, tem prioridade sobre a imagem.
+              </p>
+              <LucideIconPicker
+                value={contentForm.icon}
+                onChange={(name) => setContentForm((f) => ({ ...f, icon: name }))}
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label>Imagem da ocasião</Label>
               <p className="text-xs text-muted-foreground">
                 Aparece no carrossel da home e na vitrine. Recomendado: quadrada, 600×600px.
