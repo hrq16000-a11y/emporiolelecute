@@ -409,7 +409,31 @@ const AdminOccasions = () => {
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                        {isReorderable && (
+                          <div className="flex flex-col gap-0.5 shrink-0">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              disabled={reordering || (occasions?.[0]?.id === occasion.id)}
+                              onClick={() => handleMove(occasion.id, -1)}
+                              aria-label="Mover para cima"
+                            >
+                              <ArrowUp className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              disabled={reordering || (occasions?.[occasions.length - 1]?.id === occasion.id)}
+                              onClick={() => handleMove(occasion.id, 1)}
+                              aria-label="Mover para baixo"
+                            >
+                              <ArrowDown className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        )}
                         <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden bg-muted ring-1 ring-border/60 shrink-0 flex items-center justify-center">
                           {(occasion as any).icon ? (
                             <LucideIcon name={(occasion as any).icon} className="w-6 h-6 text-primary" />
