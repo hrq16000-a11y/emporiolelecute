@@ -203,6 +203,13 @@ const AdminUsers = () => {
     onError: (e: any) => toast.error(e.message || "Falha ao atualizar papel"),
   });
 
+  const [pendingRole, setPendingRole] = useState<{
+    user_id: string;
+    role: "admin" | "editor";
+    action: "add" | "remove";
+    email: string | null;
+  } | null>(null);
+
   const toggleRole = (u: UserRow, role: "admin" | "editor") => {
     if (u.source !== "auth") { toast.error("Contato sem login. Crie ou convide o usuário primeiro."); return; }
     const has = u.roles.includes(role);
@@ -211,8 +218,7 @@ const AdminUsers = () => {
       toast.error("O papel de admin não pode ser removido. Administradores têm acesso permanente.");
       return;
     }
-    if (!confirm(`Confirmar ${has ? "remoção" : "atribuição"} do papel ${role} para ${u.email}?`)) return;
-    setRole.mutate({ user_id: authId, role, action: has ? "remove" : "add" });
+    setPendingRole({ user_id: authId, role, action: has ? "remove" : "add", email: u.email });
   };
 
   const [editingName, setEditingName] = useState("");
