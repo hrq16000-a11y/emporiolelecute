@@ -130,6 +130,14 @@ const AdminTaxonomies = () => {
           />
         </TabsContent>
         <TabsContent value="ocasiao" forceMount hidden={activeTab !== 'ocasiao'}>
+          <div className="mb-3">
+            <Link
+              to="/admin/ocasioes"
+              className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+            >
+              <Activity className="w-3 h-3" /> Abrir gerenciador dedicado de Ocasiões (ícone, imagem & SEO avançado)
+            </Link>
+          </div>
           <TaxonomyManager
             kind="ocasiao"
             items={(occs.data ?? []) as TaxonomyEntity[]}
