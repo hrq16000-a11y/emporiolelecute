@@ -11,6 +11,7 @@ import {
   Eye,
   Loader2,
   ArrowRight,
+  Receipt,
 } from "lucide-react";
 import {
   CommandDialog,
@@ -61,6 +62,29 @@ interface ProductHit {
   price: number;
   is_active: boolean;
 }
+
+interface OrderHit {
+  id: string;
+  order_code: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string | null;
+  status: string;
+  total: number;
+}
+
+// Rótulos PT-BR alinhados ao AdminOrders (não altera a fonte de verdade lá).
+const ORDER_STATUS_LABELS: Record<string, string> = {
+  pending: "Pendente",
+  confirmed: "Confirmado",
+  processing: "Em produção",
+  shipped: "Enviado",
+  delivered: "Entregue",
+  cancelled: "Cancelado",
+};
+
+const orderStatusLabel = (status: string) =>
+  ORDER_STATUS_LABELS[status] || status || "—";
 
 const formatPrice = (value: number) =>
   `R$ ${Number(value || 0).toFixed(2).replace(".", ",")}`;
@@ -139,6 +163,54 @@ const AdminCommandPalette = () => {
     },
   });
 
+  // Pedidos — busca leve server-side por código, nome, email e telefone.
+  // Seleção mínima, limit fixo e ranking client-side por prioridade.
+  const { data: orderResults = [], isFetching: ordersLoading } = useQuery({
+    queryKey: ["admin-cmdk-orders", term],
+    enabled: open && hasTerm,
+    staleTime: 30_000,
+    queryFn: async (): Promise<OrderHit[]> => {
+      // Sanitiza para uso seguro dentro do filtro `.or()` do PostgREST.
+      const safe = term.replace(/[,()%]/g, " ").trim();
+      if (safe.length < 2) return [];
+      const pattern = `%${safe}%`;
+      const { data, error } = await supabase
+        .from("orders")
+        .select(
+          "id, order_code, customer_name, customer_email, customer_phone, status, total"
+        )
+        .or(
+          [
+            `order_code.ilike.${pattern}`,
+            `customer_name.ilike.${pattern}`,
+            `customer_email.ilike.${pattern}`,
+            `customer_phone.ilike.${pattern}`,
+          ].join(",")
+        )
+        .limit(8);
+      if (error || !data) return [];
+
+      const t = normalize(safe);
+      const rank = (o: OrderHit) => {
+        const code = normalize(o.order_code);
+        const name = normalize(o.customer_name);
+        const email = normalize(o.customer_email);
+        const phone = normalize(o.customer_phone || "");
+        if (code === t) return 0; // código exato
+        if (code.startsWith(t)) return 1; // código começa com
+        if (name.startsWith(t)) return 2; // nome começa com
+        if (email.includes(t)) return 3; // email
+        if (phone.includes(t)) return 4; // telefone
+        return 5; // demais ocorrências (ex.: nome no meio)
+      };
+
+      return [...(data as OrderHit[])]
+        .sort((a, b) => rank(a) - rank(b))
+        .slice(0, 8);
+    },
+  });
+
+
   // Kits / Coleções — hooks cacheados, filtragem leve por nome.
   const { data: kits = [] } = useKits({ onlyActive: false });
   const { data: collections = [] } = useCollections({ onlyActive: false });
@@ -183,7 +255,7 @@ const AdminCommandPalette = () => {
       <CommandList>
         {hasTerm && (
           <CommandEmpty>
-            {productsLoading ? (
+            {productsLoading || ordersLoading ? (
               <span className="flex items-center justify-center gap-2 text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Buscando...
@@ -236,6 +308,29 @@ const AdminCommandPalette = () => {
             ))}
           </CommandGroup>
         )}
+
+        {orderResults.length > 0 && (
+          <CommandGroup heading="Pedidos">
+            {orderResults.map((o) => (
+              <CommandItem
+                key={`order-${o.id}`}
+                value={`order-${o.id}-${o.order_code}`}
+                onSelect={() => runAction("/admin/pedidos")}
+              >
+                <Receipt className="mr-2 h-4 w-4 text-muted-foreground" />
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate font-medium">{o.order_code}</span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    {o.customer_name} · {orderStatusLabel(o.status)}
+                  </span>
+                </span>
+                <CommandShortcut>{formatPrice(o.total)}</CommandShortcut>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        )}
+
+
 
         {hasTerm && (
           <CommandGroup heading="Clientes">
