@@ -255,6 +255,25 @@ const AdminCommandPalette = () => {
           </CommandGroup>
         )}
 
+        {hasTerm && (
+          <CommandGroup heading="Visitantes">
+            <CommandItem
+              value={`visitante-busca-${term}`}
+              onSelect={() =>
+                runAction(
+                  `/admin/clientes?tab=visitors&q=${encodeURIComponent(term)}`
+                )
+              }
+            >
+              <Eye className="mr-2 h-4 w-4 text-muted-foreground" />
+              <span className="flex-1 truncate">
+                Buscar visitantes por “{term}”
+              </span>
+              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
+            </CommandItem>
+          </CommandGroup>
+        )}
+
         {kitResults.length > 0 && (
           <CommandGroup heading="Kits">
             {kitResults.map((k) => (
