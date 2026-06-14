@@ -415,6 +415,42 @@ export default function AdminBackup() {
           <AuditTab />
         </TabsContent>
       </Tabs>
+
+      <AlertDialog open={confirmReplaceOpen} onOpenChange={(o) => { if (!o) { setConfirmReplaceOpen(false); setReplaceAck(false); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" /> Apagar TODO o catálogo atual?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. <strong>TODOS</strong> os produtos, categorias,
+              kits e relacionamentos serão deletados antes da importação.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <label className="flex items-start gap-2 text-sm py-2">
+            <Checkbox
+              checked={replaceAck}
+              onCheckedChange={(v) => setReplaceAck(v === true)}
+              className="mt-0.5"
+            />
+            <span>Entendo que todo o catálogo será apagado permanentemente.</span>
+          </label>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={!replaceAck}
+              className={buttonVariants({ variant: "destructive" })}
+              onClick={() => {
+                setConfirmReplaceOpen(false);
+                setReplaceAck(false);
+                void runImport();
+              }}
+            >
+              Apagar e importar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
