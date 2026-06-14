@@ -513,12 +513,7 @@ const AdminInstagram = () => {
                         key={p.id}
                         post={p}
                         onEdit={() => setForm(p)}
-                        onDelete={async () => {
-                          if (confirm("Excluir este post?")) {
-                            await del.mutateAsync(p.id);
-                            toast({ title: "Post removido" });
-                          }
-                        }}
+                        onDelete={() => setConfirmDeleteId(p.id)}
                       />
                     ))}
                   </div>
