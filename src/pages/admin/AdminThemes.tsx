@@ -186,9 +186,30 @@ const AdminThemes = () => {
           {hub.discovery_status !== "ignored" && (
             <Button size="sm" variant="ghost" onClick={() => handleIgnore(hub)}>Ignorar</Button>
           )}
-          <Button size="sm" variant="ghost" onClick={() => handleDelete(hub)}>
-            <Trash2 className="w-3.5 h-3.5" />
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button size="sm" variant="ghost">
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir hub?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  O hub <strong>{hub.title}</strong> será excluído permanentemente.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  className={buttonVariants({ variant: "destructive" })}
+                  onClick={() => handleDelete(hub)}
+                >
+                  Excluir
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </CardContent>
     </Card>
