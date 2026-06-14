@@ -219,6 +219,12 @@ const AdminOccasions = () => {
             Ocasiões
           </h1>
           <p className="text-muted-foreground mt-1">Gerencie as ocasiões dos produtos</p>
+          <Link
+            to="/admin/taxonomias"
+            className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1"
+          >
+            <Activity className="w-3 h-3" /> Ver também em Taxonomias (categorias, segmentos e tags)
+          </Link>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
