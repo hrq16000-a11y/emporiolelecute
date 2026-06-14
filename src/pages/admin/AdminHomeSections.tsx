@@ -348,6 +348,9 @@ const AdminHomeSections = () => {
     label: "",
     description: "",
   });
+  // Cópia de trabalho do editable_props da seção em edição (merge seguro no save).
+  const [propsForm, setPropsForm] = useState<Record<string, unknown>>({});
+
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
