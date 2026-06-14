@@ -319,7 +319,9 @@ const getBundleOptions = (current: unknown) => {
 /** Campos de texto longo recebem Textarea; demais recebem Input. */
 const MULTILINE_KEYS = new Set(["subtitle", "description"]);
 
-
+// =====================================================================
+// Página
+// =====================================================================
 const AdminHomeSections = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
