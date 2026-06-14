@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Trash2, Edit, Check, X, Search, Calendar, Loader2, AlertCircle, Image as ImageIcon, FileEdit, Globe, Activity } from 'lucide-react';
+import { Plus, Trash2, Edit, Check, X, Search, Calendar, Loader2, AlertCircle, Image as ImageIcon, FileEdit, Globe, Activity, ArrowUp, ArrowDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { trackAdminEvent } from '@/lib/adminUsage';
