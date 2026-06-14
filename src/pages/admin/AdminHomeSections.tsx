@@ -139,6 +139,16 @@ const SortableSectionCard = ({
                 componente não registrado
               </Badge>
             )}
+            {destination.type === "indirect" && (
+              <Badge variant="outline" className="text-xs gap-1">
+                <Info className="w-3 h-3" /> Controle indireto
+              </Badge>
+            )}
+            {destination.type === "unavailable" && (
+              <Badge variant="secondary" className="text-xs">
+                Configuração indisponível
+              </Badge>
+            )}
           </div>
           {section.description && (
             <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
