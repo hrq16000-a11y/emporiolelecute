@@ -157,8 +157,12 @@ const TaxonomyForm = ({
       payload.description_seo = descSeo || null;
       payload.faqs = normalizeFaqs(faqs);
     }
-    await onSubmit(payload);
-    draft.clear();
+    try {
+      await onSubmit(payload);
+      draft.clear();
+    } catch {
+      // O gerenciador pai já mostra o toast de erro; mantenha o rascunho local.
+    }
   };
 
   return (
