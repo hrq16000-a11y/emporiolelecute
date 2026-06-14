@@ -238,6 +238,7 @@ const AdminCustomers = () => {
   const [editing, setEditing] = useState<CustomerRow | null>(null);
   const [creating, setCreating] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<CustomerRow | null>(null);
+  const [confirmInvite, setConfirmInvite] = useState<CustomerRow | null>(null);
   const [viewVisitor, setViewVisitor] = useState<VisitorRow | null>(null);
   const [form, setForm] = useState(emptyForm);
 
