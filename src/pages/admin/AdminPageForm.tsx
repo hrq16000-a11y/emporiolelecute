@@ -376,6 +376,13 @@ const AdminPageForm = () => {
           </Card>
         </div>
       </div>
+
+      <StickySaveBar
+        saving={createPage.isPending || updatePage.isPending}
+        onSave={() => handleSubmit(true)}
+        label="Publicar"
+        secondary={{ label: "Salvar rascunho", onClick: () => handleSubmit(false) }}
+      />
     </div>
   );
 };
