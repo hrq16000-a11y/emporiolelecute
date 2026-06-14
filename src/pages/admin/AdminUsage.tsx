@@ -52,7 +52,6 @@ const AdminUsage = () => {
   };
 
   const handleReset = () => {
-    if (!confirm('Limpar todos os eventos coletados? Esta ação não pode ser desfeita.')) return;
     resetUsage();
     refresh();
     toast.success('Eventos limpos');
