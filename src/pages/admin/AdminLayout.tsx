@@ -18,6 +18,7 @@ import { useAdminPageTracking } from '@/hooks/useAdminPageTracking';
 import { trackAdminEvent } from '@/lib/adminUsage';
 import AdminSearchBar from '@/components/admin/AdminSearchBar';
 import DraftNavigationGuard from '@/components/admin/DraftNavigationGuard';
+import BackToHomeSections from '@/components/admin/BackToHomeSections';
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   LayoutDashboard, Package, Tags, Calendar, Home, Sparkles, ShoppingCart, Users,
@@ -256,6 +257,7 @@ const AdminLayout = () => {
       </aside>
 
       <main className="lg:ml-64 pt-20 lg:pt-0 min-h-screen min-w-0 overflow-x-hidden">
+        <BackToHomeSections />
         <Outlet />
       </main>
 

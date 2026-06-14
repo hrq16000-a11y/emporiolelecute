@@ -1,4 +1,5 @@
 import { Suspense, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Eye,
   EyeOff,
@@ -8,6 +9,9 @@ import {
   Loader2,
   Pencil,
   Save,
+  Settings,
+  ArrowUpRight,
+  Info,
 } from "lucide-react";
 import {
   DndContext,
@@ -45,6 +49,11 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 
 import {
@@ -55,6 +64,10 @@ import {
   useUpdateHomeSection,
 } from "@/hooks/useHomeSections";
 import { HOME_SECTIONS_REGISTRY } from "@/lib/homeSectionsRegistry";
+import {
+  buildSectionDestinationPath,
+  getSectionDestination,
+} from "@/lib/homeSectionsDestinations";
 
 // =====================================================================
 // Card sortable
@@ -64,6 +77,7 @@ interface SortableSectionCardProps {
   onToggle: (s: HomeSection) => void;
   onEdit: (s: HomeSection) => void;
   onPreview: (s: HomeSection) => void;
+  onConfigure: (s: HomeSection) => void;
 }
 
 const SortableSectionCard = ({
@@ -71,6 +85,7 @@ const SortableSectionCard = ({
   onToggle,
   onEdit,
   onPreview,
+  onConfigure,
 }: SortableSectionCardProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: section.id });
@@ -83,6 +98,8 @@ const SortableSectionCard = ({
   };
 
   const isRegistered = Boolean(HOME_SECTIONS_REGISTRY[section.component_name]);
+  const destination = getSectionDestination(section.component_name);
+  const hasDestination = Boolean(destination.route);
 
   return (
     <Card
@@ -122,6 +139,16 @@ const SortableSectionCard = ({
                 componente não registrado
               </Badge>
             )}
+            {destination.type === "indirect" && (
+              <Badge variant="outline" className="text-xs gap-1">
+                <Info className="w-3 h-3" /> Controle indireto
+              </Badge>
+            )}
+            {destination.type === "unavailable" && (
+              <Badge variant="secondary" className="text-xs">
+                Configuração indisponível
+              </Badge>
+            )}
           </div>
           {section.description && (
             <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
@@ -139,6 +166,44 @@ const SortableSectionCard = ({
             onCheckedChange={() => onToggle(section)}
             aria-label={section.is_visible ? "Ocultar seção" : "Exibir seção"}
           />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              {hasDestination ? (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => onConfigure(section)}
+                  aria-label="Configurar conteúdo"
+                  className="text-primary hover:text-primary hover:bg-primary/10"
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
+              ) : (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  disabled
+                  aria-label="Configuração indisponível"
+                  className="opacity-50 cursor-not-allowed"
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
+              )}
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-[220px] text-xs">
+              {hasDestination ? (
+                <span className="flex items-center gap-1">
+                  <ArrowUpRight className="w-3 h-3 shrink-0" />
+                  Configurar conteúdo · {destination.label}
+                </span>
+              ) : (
+                <span>{destination.hint ?? "Configuração indisponível"}</span>
+              )}
+              {hasDestination && destination.hint && (
+                <span className="block mt-1 text-muted-foreground">{destination.hint}</span>
+              )}
+            </TooltipContent>
+          </Tooltip>
           <Button size="icon" variant="ghost" onClick={() => onPreview(section)} title="Prévia">
             <Eye className="w-4 h-4" />
           </Button>
@@ -221,10 +286,23 @@ const actionLabels: Record<string, string> = {
 // =====================================================================
 const AdminHomeSections = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { data: sections, isLoading } = useAdminHomeSections();
   const { data: audit } = useHomeSectionAudit();
   const updateMut = useUpdateHomeSection();
   const reorderMut = useReorderHomeSections();
+
+  const handleConfigure = (s: HomeSection) => {
+    const path = buildSectionDestinationPath(s.component_name);
+    if (!path) {
+      toast({
+        title: "Configuração indisponível",
+        description: "Esta seção não possui um módulo de configuração no painel.",
+      });
+      return;
+    }
+    navigate(path);
+  };
 
   const [previewSection, setPreviewSection] = useState<HomeSection | null>(null);
   const [editing, setEditing] = useState<HomeSection | null>(null);
@@ -321,6 +399,7 @@ const AdminHomeSections = () => {
                         onToggle={handleToggle}
                         onEdit={openEdit}
                         onPreview={setPreviewSection}
+                        onConfigure={handleConfigure}
                       />
                     ))}
                   </SortableContext>
