@@ -47,6 +47,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -282,6 +289,37 @@ const actionLabels: Record<string, string> = {
 };
 
 // =====================================================================
+// Editor dinâmico de editable_props
+// =====================================================================
+/** Rótulos amigáveis (PT-BR) para chaves conhecidas. Chaves desconhecidas usam a própria key. */
+const PROP_LABELS: Record<string, string> = {
+  title: "Título",
+  subtitle: "Subtítulo",
+  cta: "Texto do botão (CTA)",
+  ctaPath: "Link do botão",
+  maxItems: "Máximo de itens",
+  bundleType: "Tipo de kit",
+};
+
+/** Opções fixas conhecidas para bundleType (preserva valores fora da lista). */
+const BUNDLE_TYPE_OPTIONS = [
+  { value: "suggested", label: "Sugerido" },
+  { value: "curated", label: "Curado" },
+  { value: "premium", label: "Premium" },
+];
+
+const getBundleOptions = (current: unknown) => {
+  const opts = [...BUNDLE_TYPE_OPTIONS];
+  if (typeof current === "string" && current && !opts.some((o) => o.value === current)) {
+    opts.push({ value: current, label: current });
+  }
+  return opts;
+};
+
+/** Campos de texto longo recebem Textarea; demais recebem Input. */
+const MULTILINE_KEYS = new Set(["subtitle", "description"]);
+
+// =====================================================================
 // Página
 // =====================================================================
 const AdminHomeSections = () => {
@@ -310,6 +348,9 @@ const AdminHomeSections = () => {
     label: "",
     description: "",
   });
+  // Cópia de trabalho do editable_props da seção em edição (merge seguro no save).
+  const [propsForm, setPropsForm] = useState<Record<string, unknown>>({});
+
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -337,18 +378,42 @@ const AdminHomeSections = () => {
   const openEdit = (s: HomeSection) => {
     setEditing(s);
     setEditForm({ label: s.label, description: s.description || "" });
+    setPropsForm({ ...(s.editable_props || {}) });
   };
 
   const saveEdit = async () => {
     if (!editing) return;
+
+    // Merge seguro: parte das props persistidas e sobrescreve apenas as editadas,
+    // preservando chaves desconhecidas que possam existir em produção.
+    const original = (editing.editable_props || {}) as Record<string, unknown>;
+    const mergedProps: Record<string, unknown> = { ...original };
+
+    for (const [key, value] of Object.entries(propsForm)) {
+      const originalIsNumber = typeof original[key] === "number";
+      if (originalIsNumber) {
+        const parsed = typeof value === "number" ? value : Number(value);
+        const fallback = Number(original[key]);
+        const safe = Number.isFinite(parsed) ? parsed : fallback;
+        // maxItems (e demais numéricos) respeitam faixa mínima 1 e são inteiros.
+        mergedProps[key] = Math.max(1, Math.round(safe));
+      } else if (typeof value === "string") {
+        mergedProps[key] = value.trim();
+      } else {
+        mergedProps[key] = value;
+      }
+    }
+
     await updateMut.mutateAsync({
       id: editing.id,
       label: editForm.label.trim() || editing.label,
       description: editForm.description.trim() || null,
+      editable_props: mergedProps,
     });
     toast({ title: "Seção atualizada" });
     setEditing(null);
   };
+
 
   return (
     <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
@@ -476,11 +541,12 @@ const AdminHomeSections = () => {
 
       {/* ============== DIALOG EDITAR ============== */}
       <Dialog open={!!editing} onOpenChange={(open) => !open && setEditing(null)}>
-        <DialogContent>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar seção</DialogTitle>
             <DialogDescription>
-              Alterações no rótulo e descrição são apenas internas ao painel.
+              O rótulo e a descrição são internos ao painel. Os campos de conteúdo público
+              aparecem na home.
             </DialogDescription>
           </DialogHeader>
           {editing && (
@@ -500,6 +566,113 @@ const AdminHomeSections = () => {
                   onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
                 />
               </div>
+
+              {/* ===== Conteúdo público (editable_props) ===== */}
+              {Object.keys(propsForm).length > 0 ? (
+                <div className="space-y-4 border-t pt-4">
+                  <div>
+                    <Label className="text-sm font-semibold">Conteúdo público da seção</Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Estes campos são exibidos na página inicial.
+                    </p>
+                  </div>
+
+                  {Object.entries(propsForm).map(([key, value]) => {
+                    const label = PROP_LABELS[key] ?? key;
+                    const originalIsNumber =
+                      typeof (editing.editable_props || {})[key] === "number";
+
+                    if (key === "bundleType") {
+                      return (
+                        <div className="space-y-2" key={key}>
+                          <Label>{label}</Label>
+                          <Select
+                            value={String(value ?? "")}
+                            onValueChange={(v) =>
+                              setPropsForm((f) => ({ ...f, [key]: v }))
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {getBundleOptions(value).map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      );
+                    }
+
+                    if (originalIsNumber || typeof value === "number") {
+                      return (
+                        <div className="space-y-2" key={key}>
+                          <Label>{label}</Label>
+                          <Input
+                            type="number"
+                            min={1}
+                            value={value === "" || value == null ? "" : String(value)}
+                            onChange={(e) =>
+                              setPropsForm((f) => ({
+                                ...f,
+                                [key]:
+                                  e.target.value === "" ? "" : Number(e.target.value),
+                              }))
+                            }
+                          />
+                        </div>
+                      );
+                    }
+
+                    if (typeof value === "boolean") {
+                      return (
+                        <div
+                          className="flex items-center justify-between gap-2"
+                          key={key}
+                        >
+                          <Label>{label}</Label>
+                          <Switch
+                            checked={value}
+                            onCheckedChange={(c) =>
+                              setPropsForm((f) => ({ ...f, [key]: c }))
+                            }
+                          />
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="space-y-2" key={key}>
+                        <Label>{label}</Label>
+                        {MULTILINE_KEYS.has(key) ? (
+                          <Textarea
+                            rows={2}
+                            value={String(value ?? "")}
+                            onChange={(e) =>
+                              setPropsForm((f) => ({ ...f, [key]: e.target.value }))
+                            }
+                          />
+                        ) : (
+                          <Input
+                            value={String(value ?? "")}
+                            onChange={(e) =>
+                              setPropsForm((f) => ({ ...f, [key]: e.target.value }))
+                            }
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground border-t pt-4">
+                  Esta seção não possui campos de conteúdo editáveis.
+                </p>
+              )}
+
               <div className="text-xs text-muted-foreground font-mono">
                 section_key: {editing.section_key} · component: {editing.component_name}
               </div>
