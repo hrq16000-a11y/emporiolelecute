@@ -97,9 +97,30 @@ export default function ShippingRulesTab() {
           <div className="flex items-center gap-3">
             <Switch checked={r.is_active} onCheckedChange={(v) => update.mutate({ id: r.id, is_active: v })} />
             <Button size="sm" variant="outline" onClick={() => setEditing(r)}><Pencil className="h-3 w-3" /></Button>
-            <Button size="sm" variant="outline" onClick={() => { if (confirm("Excluir regra?")) remove.mutate(r.id); }}>
-              <Trash2 className="h-3 w-3" />
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button size="sm" variant="outline">
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Excluir regra?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    A regra <strong>{r.rule_name}</strong> será removida permanentemente.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    className={buttonVariants({ variant: "destructive" })}
+                    onClick={() => remove.mutate(r.id)}
+                  >
+                    Excluir
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       ))}
