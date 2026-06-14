@@ -173,7 +173,7 @@ const AdminCommandPalette = () => {
   }, [term, hasTerm]);
 
   return (
-    <CommandDialog open={open} onOpenChange={setOpen}>
+    <CommandDialog open={open} onOpenChange={setOpen} commandProps={{ shouldFilter: false }}>
       <CommandInput
         placeholder="Buscar páginas, produtos, clientes, kits, coleções..."
         value={query}
