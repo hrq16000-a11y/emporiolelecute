@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner";
 import { Loader2, Save, RotateCcw, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import StickySaveBar from "@/components/admin/StickySaveBar";
 
 type Settings = {
   is_enabled: boolean;
