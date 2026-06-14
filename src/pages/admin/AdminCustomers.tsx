@@ -924,6 +924,32 @@ const AdminCustomers = () => {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* ============ Invite Confirm ============ */}
+      <AlertDialog open={!!confirmInvite} onOpenChange={(o) => !o && setConfirmInvite(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Enviar convite de login?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Um convite de acesso será enviado para <strong>{confirmInvite?.email}</strong>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const c = confirmInvite;
+                setConfirmInvite(null);
+                if (c) runInvite(c);
+              }}
+            >
+              Enviar convite
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+
+
       {/* ============ Drawer unificado (Visitante / Cliente / Usuário) ============ */}
       <UnifiedProfileDrawer
         kind={drawerKind === "visitor" ? "visitor" : null}
