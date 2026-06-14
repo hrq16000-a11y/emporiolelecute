@@ -40,6 +40,8 @@ export default function AdminBackup() {
   const [importMode, setImportMode] = useState<"merge" | "replace">("merge");
   const [importPreview, setImportPreview] = useState<{ products: number; cats: number; occs: number; tags: number; kits: number; images: number; orders: number } | null>(null);
   const [importReport, setImportReport] = useState<unknown>(null);
+  const [confirmReplaceOpen, setConfirmReplaceOpen] = useState(false);
+  const [replaceAck, setReplaceAck] = useState(false);
 
   // Per-product selection
   const [productList, setProductList] = useState<{ external_ref: string; name: string; slug: string; is_active: boolean }[]>([]);
