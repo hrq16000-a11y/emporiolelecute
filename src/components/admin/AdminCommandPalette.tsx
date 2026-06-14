@@ -11,6 +11,7 @@ import {
   Eye,
   Loader2,
   ArrowRight,
+  Receipt,
 } from "lucide-react";
 import {
   CommandDialog,
