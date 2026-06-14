@@ -179,6 +179,7 @@ const AdminOccasions = () => {
   const openContentEditor = (occ: any) => {
     setContentEditId(occ.id);
     setContentForm({
+      icon: occ.icon || '',
       image_url: occ.image_url || '',
       description: occ.description || '',
       meta_title: occ.meta_title || '',
