@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -92,6 +93,7 @@ const getStatusInfo = (status: string) => {
 };
 
 const AdminOrders = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>(() => {
@@ -285,6 +287,33 @@ const AdminOrders = () => {
     setSelectedOrder(order);
     const items = await fetchOrderItems(order.id);
     setOrderItems(items);
+    // Sync URL (?order=CODE) so the open order is shareable/refreshable.
+    if (searchParams.get('order') !== order.order_code) {
+      const next = new URLSearchParams(searchParams);
+      next.set('order', order.order_code);
+      setSearchParams(next, { replace: true });
+    }
+  };
+
+  // Deep-link: open the matching order automatically from ?order=CODE.
+  // Conservative — does nothing if the order is not found (no modal, no error).
+  const orderParam = searchParams.get('order');
+  useEffect(() => {
+    if (!orderParam || !orders) return;
+    if (selectedOrder?.order_code === orderParam) return;
+    const match = orders.find((o) => o.order_code === orderParam);
+    if (match) handleViewOrder(match);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderParam, orders]);
+
+  // Close handler: clears selection and removes ?order= from the URL (no reload).
+  const handleCloseOrder = () => {
+    setSelectedOrder(null);
+    if (searchParams.get('order')) {
+      const next = new URLSearchParams(searchParams);
+      next.delete('order');
+      setSearchParams(next, { replace: true });
+    }
   };
 
   const handleStatusChange = (orderId: string, newStatus: string) => {
@@ -522,7 +551,7 @@ const AdminOrders = () => {
       )}
 
       {/* Order Details Modal */}
-      <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
+      <Dialog open={!!selectedOrder} onOpenChange={(o) => { if (!o) handleCloseOrder(); }}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
