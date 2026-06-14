@@ -972,7 +972,10 @@ const AdminSettings = () => {
           </CardContent>
         </Card>
       </div>
+
+      <StickySaveBar saving={saving} onSave={handleSave} label="Salvar Alterações" />
     </div>
+
   );
 };
 
