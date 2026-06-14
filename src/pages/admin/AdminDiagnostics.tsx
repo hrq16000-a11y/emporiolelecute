@@ -161,14 +161,12 @@ const AdminDiagnostics = () => {
   };
 
   const clearStale = async () => {
-    if (!confirm("Apagar TODOS os logs de stale-bundle?")) return;
     const since = sinceISO(stalePeriod) ?? new Date(0).toISOString();
     await supabase.from("stale_bundle_logs").delete().gte("occurred_at", since);
     loadStale();
   };
 
   const clearIg = async () => {
-    if (!confirm("Apagar TODAS as falhas de embed do Instagram?")) return;
     const since = sinceISO(igPeriod) ?? new Date(0).toISOString();
     await supabase.from("instagram_embed_failures").delete().gte("occurred_at", since);
     loadIg();
