@@ -264,6 +264,9 @@ const AdminLayout = () => {
 
       {/* Guarda global: avisa sobre rascunhos não salvos antes de sair */}
       <DraftNavigationGuard />
+
+      {/* Command Palette global (Cmd/Ctrl + K) — aditiva, Fase 1 */}
+      <AdminCommandPalette />
     </div>
   );
 };
