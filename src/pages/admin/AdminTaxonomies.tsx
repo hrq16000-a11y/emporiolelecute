@@ -65,29 +65,9 @@ const AdminTaxonomies = () => {
     invalidatePublicTaxonomy(queryClient, 'categories');
     void markPublicTaxonomyDirty('categories');
   };
-  const updateOccasionGeneric = async (id: string, values: Partial<TaxonomyEntity>) => {
-    const { error } = await supabase.from('occasions').update(values).eq('id', id);
-    if (error) throw error;
-    await occs.refetch();
-    invalidatePublicTaxonomy(queryClient, 'occasions');
-    void markPublicTaxonomyDirty('occasions');
-  };
-  const createOccasionGeneric = async (values: Partial<TaxonomyEntity>) => {
-    const { error } = await supabase.from('occasions').insert(values as never);
-    if (error) throw error;
-    await occs.refetch();
-    invalidatePublicTaxonomy(queryClient, 'occasions');
-    void markPublicTaxonomyDirty('occasions');
-  };
-  const deleteOccasionSynced = async (id: string) => {
-    await delOcc.mutateAsync(id);
-    await occs.refetch();
-    invalidatePublicTaxonomy(queryClient, 'occasions');
-    void markPublicTaxonomyDirty('occasions');
-  };
 
   // Suppress unused-warnings for the original hooks (kept for compat; not used directly here)
-  void createCat; void updCat; void createOcc; void updOcc;
+  void createCat; void updCat; void createOcc; void updOcc; void delOcc;
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-6xl">
