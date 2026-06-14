@@ -193,11 +193,14 @@ const AdminOccasions = () => {
     try {
       await updateOccasion.mutateAsync({
         id: contentEditId,
+        icon: (contentForm.icon || '').trim() || null,
         image_url: contentForm.image_url.trim() || null,
         description: contentForm.description.trim() || null,
         meta_title: contentForm.meta_title.trim() || null,
         meta_description: contentForm.meta_description.trim() || null,
-      });
+      } as any);
+      invalidatePublicTaxonomy(queryClient, 'occasions');
+      void markPublicTaxonomyDirty('occasions');
       toast({ title: 'Conteúdo atualizado!' });
       setContentEditId(null);
     } catch {
