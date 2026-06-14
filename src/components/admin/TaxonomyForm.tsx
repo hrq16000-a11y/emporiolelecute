@@ -35,6 +35,7 @@ const TaxonomyForm = ({
   const [position, setPosition] = useState<number>(initial?.position ?? 0);
   const [description, setDescription] = useState(initial?.description ?? '');
   const [imageUrl, setImageUrl] = useState(initial?.image_url ?? '');
+  const [icon, setIcon] = useState<string | null>(initial?.icon ?? null);
   const [isIndexed, setIsIndexed] = useState<boolean>(initial?.is_indexed ?? true);
   // Bloco 3 SAFE: novos itens nascem como rascunho; existentes preservam o estado salvo.
   const [isDraft, setIsDraft] = useState<boolean>(initial?.is_draft ?? true);
