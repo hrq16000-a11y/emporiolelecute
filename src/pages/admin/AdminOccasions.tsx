@@ -30,6 +30,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useDbOccasions, useCreateOccasion, useDeleteOccasion, useUpdateOccasion } from '@/hooks/useProducts';
 import { useSlugAvailability } from '@/hooks/useSlugAvailability';
 import ImagePickerWithLibrary from '@/components/admin/ImagePickerWithLibrary';
+import LucideIconPicker from '@/components/admin/LucideIconPicker';
+import { LucideIcon } from '@/components/LucideIcon';
 import { useQueryClient } from '@tanstack/react-query';
 import { markPublicTaxonomyDirty, invalidatePublicTaxonomy } from '@/lib/taxonomyAutomation';
 
@@ -54,6 +56,7 @@ const AdminOccasions = () => {
   // Advanced content editor (image + descrição + meta tags)
   const [contentEditId, setContentEditId] = useState<string | null>(null);
   const [contentForm, setContentForm] = useState({
+    icon: '' as string | null,
     image_url: '',
     description: '',
     meta_title: '',
@@ -176,6 +179,7 @@ const AdminOccasions = () => {
   const openContentEditor = (occ: any) => {
     setContentEditId(occ.id);
     setContentForm({
+      icon: occ.icon || '',
       image_url: occ.image_url || '',
       description: occ.description || '',
       meta_title: occ.meta_title || '',
@@ -189,11 +193,14 @@ const AdminOccasions = () => {
     try {
       await updateOccasion.mutateAsync({
         id: contentEditId,
+        icon: (contentForm.icon || '').trim() || null,
         image_url: contentForm.image_url.trim() || null,
         description: contentForm.description.trim() || null,
         meta_title: contentForm.meta_title.trim() || null,
         meta_description: contentForm.meta_description.trim() || null,
-      });
+      } as any);
+      invalidatePublicTaxonomy(queryClient, 'occasions');
+      void markPublicTaxonomyDirty('occasions');
       toast({ title: 'Conteúdo atualizado!' });
       setContentEditId(null);
     } catch {
@@ -362,7 +369,9 @@ const AdminOccasions = () => {
                     <>
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted ring-1 ring-border/60 shrink-0 flex items-center justify-center">
-                          {occasion.image_url ? (
+                          {(occasion as any).icon ? (
+                            <LucideIcon name={(occasion as any).icon} className="w-6 h-6 text-primary" />
+                          ) : occasion.image_url ? (
                             <img src={occasion.image_url} alt={occasion.name} className="w-full h-full object-cover" loading="lazy" />
                           ) : (
                             <ImageIcon className="w-5 h-5 text-muted-foreground/60" />
@@ -471,6 +480,17 @@ const AdminOccasions = () => {
             <DialogTitle>Imagem & SEO da ocasião</DialogTitle>
           </DialogHeader>
           <div className="space-y-5 pt-2">
+            <div className="space-y-2">
+              <Label>Ícone (Lucide)</Label>
+              <p className="text-xs text-muted-foreground">
+                Exibido no carrossel de ocasiões da home. Quando definido, tem prioridade sobre a imagem.
+              </p>
+              <LucideIconPicker
+                value={contentForm.icon}
+                onChange={(name) => setContentForm((f) => ({ ...f, icon: name }))}
+              />
+            </div>
+
             <div className="space-y-2">
               <Label>Imagem da ocasião</Label>
               <p className="text-xs text-muted-foreground">
