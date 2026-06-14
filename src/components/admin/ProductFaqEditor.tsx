@@ -87,7 +87,6 @@ export default function ProductFaqEditor({
   };
 
   const remove = async (faq: ProductFaq) => {
-    if (!confirm("Remover esta FAQ?")) return;
     try {
       await del.mutateAsync({ id: faq.id, product_id: productId });
       toast.success("FAQ removida.");
