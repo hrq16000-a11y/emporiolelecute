@@ -289,8 +289,37 @@ const actionLabels: Record<string, string> = {
 };
 
 // =====================================================================
-// Página
+// Editor dinâmico de editable_props
 // =====================================================================
+/** Rótulos amigáveis (PT-BR) para chaves conhecidas. Chaves desconhecidas usam a própria key. */
+const PROP_LABELS: Record<string, string> = {
+  title: "Título",
+  subtitle: "Subtítulo",
+  cta: "Texto do botão (CTA)",
+  ctaPath: "Link do botão",
+  maxItems: "Máximo de itens",
+  bundleType: "Tipo de kit",
+};
+
+/** Opções fixas conhecidas para bundleType (preserva valores fora da lista). */
+const BUNDLE_TYPE_OPTIONS = [
+  { value: "suggested", label: "Sugerido" },
+  { value: "curated", label: "Curado" },
+  { value: "premium", label: "Premium" },
+];
+
+const getBundleOptions = (current: unknown) => {
+  const opts = [...BUNDLE_TYPE_OPTIONS];
+  if (typeof current === "string" && current && !opts.some((o) => o.value === current)) {
+    opts.push({ value: current, label: current });
+  }
+  return opts;
+};
+
+/** Campos de texto longo recebem Textarea; demais recebem Input. */
+const MULTILINE_KEYS = new Set(["subtitle", "description"]);
+
+
 const AdminHomeSections = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
