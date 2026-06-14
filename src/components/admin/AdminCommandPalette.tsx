@@ -315,7 +315,7 @@ const AdminCommandPalette = () => {
               <CommandItem
                 key={`order-${o.id}`}
                 value={`order-${o.id}-${o.order_code}`}
-                onSelect={() => runAction("/admin/pedidos")}
+                onSelect={() => runAction(`/admin/pedidos?order=${encodeURIComponent(o.order_code)}`)}
               >
                 <Receipt className="mr-2 h-4 w-4 text-muted-foreground" />
                 <span className="flex min-w-0 flex-1 flex-col">
