@@ -511,9 +511,13 @@ const AdminCustomers = () => {
     : filteredVisitors;
 
 
-  const handleInvite = async (c: CustomerRow) => {
+  const handleInvite = (c: CustomerRow) => {
     if (!c.email) return;
-    if (!confirm(`Enviar convite de login para ${c.email}?`)) return;
+    setConfirmInvite(c);
+  };
+
+  const runInvite = async (c: CustomerRow) => {
+    if (!c.email) return;
     try {
       const { data, error } = await supabase.functions.invoke("admin-create-user", {
         body: { email: c.email, full_name: c.name, whatsapp: c.whatsapp, send_invite: true },
