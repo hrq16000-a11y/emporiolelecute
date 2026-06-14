@@ -8,6 +8,7 @@ import {
   Boxes,
   Sparkles,
   Home,
+  Eye,
   Loader2,
   ArrowRight,
 } from "lucide-react";
@@ -249,6 +250,25 @@ const AdminCommandPalette = () => {
               <Users className="mr-2 h-4 w-4 text-muted-foreground" />
               <span className="flex-1 truncate">
                 Buscar clientes por “{term}”
+              </span>
+              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
+            </CommandItem>
+          </CommandGroup>
+        )}
+
+        {hasTerm && (
+          <CommandGroup heading="Visitantes">
+            <CommandItem
+              value={`visitante-busca-${term}`}
+              onSelect={() =>
+                runAction(
+                  `/admin/clientes?tab=visitors&q=${encodeURIComponent(term)}`
+                )
+              }
+            >
+              <Eye className="mr-2 h-4 w-4 text-muted-foreground" />
+              <span className="flex-1 truncate">
+                Buscar visitantes por “{term}”
               </span>
               <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
             </CommandItem>
