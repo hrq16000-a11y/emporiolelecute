@@ -78,6 +78,12 @@ const AdminTaxonomies = () => {
     invalidatePublicTaxonomy(queryClient, 'occasions');
     void markPublicTaxonomyDirty('occasions');
   };
+  const deleteOccasionSynced = async (id: string) => {
+    await delOcc.mutateAsync(id);
+    await occs.refetch();
+    invalidatePublicTaxonomy(queryClient, 'occasions');
+    void markPublicTaxonomyDirty('occasions');
+  };
 
   // Suppress unused-warnings for the original hooks (kept for compat; not used directly here)
   void createCat; void updCat; void createOcc; void updOcc;
@@ -131,7 +137,7 @@ const AdminTaxonomies = () => {
             existingSlugsByKind={slugsByKind}
             onCreate={createOccasionGeneric}
             onUpdate={updateOccasionGeneric}
-            onDelete={(id) => delOcc.mutateAsync(id)}
+            onDelete={deleteOccasionSynced}
           />
         </TabsContent>
         <TabsContent value="segmento" forceMount hidden={activeTab !== 'segmento'}>
