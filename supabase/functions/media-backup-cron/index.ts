@@ -5,7 +5,7 @@
 //  1. Reconstrói o inventário central (media_assets) via RPC service_role.
 //  2. Gera um "manifesto" (snapshot de todos os assets por img_ref) e grava
 //     em media_audit_runs (histórico auditável + manifest.json reconstruível).
-//  3. Carimba backed_up_at nas imagens ativas (registro de backup lógico).
+//  3. (Removido) NÃO carimba mais backed_up_at — auditoria não gera binários.
 //  4. Se houver imagens AUSENTES (missing > 0), envia ALERTA por e-mail aos
 //     administradores ANTES que o garbage collector rode — fechando a janela
 //     que causou a perda de imagens em jun/2026.
@@ -69,8 +69,9 @@ Deno.serve(async (req) => {
       assets: assets ?? [],
     };
 
-    // 3) Carimba backed_up_at nas ativas (backup lógico registrado)
-    await admin.from("media_assets").update({ backed_up_at: stampedAt }).eq("status", "active");
+    // NÃO carimba backed_up_at aqui: a auditoria não produz binários.
+    // backed_up_at só é preenchido pelo export físico validado (admin-media-backup confirm_backup).
+    // Isso elimina o falso positivo que permitia ao GC apagar imagens sem backup real.
 
     const missingCount = missing.length;
     let alerted = false;

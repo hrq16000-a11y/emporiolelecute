@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import JSZip from "jszip";
 import { supabase } from "@/integrations/supabase/client";
+import { sha256Hex } from "@/lib/sha256";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +41,8 @@ interface ManifestAsset {
   entity_type: string | null;
   field: string | null;
   status?: string | null;
+  size_bytes?: number | null;
+  sha256?: string | null;
 }
 
 interface RestorableItem extends ManifestAsset {
@@ -139,9 +142,32 @@ const MediaRestorePanel = () => {
     for (let i = 0; i < targets.length; i++) {
       const item = targets[i];
       try {
+        // 1) Existência do binário no ZIP.
         const entry = findZipBinary(zip, item.img_ref);
-        if (!entry) throw new Error("binário não encontrado");
-        const blob = await entry.async("blob");
+        if (!entry) throw new Error("binário não encontrado no ZIP");
+        const buffer = await entry.async("arraybuffer");
+
+        // 2) Validação de tamanho (quando o manifesto informa size_bytes).
+        if (typeof item.size_bytes === "number" && item.size_bytes > 0) {
+          if (buffer.byteLength !== item.size_bytes) {
+            throw new Error(
+              `tamanho divergente (esperado ${item.size_bytes}B, obtido ${buffer.byteLength}B)`,
+            );
+          }
+        }
+
+        // 3) Validação de integridade por checksum SHA-256 (quando disponível).
+        if (item.sha256) {
+          const actual = await sha256Hex(buffer);
+          if (actual !== item.sha256) {
+            throw new Error(
+              `checksum divergente (esperado ${item.sha256.slice(0, 12)}…, obtido ${actual.slice(0, 12)}…)`,
+            );
+          }
+        }
+
+        // 4) Upload somente após validação bem-sucedida.
+        const blob = new Blob([buffer], { type: item.content_type ?? undefined });
         const { error } = await supabase.storage
           .from(item.bucket)
           .upload(item.storage_path, blob, {
@@ -156,6 +182,7 @@ const MediaRestorePanel = () => {
       setRestoredCount(ok);
       setProgress(Math.round(((i + 1) / targets.length) * 100));
     }
+
 
     // Reescreve as URLs no banco a partir do catálogo (relink) para os restaurados.
     try {

@@ -10,10 +10,10 @@ import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import MediaRestorePanel from "@/components/admin/MediaRestorePanel";
+import MediaExportPanel from "@/components/admin/MediaExportPanel";
 import MediaAlertEmailsCard from "@/components/admin/MediaAlertEmailsCard";
 import {
   RefreshCw,
-  Download,
   ShieldCheck,
   AlertTriangle,
   Archive,
@@ -61,7 +61,6 @@ interface AuditRun {
 }
 
 const AdminMediaBackup = () => {
-  const [generating, setGenerating] = useState(false);
   const [auditing, setAuditing] = useState(false);
   const queryClient = useQueryClient();
 
@@ -100,29 +99,9 @@ const AdminMediaBackup = () => {
     });
   };
 
-  const handleGenerateBackup = async () => {
-    setGenerating(true);
-    try {
-      const { data: res, error } = await supabase.functions.invoke("admin-media-backup", {
-        body: { action: "manifest" },
-      });
-      if (error) throw error;
-      const manifest = (res as { manifest: unknown }).manifest;
-      const blob = new Blob([JSON.stringify(manifest, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `media-manifest-${new Date().toISOString().slice(0, 10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success("Manifesto de backup gerado e baixado.");
-      refetch();
-    } catch (e) {
-      toast.error("Falha ao gerar o manifesto de backup.");
-    } finally {
-      setGenerating(false);
-    }
-  };
+  // Manifesto JSON-only foi descontinuado: gerava falso positivo de backup
+  // (sem binários). Use o painel "Backup completo (ZIP)" para um backup real.
+
 
   const handleRunAudit = async () => {
     setAuditing(true);
@@ -230,10 +209,6 @@ const AdminMediaBackup = () => {
             {auditing ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
             Rodar auditoria agora
           </Button>
-          <Button onClick={handleGenerateBackup} disabled={generating || isLoading}>
-            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            Gerar manifesto de backup
-          </Button>
         </div>
       </div>
 
@@ -254,13 +229,19 @@ const AdminMediaBackup = () => {
         ))}
       </div>
 
-      <Tabs defaultValue="inventory" className="w-full">
+      <Tabs defaultValue="backup" className="w-full">
         <TabsList className="w-full justify-start overflow-x-auto">
+          <TabsTrigger value="backup">Backup completo</TabsTrigger>
           <TabsTrigger value="inventory">Inventário</TabsTrigger>
           <TabsTrigger value="restore">Restaurar</TabsTrigger>
           <TabsTrigger value="audits">Auditorias</TabsTrigger>
           <TabsTrigger value="alerts">Alertas</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="backup" className="mt-4">
+          <MediaExportPanel />
+        </TabsContent>
+
 
         <TabsContent value="inventory" className="mt-4">
           <Card className="border-rose-200">

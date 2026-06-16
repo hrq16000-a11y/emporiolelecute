@@ -1390,6 +1390,51 @@ export type Database = {
         }
         Relationships: []
       }
+      media_backup_runs: {
+        Row: {
+          bytes_total: number
+          coverage_pct: number
+          created_at: string
+          created_by: string | null
+          exported_count: number
+          id: string
+          notes: string | null
+          ran_at: string
+          status: string
+          total_assets: number
+          updated_at: string
+          verified_count: number
+        }
+        Insert: {
+          bytes_total?: number
+          coverage_pct?: number
+          created_at?: string
+          created_by?: string | null
+          exported_count?: number
+          id?: string
+          notes?: string | null
+          ran_at?: string
+          status?: string
+          total_assets?: number
+          updated_at?: string
+          verified_count?: number
+        }
+        Update: {
+          bytes_total?: number
+          coverage_pct?: number
+          created_at?: string
+          created_by?: string | null
+          exported_count?: number
+          id?: string
+          notes?: string | null
+          ran_at?: string
+          status?: string
+          total_assets?: number
+          updated_at?: string
+          verified_count?: number
+        }
+        Relationships: []
+      }
       menu_items: {
         Row: {
           created_at: string | null

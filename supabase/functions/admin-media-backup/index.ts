@@ -64,9 +64,10 @@ Deno.serve(async (req) => {
     }
 
     if (action === "manifest") {
-      // Carimba backed_up_at nas ativas (registro de que o manifesto foi gerado).
+      // IMPORTANTE: o manifesto é apenas metadados (não contém binários).
+      // NÃO carimba backed_up_at — backup só é real após o export físico
+      // validado (action "confirm_backup"). Isso elimina o falso positivo.
       const stampedAt = new Date().toISOString();
-      await admin.from("media_assets").update({ backed_up_at: stampedAt }).eq("status", "active");
 
       const { data: assets, error: aErr } = await admin
         .from("media_assets")
@@ -78,10 +79,115 @@ Deno.serve(async (req) => {
         generated_at: stampedAt,
         project_ref: SUPABASE_URL.replace("https://", "").split(".")[0],
         summary,
-        note: "Backup keyed by img_ref. Baixe cada public_url e salve como files/<img_ref>.<ext>.",
+        note: "METADADOS apenas (sem binários). Use o export físico (ZIP) para um backup restaurável.",
         assets: assets ?? [],
       };
       return json({ ok: true, manifest });
+    }
+
+    if (action === "export_manifest") {
+      // Lista os assets que possuem binário físico no storage (active + archived),
+      // para o export completo (ZIP) montado no painel admin.
+      const { data: assets, error: aErr } = await admin
+        .from("media_assets")
+        .select("img_ref, bucket, storage_path, public_url, content_type, size_bytes, checksum_sha256, entity_type, entity_id, field, status")
+        .in("status", ["active", "archived"])
+        .order("storage_path");
+      if (aErr) throw new Error(aErr.message);
+      return json({ ok: true, summary, assets: assets ?? [] });
+    }
+
+    if (action === "confirm_backup") {
+      // Persiste evidência de backup VALIDADO após o export físico do painel.
+      // - Grava checksum_sha256 + size_bytes de cada binário efetivamente exportado.
+      // - backed_up_at SOMENTE quando o backup inteiro foi concluído (runComplete).
+      // - Registra a execução em media_backup_runs (evidência de DR).
+      const items: Array<{ img_ref: string; sha256?: string; size_bytes?: number }> =
+        Array.isArray(body.assets) ? body.assets : [];
+      const runComplete = body.runComplete === true;
+      const totalAssets = Number(body.total_assets ?? 0);
+      const bytesTotal = Number(body.bytes_total ?? 0);
+      const notes = typeof body.notes === "string" ? body.notes : null;
+
+      let verified = 0;
+      const stampedAt = new Date().toISOString();
+      for (const it of items) {
+        if (!it.img_ref || !it.sha256) continue;
+        const patch: Record<string, unknown> = {
+          checksum_sha256: it.sha256,
+          updated_at: stampedAt,
+        };
+        if (typeof it.size_bytes === "number" && it.size_bytes > 0) patch.size_bytes = it.size_bytes;
+        if (runComplete) patch.backed_up_at = stampedAt;
+        const { error: upErr } = await admin
+          .from("media_assets")
+          .update(patch)
+          .eq("img_ref", it.img_ref);
+        if (!upErr) verified++;
+      }
+
+      const exportedCount = items.length;
+      const coverage = totalAssets > 0 ? Math.round((verified / totalAssets) * 10000) / 100 : 0;
+      const status = runComplete && totalAssets > 0 && verified >= totalAssets ? "complete" : "partial";
+
+      const { data: run } = await admin
+        .from("media_backup_runs")
+        .insert({
+          ran_at: stampedAt,
+          total_assets: totalAssets,
+          exported_count: exportedCount,
+          verified_count: verified,
+          coverage_pct: coverage,
+          bytes_total: bytesTotal,
+          status,
+          notes,
+          created_by: userId,
+        })
+        .select()
+        .maybeSingle();
+
+      return json({ ok: true, run, verified, status, coverage });
+    }
+
+    if (action === "coverage") {
+      // Painel de cobertura: catalogados x exportados x integridade validada.
+      const { data: assets } = await admin
+        .from("media_assets")
+        .select("img_ref, storage_path, status, checksum_sha256, backed_up_at, size_bytes")
+        .in("status", ["active", "archived"]);
+      const list = assets ?? [];
+      const cataloged = list.length;
+      const exported = list.filter((a) => a.backed_up_at).length;
+      const withChecksum = list.filter((a) => a.checksum_sha256).length;
+      const coverage = cataloged > 0 ? Math.round((exported / cataloged) * 10000) / 100 : 0;
+      const missingItems = list
+        .filter((a) => !a.backed_up_at)
+        .map((a) => ({
+          img_ref: a.img_ref,
+          storage_path: a.storage_path,
+          status: a.status,
+          has_checksum: !!a.checksum_sha256,
+        }));
+
+      const { data: lastRun } = await admin
+        .from("media_backup_runs")
+        .select("*")
+        .order("ran_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      return json({
+        ok: true,
+        coverage: {
+          cataloged,
+          exported,
+          with_checksum: withChecksum,
+          coverage_pct: coverage,
+          missing_count: missingItems.length,
+          last_run: lastRun ?? null,
+        },
+        missing_items: missingItems.slice(0, 500),
+      });
     }
 
     if (action === "relink") {
