@@ -14,7 +14,6 @@ import MediaExportPanel from "@/components/admin/MediaExportPanel";
 import MediaAlertEmailsCard from "@/components/admin/MediaAlertEmailsCard";
 import {
   RefreshCw,
-  Download,
   ShieldCheck,
   AlertTriangle,
   Archive,
