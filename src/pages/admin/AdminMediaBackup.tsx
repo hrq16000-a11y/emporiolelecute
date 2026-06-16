@@ -100,29 +100,9 @@ const AdminMediaBackup = () => {
     });
   };
 
-  const handleGenerateBackup = async () => {
-    setGenerating(true);
-    try {
-      const { data: res, error } = await supabase.functions.invoke("admin-media-backup", {
-        body: { action: "manifest" },
-      });
-      if (error) throw error;
-      const manifest = (res as { manifest: unknown }).manifest;
-      const blob = new Blob([JSON.stringify(manifest, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `media-manifest-${new Date().toISOString().slice(0, 10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success("Manifesto de backup gerado e baixado.");
-      refetch();
-    } catch (e) {
-      toast.error("Falha ao gerar o manifesto de backup.");
-    } finally {
-      setGenerating(false);
-    }
-  };
+  // Manifesto JSON-only foi descontinuado: gerava falso positivo de backup
+  // (sem binários). Use o painel "Backup completo (ZIP)" para um backup real.
+
 
   const handleRunAudit = async () => {
     setAuditing(true);
