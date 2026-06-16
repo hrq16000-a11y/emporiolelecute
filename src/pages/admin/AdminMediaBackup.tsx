@@ -352,9 +352,10 @@ const AdminMediaBackup = () => {
       </Tabs>
 
       <p className="text-xs text-muted-foreground">
-        O manifesto lista cada imagem por <code>img_ref</code> com a URL pública para download. A limpeza
-        automática agora só remove imagens explicitamente sem uso e que já possuam backup registrado, e a
-        auditoria periódica avisa os administradores por e-mail antes de qualquer limpeza.
+        O backup completo gera um ZIP autossuficiente (<code>manifest.json</code> +{" "}
+        <code>files/&lt;img_ref&gt;.&lt;ext&gt;</code>) com checksum SHA-256 por arquivo. A limpeza
+        automática só remove imagens sem uso que possuam <strong>backup validado por integridade</strong>{" "}
+        (checksum), e a auditoria periódica avisa os administradores por e-mail antes de qualquer limpeza.
       </p>
     </div>
   );
