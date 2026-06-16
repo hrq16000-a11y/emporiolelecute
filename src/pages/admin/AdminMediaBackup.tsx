@@ -62,7 +62,6 @@ interface AuditRun {
 }
 
 const AdminMediaBackup = () => {
-  const [generating, setGenerating] = useState(false);
   const [auditing, setAuditing] = useState(false);
   const queryClient = useQueryClient();
 
