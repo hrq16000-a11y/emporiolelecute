@@ -195,9 +195,9 @@ const AdminMediaBackup = () => {
           <h1 className="font-display text-3xl">Backup de Mídia</h1>
           <p className="text-sm text-muted-foreground max-w-2xl">
             Catálogo central de todas as imagens com referência estável{" "}
-            <code className="text-xs bg-muted px-1 py-0.5 rounded">img_ref</code>, independente do
-            identificador interno do armazenamento. Gere o manifesto, restaure do backup e acompanhe as
-            auditorias automáticas.
+            <code className="text-xs bg-muted px-1 py-0.5 rounded">img_ref</code>. Gere o{" "}
+            <strong>backup completo (ZIP com binários + checksum)</strong>, acompanhe a cobertura de
+            recuperação, restaure com validação de integridade e monitore as auditorias automáticas.
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -352,9 +352,10 @@ const AdminMediaBackup = () => {
       </Tabs>
 
       <p className="text-xs text-muted-foreground">
-        O manifesto lista cada imagem por <code>img_ref</code> com a URL pública para download. A limpeza
-        automática agora só remove imagens explicitamente sem uso e que já possuam backup registrado, e a
-        auditoria periódica avisa os administradores por e-mail antes de qualquer limpeza.
+        O backup completo gera um ZIP autossuficiente (<code>manifest.json</code> +{" "}
+        <code>files/&lt;img_ref&gt;.&lt;ext&gt;</code>) com checksum SHA-256 por arquivo. A limpeza
+        automática só remove imagens sem uso que possuam <strong>backup validado por integridade</strong>{" "}
+        (checksum), e a auditoria periódica avisa os administradores por e-mail antes de qualquer limpeza.
       </p>
     </div>
   );
