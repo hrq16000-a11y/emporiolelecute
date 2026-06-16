@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import JSZip from "jszip";
 import { supabase } from "@/integrations/supabase/client";
+import { sha256Hex } from "@/lib/sha256";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
