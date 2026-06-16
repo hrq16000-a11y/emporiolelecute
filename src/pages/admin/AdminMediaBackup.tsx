@@ -195,9 +195,9 @@ const AdminMediaBackup = () => {
           <h1 className="font-display text-3xl">Backup de Mídia</h1>
           <p className="text-sm text-muted-foreground max-w-2xl">
             Catálogo central de todas as imagens com referência estável{" "}
-            <code className="text-xs bg-muted px-1 py-0.5 rounded">img_ref</code>, independente do
-            identificador interno do armazenamento. Gere o manifesto, restaure do backup e acompanhe as
-            auditorias automáticas.
+            <code className="text-xs bg-muted px-1 py-0.5 rounded">img_ref</code>. Gere o{" "}
+            <strong>backup completo (ZIP com binários + checksum)</strong>, acompanhe a cobertura de
+            recuperação, restaure com validação de integridade e monitore as auditorias automáticas.
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
