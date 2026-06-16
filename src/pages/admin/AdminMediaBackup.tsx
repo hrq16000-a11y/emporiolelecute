@@ -10,6 +10,7 @@ import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import MediaRestorePanel from "@/components/admin/MediaRestorePanel";
+import MediaExportPanel from "@/components/admin/MediaExportPanel";
 import MediaAlertEmailsCard from "@/components/admin/MediaAlertEmailsCard";
 import {
   RefreshCw,
