@@ -230,13 +230,19 @@ const AdminMediaBackup = () => {
         ))}
       </div>
 
-      <Tabs defaultValue="inventory" className="w-full">
+      <Tabs defaultValue="backup" className="w-full">
         <TabsList className="w-full justify-start overflow-x-auto">
+          <TabsTrigger value="backup">Backup completo</TabsTrigger>
           <TabsTrigger value="inventory">Inventário</TabsTrigger>
           <TabsTrigger value="restore">Restaurar</TabsTrigger>
           <TabsTrigger value="audits">Auditorias</TabsTrigger>
           <TabsTrigger value="alerts">Alertas</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="backup" className="mt-4">
+          <MediaExportPanel />
+        </TabsContent>
+
 
         <TabsContent value="inventory" className="mt-4">
           <Card className="border-rose-200">
