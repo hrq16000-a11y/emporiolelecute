@@ -210,10 +210,6 @@ const AdminMediaBackup = () => {
             {auditing ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
             Rodar auditoria agora
           </Button>
-          <Button onClick={handleGenerateBackup} disabled={generating || isLoading}>
-            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            Gerar manifesto de backup
-          </Button>
         </div>
       </div>
 
