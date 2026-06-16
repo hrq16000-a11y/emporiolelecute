@@ -40,6 +40,8 @@ interface ManifestAsset {
   entity_type: string | null;
   field: string | null;
   status?: string | null;
+  size_bytes?: number | null;
+  sha256?: string | null;
 }
 
 interface RestorableItem extends ManifestAsset {
