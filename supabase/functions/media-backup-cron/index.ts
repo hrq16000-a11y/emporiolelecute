@@ -69,8 +69,9 @@ Deno.serve(async (req) => {
       assets: assets ?? [],
     };
 
-    // 3) Carimba backed_up_at nas ativas (backup lógico registrado)
-    await admin.from("media_assets").update({ backed_up_at: stampedAt }).eq("status", "active");
+    // NÃO carimba backed_up_at aqui: a auditoria não produz binários.
+    // backed_up_at só é preenchido pelo export físico validado (admin-media-backup confirm_backup).
+    // Isso elimina o falso positivo que permitia ao GC apagar imagens sem backup real.
 
     const missingCount = missing.length;
     let alerted = false;
