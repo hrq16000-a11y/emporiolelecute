@@ -12,6 +12,7 @@ import { getPostBySlug, getRelatedPosts } from "@/data/blog";
 import { useDbBlogPostBySlug } from "@/hooks/useDbBlogPosts";
 import { useContactInfo } from "@/hooks/useContactInfo";
 import { buildWhatsAppUrl, trackWhatsAppClick } from "@/lib/analytics";
+import { sanitizeHtml } from "@/lib/sanitize-html";
 
 const SITE = "https://emporiolelecute.com.br";
 
@@ -175,7 +176,7 @@ const BlogPost = () => {
 
             <div
               className="prose prose-neutral max-w-none prose-headings:font-display prose-a:text-primary"
-              dangerouslySetInnerHTML={{ __html: post.contentHtml }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.contentHtml) }}
             />
 
             {/* FAQ */}

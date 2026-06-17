@@ -49,6 +49,23 @@ serve(async (req) => {
 
   try {
     const { messages } = await req.json();
+
+    // Harden against prompt injection & abuse:
+    // - only allow user/assistant roles (never caller-supplied `system`)
+    // - cap the number of messages and the length of each message
+    const allowedRoles = new Set(["user", "assistant"]);
+    const safeMessages = (Array.isArray(messages) ? messages : [])
+      .filter((m: any) => allowedRoles.has(m?.role) && typeof m?.content === "string")
+      .slice(-20)
+      .map((m: any) => ({ role: m.role, content: m.content.slice(0, 4000) }));
+
+    if (safeMessages.length === 0) {
+      return new Response(JSON.stringify({ error: "Mensagem inválida." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY');
@@ -87,7 +104,7 @@ serve(async (req) => {
         model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
-          ...messages,
+          ...safeMessages,
         ],
         stream: true,
       }),

@@ -32,6 +32,43 @@ Deno.serve(async (req) => {
     });
   }
 
+  // Require an authenticated admin — this endpoint only collects admin-panel
+  // telemetry, so anonymous callers must never be able to write here.
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+  let callerId: string | null = null;
+  try {
+    const userClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claims } = await userClient.auth.getClaims(token);
+    callerId = (claims?.claims?.sub as string) ?? null;
+    if (!callerId) throw new Error('no_sub');
+    const { data: isAdmin, error: roleErr } = await userClient.rpc('has_role', {
+      _user_id: callerId,
+      _role: 'admin',
+    });
+    if (roleErr || isAdmin !== true) {
+      return new Response(JSON.stringify({ error: 'forbidden' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+  } catch {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   let body: IngestBody;
   try {
     body = (await req.json()) as IngestBody;
