@@ -8,6 +8,7 @@ import { usePage } from '@/hooks/usePages';
 import { Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { sanitizeHtml } from '@/lib/sanitize-html';
 
 const DynamicPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -63,7 +64,7 @@ const DynamicPage = () => {
             
             <div 
               className="prose prose-lg max-w-none"
-              dangerouslySetInnerHTML={{ __html: page.content || '' }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(page.content) }}
             />
           </article>
         </div>
