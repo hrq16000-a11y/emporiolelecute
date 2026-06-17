@@ -3,6 +3,19 @@ import { useLocation } from "react-router-dom";
 import { useTrackingConfig, pathMatches } from "@/hooks/useTrackingConfig";
 
 /**
+ * Strict format validators for admin-managed tracking IDs. These prevent a
+ * compromised admin account from injecting arbitrary JavaScript into the
+ * inline script `innerHTML` (stored XSS). Only well-formed real-world IDs pass.
+ */
+const GA4_RE = /^G-[A-Z0-9]{4,12}$/;
+const GTM_RE = /^GTM-[A-Z0-9]{4,10}$/;
+const PIXEL_RE = /^[0-9]{10,20}$/;
+const ADS_RE = /^AW-[0-9]{6,15}$/;
+
+const isValid = (re: RegExp, v?: string | null): v is string =>
+  typeof v === "string" && re.test(v);
+
+/**
  * Conditionally injects GA4, GTM, Meta Pixel and Google Ads scripts based on
  * admin-managed tracking_config. Skips on disabled paths (e.g. /admin).
  */
