@@ -44,6 +44,54 @@ Deno.serve(async (req) => {
     if (!SUPABASE_URL || !SERVICE_ROLE) {
       throw new Error("Supabase env not configured");
     }
+
+    // --- Authorization ---
+    // Accept EITHER the internal shared secret sent by the DB trigger, OR a
+    // valid admin JWT (manual resend from the admin panel). Reject all others
+    // so this endpoint cannot be abused to spam admin inboxes.
+    const svc = createClient(SUPABASE_URL, SERVICE_ROLE, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    let authorized = false;
+
+    const internalSecret = req.headers.get("x-internal-secret");
+    if (internalSecret) {
+      const { data: secretRow } = await svc
+        .from("internal_function_secrets")
+        .select("value")
+        .eq("name", "notify_admins")
+        .maybeSingle();
+      if (secretRow?.value && timingSafeEqual(secretRow.value, internalSecret)) {
+        authorized = true;
+      }
+    }
+
+    const authHeader = req.headers.get("Authorization");
+    if (!authorized && authHeader?.startsWith("Bearer ")) {
+      try {
+        const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+        const userClient = createClient(SUPABASE_URL, anonKey, {
+          global: { headers: { Authorization: authHeader } },
+        });
+        const token = authHeader.replace("Bearer ", "");
+        const { data: claims } = await userClient.auth.getClaims(token);
+        const sub = claims?.claims?.sub as string | undefined;
+        if (sub) {
+          const { data: isAdmin } = await userClient.rpc("has_role", {
+            _user_id: sub,
+            _role: "admin",
+          });
+          if (isAdmin === true) authorized = true;
+        }
+      } catch (_) { /* fall through to 401 */ }
+    }
+
+    if (!authorized) {
+      return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     if (!LOVABLE_API_KEY || !RESEND_API_KEY) {
       // No mailer wired up — log and exit cleanly so the trigger doesn't loop.
       console.warn("[notify-admins-new-request] Resend env missing; skipping send.");
