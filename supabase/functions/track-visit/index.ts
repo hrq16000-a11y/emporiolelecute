@@ -122,7 +122,17 @@ Deno.serve(async (req) => {
 
     if (!existing) {
       const geo = bot.isBot ? {} : await lookupIPGeo(ip);
-      const device = body.device || {};
+      // Whitelist device fields to prevent mass-assignment of sensitive
+      // columns (e.g. consent_status) that would bypass the LGPD consent gate.
+      const ALLOWED_DEVICE_FIELDS = new Set([
+        "screen_w", "screen_h", "viewport_w", "viewport_h", "pixel_ratio",
+        "color_depth", "touch_support", "language", "languages", "timezone",
+        "device_type", "device_brand", "device_model", "os_name", "os_version",
+        "browser_name", "browser_version",
+      ]);
+      const device = Object.fromEntries(
+        Object.entries(body.device || {}).filter(([k]) => ALLOWED_DEVICE_FIELDS.has(k)),
+      );
       await supabase.from("visitors").insert({
         visitor_id: body.visitor_id,
         ip,
