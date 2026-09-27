@@ -242,15 +242,18 @@ Deno.serve(async (req) => {
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>`
         
-        // Add image if available
+        // Image Sitemap: o Google exige que hosts externos também estejam
+        // verificados no Search Console. Só publicamos imagens sob o host
+        // canônico (ou subdomínio próprio) e não emitimos tags obsoletas
+        // como <image:title>.
         if (product.images && product.images.length > 0) {
           const imageUrl = product.images[0]
-          const escapedName = escapeXml(product.name)
-          sitemap += `
+          if (isSitemapImageEligible(imageUrl, siteUrl)) {
+            sitemap += `
     <image:image>
       <image:loc>${escapeXml(imageUrl)}</image:loc>
-      <image:title>${escapedName}</image:title>
     </image:image>`
+          }
         }
         
         sitemap += `
@@ -479,6 +482,17 @@ ${comboPagesXml}
     )
   }
 })
+
+function isSitemapImageEligible(imageUrl: string, siteUrl: string): boolean {
+  try {
+    const imageHost = new URL(imageUrl).hostname.toLowerCase()
+    const siteHost = new URL(siteUrl).hostname.toLowerCase().replace(/^www\./, '')
+    const normalizedImageHost = imageHost.replace(/^www\./, '')
+    return normalizedImageHost === siteHost || normalizedImageHost.endsWith(`.${siteHost}`)
+  } catch {
+    return false
+  }
+}
 
 function escapeXml(str: string): string {
   return str
