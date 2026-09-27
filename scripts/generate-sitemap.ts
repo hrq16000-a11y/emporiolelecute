@@ -97,6 +97,28 @@ async function main(): Promise<void> {
     return;
   }
 
+  // Política de Image Sitemap:
+  // - Google só aceita host externo quando ele também é verificável/verificado
+  //   no Search Console;
+  // - <image:title> está obsoleto.
+  // O materializador funciona como segunda barreira caso a edge function
+  // publicada ainda esteja em versão anterior.
+  const canonicalHost = "emporiolelecute.com.br";
+  xml = xml.replace(/<image:image>[\s\S]*?<\/image:image>/g, (block) => {
+    const m = block.match(/<image:loc>([^<]+)<\/image:loc>/);
+    if (!m) return "";
+    try {
+      const host = new URL(m[1]).hostname.toLowerCase().replace(/^www\./, "");
+      if (host !== canonicalHost && !host.endsWith(`.${canonicalHost}`)) return "";
+      return block.replace(/\s*<image:title>[\s\S]*?<\/image:title>/g, "");
+    } catch {
+      return "";
+    }
+  });
+  if (!xml.includes("<image:image>")) {
+    xml = xml.replace(/\s+xmlns:image="http:\/\/www\.google\.com\/schemas\/sitemap-image\/1\.1"/, "");
+  }
+
   // Extrai metadata dos comentários para auditoria.
   const pick = (k: string): string | null => {
     const m = xml.match(new RegExp(`<!--\\s*lovable:${k}\\s+(.*?)\\s*-->`));
