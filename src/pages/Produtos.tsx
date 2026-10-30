@@ -33,6 +33,7 @@ import {
 import type { Product } from "@/data/products";
 import { toast } from "sonner";
 import { event as gaEvent } from "@/lib/analytics";
+import { normalizeSearchText } from "@/lib/searchText";
 
 
 const PRODUCTS_PER_PAGE = 12;
@@ -169,6 +170,19 @@ const Produtos = () => {
   const resolvedTag = findTagBySlugOrId(selectedTag);
 
   // Update URL when filters change - use SLUG for friendly URLs
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setCurrentPage(1);
+    setSearchParams((previous) => {
+      const next = new URLSearchParams(previous);
+      if (value.trim()) next.set("busca", value);
+      else next.delete("busca");
+      next.delete("search");
+      next.delete("pagina");
+      return next;
+    }, { replace: true });
+  };
+
   const handleCategoryChange = (categorySlug: string | null) => {
     setSelectedCategory(categorySlug);
     const newParams = new URLSearchParams(searchParams);
@@ -326,16 +340,16 @@ const Produtos = () => {
 
   // Filter products — text search + structural badges + sidebar filters (price/prazo/personalizável/tags-multi)
   const filteredProducts = useMemo(() => {
-    const q = debouncedSearch.trim().toLowerCase();
+    const q = normalizeSearchText(debouncedSearch);
     const matchesText = (product: typeof products[number]) => !q ||
-      product.name.toLowerCase().includes(q) ||
-      product.description.toLowerCase().includes(q) ||
-      (product.longDescriptionRaw?.toLowerCase().includes(q) ?? false) ||
-      product.keywords.some(k => k.toLowerCase().includes(q)) ||
-      (product.categoryName?.toLowerCase().includes(q) ?? false) ||
-      product.occasionNames.some(n => n.toLowerCase().includes(q)) ||
-      product.tagNames.some(n => n.toLowerCase().includes(q)) ||
-      product.segmentNames.some(n => n.toLowerCase().includes(q));
+      normalizeSearchText(product.name).includes(q) ||
+      normalizeSearchText(product.description).includes(q) ||
+      normalizeSearchText(product.longDescriptionRaw ?? "").includes(q) ||
+      product.keywords.some(k => normalizeSearchText(k).includes(q)) ||
+      normalizeSearchText(product.categoryName ?? "").includes(q) ||
+      product.occasionNames.some(n => normalizeSearchText(n).includes(q)) ||
+      product.tagNames.some(n => normalizeSearchText(n).includes(q)) ||
+      product.segmentNames.some(n => normalizeSearchText(n).includes(q));
 
     const base = products.filter((product) => {
       const matchesCategory = !resolvedCategory || product.categoryId === resolvedCategory.id;
@@ -581,7 +595,7 @@ const Produtos = () => {
               <Input
                 placeholder="Buscar lembrancinhas..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-10 rounded-full"
               />
             </div>

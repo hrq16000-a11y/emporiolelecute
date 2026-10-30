@@ -15,6 +15,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { useSearchCacheVersion } from "@/hooks/useSearchCacheVersion";
 import { supabase } from "@/integrations/supabase/client";
 import SearchEmptyState from "@/components/SearchEmptyState";
+import DataErrorState from "@/components/DataErrorState";
 import type { Product } from "@/data/products";
 
 // Fase 2 (refactor server-side) — Toda a busca tolerante (acento, typo,
@@ -68,7 +69,7 @@ function useServerSearch(term: string, filters: ServerSearchFilters) {
         _min_price: minPrice,
         _max_price: maxPrice,
       } as never);
-      if (error) return { ids: [], suggestion: null, total: 0, offset, hasMore: false };
+      if (error) throw error;
       const payload = (data ?? {}) as {
         ids?: string[];
         suggestion?: string | null;
@@ -108,7 +109,13 @@ const Buscar = () => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const debouncedQuery = useDebounce(query, 300);
-  const { data: dbProducts, isLoading } = useDbProducts();
+  const {
+    data: dbProducts,
+    isLoading,
+    error: productsError,
+    refetch: refetchProducts,
+    isRefetching: isRefetchingProducts,
+  } = useDbProducts();
   const { data: dbCategories } = useDbCategories({ publicOnly: true });
 
   // Filtros aplicados no Postgres (categoria/preço) — o frontend só ordena o resultado.
@@ -127,6 +134,8 @@ const Buscar = () => {
     isFetchingNextPage,
     fetchNextPage,
     hasNextPage,
+    error: searchError,
+    refetch: refetchSearch,
   } = useServerSearch(debouncedQuery, {
     categoryId: selectedCategoryId,
     minPrice: selectedRange ? selectedRange.min : null,
@@ -378,7 +387,9 @@ const Buscar = () => {
           {/* Resultados */}
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm text-muted-foreground">
-              {isLoading || (isSearching && !isFetchingNextPage)
+              {productsError || searchError
+                ? "Busca indisponível no momento"
+                : isLoading || (isSearching && !isFetchingNextPage)
                 ? "Buscando…"
                 : hasSearchTerm
                   ? `${filtered.length} de ${totalResults} ${totalResults === 1 ? "resultado" : "resultados"}`
@@ -389,7 +400,17 @@ const Buscar = () => {
             </Link>
           </div>
 
-          {isLoading || (isSearching && !isFetchingNextPage) ? (
+          {productsError || searchError ? (
+            <DataErrorState
+              scope="catalog"
+              error={productsError || searchError}
+              onRetry={() => {
+                if (productsError) void refetchProducts();
+                if (searchError) void refetchSearch();
+              }}
+              isRetrying={isRefetchingProducts || isSearching}
+            />
+          ) : isLoading || (isSearching && !isFetchingNextPage) ? (
             <div className="flex items-center justify-center py-16">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
@@ -410,7 +431,7 @@ const Buscar = () => {
           )}
 
           {/* Paginação: busca server-side usa offset/limit; catálogo local incrementa a fatia */}
-          {hasSearchTerm && hasNextPage && (
+          {!productsError && !searchError && hasSearchTerm && hasNextPage && (
             <div className="text-center mt-6">
               <Button
                 variant="outline"
@@ -430,7 +451,7 @@ const Buscar = () => {
             </div>
           )}
 
-          {!hasSearchTerm && filtered.length > visibleLocal && (
+          {!productsError && !searchError && !hasSearchTerm && filtered.length > visibleLocal && (
             <div className="text-center mt-6">
               <Button
                 variant="outline"

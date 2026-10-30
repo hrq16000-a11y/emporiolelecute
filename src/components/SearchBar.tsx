@@ -7,11 +7,12 @@ import { Input } from "@/components/ui/input";
 import { optimizeImage } from "@/lib/image";
 import { urls } from "@/lib/urls";
 import { highlightMatch } from "@/lib/highlightMatch";
+import { normalizeSearchText } from "@/lib/searchText";
 
 interface SearchBarProps {
-  /** Destino do "ver todos" e do Enter sem seleção. Default: /produtos */
+  /** Destino do "ver todos" e do Enter sem seleção. Default: /buscar */
   searchPath?: string;
-  /** Nome do query param no submit. Default: busca */
+  /** Nome do query param no submit. Default: q */
   paramKey?: string;
   /** Disparado após selecionar uma sugestão (gancho de fechamento mobile) */
   onResultSelect?: () => void;
@@ -48,12 +49,9 @@ const KIND_META: Record<SuggestionKind, { label: string; icon: React.ComponentTy
   page: { label: "Páginas", icon: FileText },
 };
 
-const normalize = (s: string) =>
-  s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-
 const SearchBar = ({
-  searchPath = "/produtos",
-  paramKey = "busca",
+  searchPath = "/buscar",
+  paramKey = "q",
   onResultSelect,
   autoFocus = false,
 }: SearchBarProps = {}) => {
@@ -66,6 +64,7 @@ const SearchBar = ({
 
   // Debounce 300ms — evita re-render por tecla
   const debouncedQuery = useDebounce(query, 300);
+  const searchTerm = query.trim();
 
   const { data: products = [], isLoading: loadingProducts } = useDbProducts();
   const { data: categories = [] } = useDbCategories({ publicOnly: true });
@@ -74,14 +73,14 @@ const SearchBar = ({
   // Gera sugestões agrupadas (produtos, categorias, ocasiões, páginas)
   const { suggestions, grouped } = useMemo(() => {
     const empty = { suggestions: [] as Suggestion[], grouped: [] as Array<{ kind: SuggestionKind; items: Suggestion[] }> };
-    if (debouncedQuery.length < 2) return empty;
+    if (debouncedQuery.trim().length < 2) return empty;
 
-    const term = normalize(debouncedQuery);
+    const term = normalizeSearchText(debouncedQuery);
 
     const productItems: Suggestion[] = products
       .filter((p) => {
         if (!p.is_active) return false;
-        const hay = normalize(
+        const hay = normalizeSearchText(
           [
             p.name,
             p.description ?? "",
@@ -104,7 +103,7 @@ const SearchBar = ({
       }));
 
     const categoryItems: Suggestion[] = categories
-      .filter((c) => normalize(c.name).includes(term))
+      .filter((c) => normalizeSearchText(c.name).includes(term))
       .slice(0, 3)
       .map((c) => ({
         kind: "category" as const,
@@ -115,7 +114,7 @@ const SearchBar = ({
       }));
 
     const occasionItems: Suggestion[] = occasions
-      .filter((o) => normalize(o.name).includes(term))
+      .filter((o) => normalizeSearchText(o.name).includes(term))
       .slice(0, 3)
       .map((o) => ({
         kind: "occasion" as const,
@@ -127,7 +126,7 @@ const SearchBar = ({
 
     const pageItems: Suggestion[] = STATIC_PAGES
       .filter((p) => {
-        const hay = normalize([p.label, ...(p.keywords ?? [])].join(" "));
+        const hay = normalizeSearchText([p.label, ...(p.keywords ?? [])].join(" "));
         return hay.includes(term);
       })
       .slice(0, 3)
@@ -155,7 +154,7 @@ const SearchBar = ({
 
   // Abre/fecha dropdown conforme query debouncada
   useEffect(() => {
-    setIsOpen(debouncedQuery.length >= 2);
+    setIsOpen(debouncedQuery.trim().length >= 2);
     setSelectedIndex(-1);
   }, [debouncedQuery]);
 
@@ -188,8 +187,8 @@ const SearchBar = ({
       e.preventDefault();
       if (selectedIndex >= 0 && suggestions[selectedIndex]) {
         handleSelect(suggestions[selectedIndex]);
-      } else if (query.length >= 2) {
-        navigate(`${searchPath}?${paramKey}=${encodeURIComponent(query)}`);
+      } else if (searchTerm.length >= 2) {
+        navigate(`${searchPath}?${paramKey}=${encodeURIComponent(searchTerm)}`);
         setIsOpen(false);
         onResultSelect?.();
       }
@@ -213,7 +212,7 @@ const SearchBar = ({
   };
 
   // Loading visível apenas enquanto debounce ainda não alcançou query
-  const isSearching = query.length >= 2 && query !== debouncedQuery;
+  const isSearching = searchTerm.length >= 2 && query !== debouncedQuery;
 
   return (
     <div ref={containerRef} className="relative w-full max-w-xs">
@@ -224,9 +223,12 @@ const SearchBar = ({
           type="text"
           placeholder="Buscar produtos, categorias..."
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setSelectedIndex(-1);
+          }}
           onKeyDown={handleKeyDown}
-          onFocus={() => debouncedQuery.length >= 2 && setIsOpen(true)}
+          onFocus={() => debouncedQuery.trim().length >= 2 && setIsOpen(true)}
           className="pl-9 pr-8 h-9 rounded-full bg-secondary/50 border-border/50 focus:bg-background"
           role="combobox"
           aria-expanded={isOpen}
@@ -320,7 +322,7 @@ const SearchBar = ({
                 });
               })()}
               <Link
-                to={`${searchPath}?${paramKey}=${encodeURIComponent(query)}`}
+                to={`${searchPath}?${paramKey}=${encodeURIComponent(searchTerm)}`}
                 onClick={() => {
                   setIsOpen(false);
                   onResultSelect?.();
