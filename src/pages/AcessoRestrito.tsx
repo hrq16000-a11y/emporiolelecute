@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -68,7 +69,12 @@ const AcessoRestrito = () => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cream to-background p-4">
+    <>
+      <Helmet>
+        <title>Acesso restrito</title>
+        <meta name="robots" content="noindex,follow" />
+      </Helmet>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cream to-background p-4">
       <Card className="w-full max-w-md shadow-medium">
         <CardHeader className="text-center space-y-2">
           <div className="w-14 h-14 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
@@ -124,6 +130,7 @@ const AcessoRestrito = () => {
         </CardContent>
       </Card>
     </div>
+    </>
   );
 };
 

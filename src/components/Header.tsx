@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, Instagram, Facebook, ShoppingCart, LogIn, Search } from "lucide-react";
+import { Menu, X, Instagram, Facebook, ShoppingCart, LogIn, Search, Heart } from "lucide-react";
 import MiniCart from "@/components/MiniCart";
 import { Button } from "@/components/ui/button";
 import SearchBar from "@/components/SearchBar";
@@ -119,7 +119,8 @@ const Header = () => {
               width={1206}
               height={701}
               decoding="async"
-              fetchPriority="high"
+              // @ts-expect-error fetchpriority é atributo HTML válido (lowercase evita warning do React 18)
+              fetchpriority="high"
               className={`w-auto object-contain transition-all duration-500 group-hover:scale-105 ${
                 isScrolled ? "h-12 sm:h-14 md:h-20" : "h-16 sm:h-20 md:h-28"
               }`}
@@ -172,7 +173,16 @@ const Header = () => {
               ))}
             </div>
 
+            <Link
+              to="/favoritos"
+              aria-label="Meus favoritos"
+              className="text-muted-foreground hover:text-primary transition-colors duration-200"
+            >
+              <Heart className="h-5 w-5" strokeWidth={1.5} />
+            </Link>
+
             <MiniCart />
+
 
 
             {/* Conectar (login) */}

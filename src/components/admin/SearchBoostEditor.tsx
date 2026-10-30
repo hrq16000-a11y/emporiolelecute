@@ -17,11 +17,30 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useDbProducts } from "@/hooks/useProducts";
-import { useAdminBoosts, useDeleteBoost, useUpsertBoost } from "@/hooks/useSearchAdmin";
+import {
+  useAdminBoosts,
+  useDeleteBoost,
+  useUpsertBoost,
+  isBoostLive,
+} from "@/hooks/useSearchAdmin";
 
 interface Props {
   presetTerm?: string | null;
   onConsumePreset?: () => void;
+}
+
+/** ISO → valor aceito por <input type="datetime-local"> (horário local). */
+function toLocalInput(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function fromLocalInput(value: string): string | null {
+  if (!value) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }
 
 export default function SearchBoostEditor({ presetTerm, onConsumePreset }: Props) {
@@ -36,6 +55,9 @@ export default function SearchBoostEditor({ presetTerm, onConsumePreset }: Props
   const [productId, setProductId] = useState<string>("");
   const [weight, setWeight] = useState(100);
   const [isActive, setIsActive] = useState(true);
+  const [campaignLabel, setCampaignLabel] = useState("");
+  const [startsAt, setStartsAt] = useState("");
+  const [endsAt, setEndsAt] = useState("");
 
   useEffect(() => {
     if (presetTerm) {
@@ -43,6 +65,7 @@ export default function SearchBoostEditor({ presetTerm, onConsumePreset }: Props
       onConsumePreset?.();
     }
   }, [presetTerm]);
+
 
   const productOptions = useMemo(() => {
     const q = productSearch.trim().toLowerCase();
@@ -66,12 +89,21 @@ export default function SearchBoostEditor({ presetTerm, onConsumePreset }: Props
       toast({ title: "Informe o termo e o produto", variant: "destructive" });
       return;
     }
+    const starts = fromLocalInput(startsAt);
+    const ends = fromLocalInput(endsAt);
+    if (starts && ends && new Date(ends) <= new Date(starts)) {
+      toast({ title: "Período inválido", description: "O fim deve ser depois do início.", variant: "destructive" });
+      return;
+    }
     try {
       await upsert.mutateAsync({
         term,
         product_id: productId,
         weight,
         is_active: isActive,
+        campaign_label: campaignLabel,
+        starts_at: starts,
+        ends_at: ends,
       });
       toast({ title: "Produto pinado", description: "Aparecerá no topo da busca por esse termo." });
       setProductId("");
@@ -80,6 +112,7 @@ export default function SearchBoostEditor({ presetTerm, onConsumePreset }: Props
       toast({ title: "Erro ao pinar", description: e.message, variant: "destructive" });
     }
   };
+
 
   const remove = async (id: string) => {
     await del.mutateAsync(id);
@@ -146,11 +179,42 @@ export default function SearchBoostEditor({ presetTerm, onConsumePreset }: Props
               )}
             </div>
           </div>
+          <div className="grid sm:grid-cols-3 gap-3">
+            <div>
+              <Label>Campanha (opcional)</Label>
+              <Input
+                value={campaignLabel}
+                onChange={(e) => setCampaignLabel(e.target.value)}
+                placeholder="ex.: Dia das Mães 2026"
+              />
+            </div>
+            <div>
+              <Label>Início (opcional)</Label>
+              <Input
+                type="datetime-local"
+                value={startsAt}
+                onChange={(e) => setStartsAt(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Fim (opcional)</Label>
+              <Input
+                type="datetime-local"
+                value={endsAt}
+                onChange={(e) => setEndsAt(e.target.value)}
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Com datas preenchidas, o boost entra e sai do ar automaticamente na janela definida.
+            Sem datas, vale enquanto estiver ativo.
+          </p>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Switch checked={isActive} onCheckedChange={setIsActive} id="boost-active" />
               <Label htmlFor="boost-active">Ativo</Label>
             </div>
+
             <Button onClick={save} disabled={upsert.isPending}>
               {upsert.isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -187,16 +251,29 @@ export default function SearchBoostEditor({ presetTerm, onConsumePreset }: Props
                       <div className="min-w-0">
                         <p className="text-sm truncate">
                           {b.product_name ?? b.product_id}
-                          {!b.is_active && (
+                          {!b.is_active ? (
+                            <Badge variant="outline" className="ml-2">Inativo</Badge>
+                          ) : isBoostLive(b) ? (
+                            <Badge variant="secondary" className="ml-2">No ar</Badge>
+                          ) : (
                             <Badge variant="outline" className="ml-2">
-                              Inativo
+                              {b.starts_at && new Date(b.starts_at) > new Date() ? "Agendado" : "Encerrado"}
                             </Badge>
                           )}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           peso {b.weight} · {b.product_slug}
+                          {b.campaign_label ? ` · ${b.campaign_label}` : ""}
                         </p>
+                        {(b.starts_at || b.ends_at) && (
+                          <p className="text-xs text-muted-foreground">
+                            {b.starts_at ? new Date(b.starts_at).toLocaleString("pt-BR") : "—"}
+                            {" → "}
+                            {b.ends_at ? new Date(b.ends_at).toLocaleString("pt-BR") : "—"}
+                          </p>
+                        )}
                       </div>
+
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button size="sm" variant="ghost" className="text-destructive">

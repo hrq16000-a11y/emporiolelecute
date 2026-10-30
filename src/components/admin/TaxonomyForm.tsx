@@ -1,17 +1,28 @@
 import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
-import { FileEdit, Globe } from 'lucide-react';
+import { FileEdit, Globe, Loader2, RefreshCw } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Info } from 'lucide-react';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import SeoPreview from './SeoPreview';
 import LucideIconPicker from './LucideIconPicker';
 import ImagePickerWithLibrary from './ImagePickerWithLibrary';
 import DraftStatusBadge from './DraftStatusBadge';
 import { useFormDraft } from '@/hooks/useFormDraft';
+import { useSlugAvailability, type SlugCheckTable } from '@/hooks/useSlugAvailability';
 import { TAXONOMY_LABELS, TaxonomyEntity, TaxonomyKind, TaxonomyFaq, normalizeFaqs, slugify } from '@/lib/taxonomy';
+
+const SLUG_TABLE_BY_KIND: Record<TaxonomyKind, SlugCheckTable> = {
+  categoria: 'categories',
+  ocasiao: 'occasions',
+  segmento: 'segments',
+  tag: 'tags',
+};
+
 
 interface Props {
   kind: TaxonomyKind;
@@ -128,6 +139,35 @@ const TaxonomyForm = ({
   const sameKindMap = existingSlugsByKind[kind];
   const sameKindConflict = slug && sameKindMap.get(slug) && sameKindMap.get(slug) !== (initial?.name ?? null);
 
+  // Validação de unicidade direto no banco (debounced, apenas leitura).
+  const slugState = useSlugAvailability(SLUG_TABLE_BY_KIND[kind], slug, initial?.id ?? null);
+  const slugChanged = Boolean(initial?.id && initial?.slug && slug && slug !== initial.slug);
+
+  // Reindexação sob demanda: regenera o sitemap e dispara IndexNow/GSC.
+  const [reindexing, setReindexing] = useState(false);
+  const [reindexStatus, setReindexStatus] = useState('');
+  const reindexNow = async () => {
+    setReindexing(true);
+    setReindexStatus('Reindexando…');
+    try {
+      const { error } = await supabase.functions.invoke('generate-sitemap', {
+        body: { force: true, source: `admin-taxonomy:${kind}:${initial?.slug ?? ''}` },
+      });
+      if (error) throw error;
+      await supabase.functions.invoke('seo-sitemap-auto-resubmit', {
+        body: { force: true, reason: `admin-taxonomy:${kind}` },
+      });
+      setReindexStatus('Reindexação concluída.');
+      toast.success('Sitemap regenerado e IndexNow notificado');
+    } catch (err) {
+      setReindexStatus('Falha na reindexação.');
+      toast.error(err instanceof Error ? err.message : 'Falha ao reindexar');
+    } finally {
+      setReindexing(false);
+    }
+  };
+
+
   const warnings: string[] = [];
   if (showSeo) {
     if (!metaTitle.trim()) warnings.push('Sem meta_title.');
@@ -187,6 +227,9 @@ const TaxonomyForm = ({
             onChange={(e) => setName(e.target.value)}
             required
             maxLength={120}
+            aria-required="true"
+            aria-label={`Nome d${kind === 'ocasiao' ? 'a ocasião' : 'o item'} — ${TAXONOMY_LABELS[kind].singular}`}
+            className="focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           />
         </div>
         <div className="space-y-1.5">
@@ -200,16 +243,45 @@ const TaxonomyForm = ({
             }}
             required
             maxLength={120}
+            aria-required="true"
+            aria-label={`Slug (URL) de ${TAXONOMY_LABELS[kind].singular}`}
+            aria-invalid={slugState.status === 'taken' || slugState.status === 'invalid' || sameKindConflict}
+            aria-describedby="tx-slug-help tx-slug-status"
+            className="focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           />
-          <p className="text-xs text-muted-foreground">
+          <p id="tx-slug-help" className="text-xs text-muted-foreground">
             URL: {TAXONOMY_LABELS[kind].urlPrefix}{slug || 'slug'}
           </p>
+          {/* Região viva: leitores de tela anunciam disponibilidade/erro do slug */}
+          <div id="tx-slug-status" aria-live="polite" className="space-y-1">
+            {slugState.status === 'checking' && (
+              <p className="text-xs text-muted-foreground">Verificando disponibilidade…</p>
+            )}
+            {slugState.status === 'available' && (
+              <p className="text-xs text-emerald-600">Slug disponível.</p>
+            )}
+            {(slugState.status === 'taken' || slugState.status === 'invalid') && (
+              <p role="alert" className="text-xs text-destructive">{slugState.message}</p>
+            )}
+            {slugChanged && (
+              <p className="text-xs text-amber-600">
+                Slug alterado: um redirect 301 de{' '}
+                <code>{TAXONOMY_LABELS[kind].urlPrefix}{initial?.slug}</code> será criado
+                automaticamente ao salvar.
+              </p>
+            )}
+          </div>
         </div>
+
       </div>
 
       {(conflicts.length > 0 || sameKindConflict) && (
-        <div className="flex gap-2 rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-3 text-sm">
-          <AlertTriangle className="w-4 h-4 mt-0.5 text-amber-600 shrink-0" />
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="flex gap-2 rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-3 text-sm"
+        >
+          <AlertTriangle className="w-4 h-4 mt-0.5 text-amber-600 shrink-0" aria-hidden="true" />
           <div className="text-amber-900 dark:text-amber-200 space-y-1">
             {sameKindConflict && (
               <p>Já existe outro(a) {TAXONOMY_LABELS[kind].singular.toLowerCase()} com este slug.</p>
@@ -222,6 +294,33 @@ const TaxonomyForm = ({
           </div>
         </div>
       )}
+
+      {/* Ação direta de indexação — só faz sentido para item já salvo e indexável */}
+      {showSeo && initial?.id && initial?.slug && (
+        <div className="flex flex-wrap items-center gap-3 rounded-md border border-border bg-muted/30 p-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={reindexNow}
+            disabled={reindexing}
+            aria-label={`Reindexar ${TAXONOMY_LABELS[kind].singular.toLowerCase()} ${initial.name ?? initial.slug} agora`}
+          >
+            {reindexing ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
+            ) : (
+              <RefreshCw className="w-4 h-4 mr-2" aria-hidden="true" />
+            )}
+            Reindexar esta {TAXONOMY_LABELS[kind].singular.toLowerCase()} agora
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            Regenera o sitemap e notifica o IndexNow para{' '}
+            <code>{TAXONOMY_LABELS[kind].urlPrefix}{initial.slug}</code>.
+          </p>
+          <span className="sr-only" aria-live="polite">{reindexStatus}</span>
+        </div>
+      )}
+
 
       {showSeo && (
         <>
@@ -297,12 +396,25 @@ const TaxonomyForm = ({
               <Label htmlFor="tx-indexed" className="cursor-pointer leading-tight">
                 Indexável
                 <span className="block text-xs font-normal text-muted-foreground">
-                  Aparece no sitemap e permite robots index. Requer "Publicado".
+                  Aparece no sitemap e permite robots index. Requer "Publicado". Padrão: ligado.
                 </span>
               </Label>
               <Switch id="tx-indexed" checked={isIndexed} onCheckedChange={setIsIndexed} />
             </div>
+            {!isIndexed && (
+              <div
+                role="alert"
+                className="flex gap-2 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-xs"
+              >
+                <AlertTriangle className="w-3.5 h-3.5 mt-0.5 text-destructive shrink-0" />
+                <p className="text-destructive">
+                  Atenção: esta página nascerá como <strong>noindex</strong> — o Google não vai
+                  indexá-la e ela ficará fora do sitemap. Só desligue se for intencional.
+                </p>
+              </div>
+            )}
           </div>
+
 
           <div className="rounded-md border border-border p-4 space-y-4">
             <h4 className="font-medium text-sm">SEO</h4>

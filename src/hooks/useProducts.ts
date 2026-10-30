@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { resolveProductSlug, recordProductSlugHit, type ResolvedVia, type ResolvedSlug } from '@/lib/productResolver';
 import { logSlugEvent } from '@/lib/slugObservability';
+import { useCatalogVersion } from '@/hooks/useSearchCacheVersion';
 
 export interface DbProductSlugMeta {
   matchedSlug: string;
@@ -93,8 +94,9 @@ export interface DbTag {
 
 // Fetch all products with relations (optimized single query with nested selects)
 export function useDbProducts() {
+  const catalogVersion = useCatalogVersion();
   return useQuery({
-    queryKey: ['products'],
+    queryKey: ['products', catalogVersion],
     queryFn: async () => {
       const { data: products, error } = await supabase
         .from('products')
@@ -129,8 +131,9 @@ export function useDbProducts() {
 // Fase 1: resolução via product_slugs (RPC resolve_product_slug) +
 // fetch por id. Expõe __slugMeta para a página decidir replace/canonical.
 export function useDbProduct(slug: string) {
+  const catalogVersion = useCatalogVersion();
   return useQuery({
-    queryKey: ['product', slug],
+    queryKey: ['product', slug, catalogVersion],
     queryFn: async () => {
       const result = await resolveProductSlug(slug);
 
@@ -224,8 +227,9 @@ export function useDbProduct(slug: string) {
 
 // Fetch single product by ID
 export function useDbProductById(id: string) {
+  const catalogVersion = useCatalogVersion();
   return useQuery({
-    queryKey: ['product-by-id', id],
+    queryKey: ['product-by-id', id, catalogVersion],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('products')
@@ -347,7 +351,9 @@ export function useUpdateProduct() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      void import('@/lib/taxonomyAutomation').then((m) => m.markPublicTaxonomyDirty('products'));
     },
+
   });
 }
 
@@ -431,7 +437,9 @@ export function useSaveProductFull() {
       qc.invalidateQueries({ queryKey: ['product-by-id-or-slug'] });
       qc.invalidateQueries({ queryKey: ['product', data.slug] });
       qc.invalidateQueries({ queryKey: ['product_tags', data.id] });
+      void import('@/lib/taxonomyAutomation').then((m) => m.markPublicTaxonomyDirty('products'));
     },
+
   });
 }
 

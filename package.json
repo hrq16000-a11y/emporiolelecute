@@ -6,13 +6,21 @@
   "scripts": {
     "dev": "vite",
     "predev": "bun run scripts/generate-sitemap.ts",
+    "dev:local": "vite --mode local",
     "build": "vite build",
     "prebuild": "bun run scripts/generate-sitemap.ts",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:status": "supabase status",
+    "db:reset": "supabase db reset",
+    "db:diff": "supabase db diff -f",
+    "functions:serve": "supabase functions serve --no-verify-jwt --env-file supabase/.env.local",
+    "audit:vitals": "node scripts/web-vitals-audit.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

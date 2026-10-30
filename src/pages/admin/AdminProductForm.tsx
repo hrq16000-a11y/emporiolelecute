@@ -3,6 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Plus, X, Save, Loader2, Tag, Check, AlertCircle, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ImageUploader from '@/components/admin/ImageUploader';
+import PersonalizationOptionsEditor from '@/components/admin/PersonalizationOptionsEditor';
+import ProductLivePreview from '@/components/admin/ProductLivePreview';
+import {
+  parsePersonalizationOptions,
+  serializePersonalizationOptions,
+  type PersonalizationOption,
+} from '@/lib/personalizationOptions';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -35,6 +42,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { evaluateProductSeo } from '@/lib/productSeo';
 import { buildProductChecklist } from '@/lib/thinContent';
 import ProductSeoScoreBadge from '@/components/admin/ProductSeoScoreBadge';
+import ProductVersionHistory from '@/components/admin/ProductVersionHistory';
 import ProductSeoChecklist from '@/components/admin/ProductSeoChecklist';
 import SocialSeoPreviews from '@/components/admin/SocialSeoPreviews';
 import EditorialTemplatesPicker from '@/components/admin/EditorialTemplatesPicker';
@@ -108,6 +116,7 @@ const AdminProductForm = () => {
     featured_weight: '0',
     production_speed: '' as '' | 'rapido' | 'normal' | 'longo',
   });
+  const [personalizationOptions, setPersonalizationOptions] = useState<PersonalizationOption[]>([]);
   const [selectedOccasions, setSelectedOccasions] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedSegments, setSelectedSegments] = useState<string[]>([]);
@@ -184,6 +193,7 @@ const AdminProductForm = () => {
       featured_weight: String((existingProduct as any).featured_weight ?? 0),
       production_speed: ((existingProduct as any).production_speed || '') as '' | 'rapido' | 'normal' | 'longo',
     });
+    setPersonalizationOptions(parsePersonalizationOptions((existingProduct as any).personalization_options));
     setKeywordsInput(keywords.join(', '));
 
     // Pivôs — só carregam na hidratação inicial.
@@ -380,6 +390,7 @@ const AdminProductForm = () => {
         personalization_enabled: formData.personalization_enabled,
         personalization_label: formData.personalization_label || null,
         personalization_placeholder: formData.personalization_placeholder || null,
+        personalization_options: serializePersonalizationOptions(personalizationOptions),
         google_product_category: formData.google_product_category || null,
         editorial_content: formData.editorial_content || null,
         featured_weight: parseInt(formData.featured_weight) || 0,
@@ -499,6 +510,7 @@ const AdminProductForm = () => {
             });
             return (
               <div className="flex items-center gap-2 flex-wrap">
+                {id && <ProductVersionHistory productId={id} />}
                 <ProductSeoScoreBadge evaluation={seo} />
                 {seo.issues.filter((i) => i.level === 'error').length > 0 && (
                   <span className="text-xs text-rose-700">
@@ -731,10 +743,34 @@ const AdminProductForm = () => {
                         placeholder="Ex: Escreva o nome ou letra inicial..."
                       />
                     </div>
+                    <div className="space-y-2 border-t pt-4">
+                      <Label>Condições e variações do produto</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Campos extras que o cliente escolhe na página: textos, cores, imagens e variações.
+                      </p>
+                      <PersonalizationOptionsEditor
+                        value={personalizationOptions}
+                        onChange={setPersonalizationOptions}
+                      />
+                    </div>
                   </>
                 )}
               </CardContent>
             </Card>
+
+            <ProductLivePreview
+              name={formData.name}
+              description={formData.description}
+              price={formData.promotional_price || formData.price}
+              originalPrice={formData.promotional_price ? formData.price : undefined}
+              images={formData.images}
+              badge={formData.badge}
+              rating={formData.rating}
+              personalizationEnabled={formData.personalization_enabled}
+              personalizationLabel={formData.personalization_label}
+              personalizationPlaceholder={formData.personalization_placeholder}
+              options={personalizationOptions}
+            />
 
             <Card className="shadow-card">
               <CardHeader>

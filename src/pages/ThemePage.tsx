@@ -13,6 +13,7 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import ProductCard from "@/components/ProductCard";
 import DynamicSEO from "@/components/DynamicSEO";
 import BreadcrumbStructuredData from "@/components/BreadcrumbStructuredData";
+import OrganizationStructuredData from "@/components/OrganizationStructuredData";
 import ItemListStructuredData from "@/components/ItemListStructuredData";
 import RelatedContent, { type RelatedItem } from "@/components/RelatedContent";
 import SemanticLinkingBlock from "@/components/SemanticLinkingBlock";
@@ -254,6 +255,7 @@ const ThemePage = () => {
         )}
       </Helmet>
 
+      <OrganizationStructuredData />
       {breadcrumbItems.length > 0 && <BreadcrumbStructuredData items={breadcrumbItems} />}
       {products.length > 0 && (
         <ItemListStructuredData

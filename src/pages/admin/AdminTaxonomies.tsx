@@ -4,7 +4,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Activity, Calendar, ArrowRight } from 'lucide-react';
+import { Activity, Calendar, ArrowRight, RefreshCw, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+
 import TaxonomyManager from '@/components/admin/TaxonomyManager';
 import { TaxonomyEntity, TaxonomyKind } from '@/lib/taxonomy';
 import { invalidatePublicTaxonomy, markPublicTaxonomyDirty } from '@/lib/taxonomyAutomation';
@@ -66,8 +68,29 @@ const AdminTaxonomies = () => {
     void markPublicTaxonomyDirty('categories');
   };
 
+  // Regeneração manual do sitemap + notificação IndexNow/GSC.
+  const [regenerating, setRegenerating] = useState(false);
+  const forceSitemapRegeneration = async () => {
+    setRegenerating(true);
+    try {
+      const { error } = await supabase.functions.invoke('generate-sitemap', {
+        body: { force: true, source: 'admin-taxonomias' },
+      });
+      if (error) throw error;
+      await supabase.functions.invoke('seo-sitemap-auto-resubmit', {
+        body: { force: true, reason: 'admin-taxonomias' },
+      });
+      toast.success('Sitemap regenerado e IndexNow notificado');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Falha ao regenerar o sitemap');
+    } finally {
+      setRegenerating(false);
+    }
+  };
+
   // Suppress unused-warnings for the original hooks (kept for compat; not used directly here)
   void createCat; void updCat; void createOcc; void updOcc; void delOcc;
+
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-6xl">
@@ -78,9 +101,18 @@ const AdminTaxonomies = () => {
             Centro unificado para gerenciar categorias, ocasiões, segmentos e tags.
           </p>
         </div>
-        <Link to="/admin/taxonomias/health">
-          <Button variant="outline"><Activity className="w-4 h-4 mr-2" /> Healthcheck</Button>
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" onClick={forceSitemapRegeneration} disabled={regenerating}>
+            {regenerating
+              ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              : <RefreshCw className="w-4 h-4 mr-2" />}
+            Forçar regeneração agora
+          </Button>
+          <Link to="/admin/taxonomias/health">
+            <Button variant="outline"><Activity className="w-4 h-4 mr-2" /> Healthcheck</Button>
+          </Link>
+        </div>
+
       </div>
 
       <Tabs

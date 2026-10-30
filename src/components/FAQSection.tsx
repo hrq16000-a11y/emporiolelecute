@@ -12,7 +12,12 @@ import FAQStructuredData from "@/components/FAQStructuredData";
 import { useContactInfo } from "@/hooks/useContactInfo";
 import { usePaymentConfig } from "@/hooks/useStoreSettings";
 
-const FAQSection = () => {
+interface FAQSectionProps {
+  /** Desliga o JSON-LD quando a página já emite um FAQPage próprio (ex: PDP). */
+  emitStructuredData?: boolean;
+}
+
+const FAQSection = ({ emitStructuredData = true }: FAQSectionProps) => {
   const { data: faqs, isLoading } = useFaqs();
   const { buildWhatsappUrl } = useContactInfo();
   const { data: paymentConfig } = usePaymentConfig();
@@ -69,7 +74,7 @@ const FAQSection = () => {
   return (
     <>
       {/* Schema.org FAQPage Structured Data for SEO */}
-      <FAQStructuredData faqs={displayFaqs} />
+      {emitStructuredData && <FAQStructuredData faqs={displayFaqs} />}
       
       <section
         id="faq"

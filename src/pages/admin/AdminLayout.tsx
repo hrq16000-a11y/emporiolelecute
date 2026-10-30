@@ -10,7 +10,7 @@ import {
   Image, MessageSquare, Tag, ArrowRightLeft, BarChart3, ShieldCheck, Bot,
   Activity, Clock, Star, BookOpen, TrendingUp, Network, Rocket, BrainCircuit,
   Brain, Landmark, Cpu, Orbit, Eye, Compass, Crown, Infinity as InfinityIcon,
-  Hexagon, Layers3, ShieldAlert, Boxes, ChevronDown, Cookie, Truck, Power,
+  Hexagon, Layers3, ShieldAlert, Boxes, ChevronDown, Cookie, Truck, Power, BellRing,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { EXECUTIVE_NAV, type NavGroup, type NavLeaf } from '@/lib/executiveNavigation';
@@ -27,7 +27,7 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   Tag, ArrowRightLeft, BarChart3, ShieldCheck, Bot, Activity, Clock, Star,
   BookOpen, TrendingUp, Network, Rocket, BrainCircuit, Brain, Landmark, Cpu,
   Orbit, Eye, Compass, Crown, Infinity: InfinityIcon, Hexagon, Layers3,
-  ShieldAlert, Boxes, Menu, Cookie, Truck, Power,
+  ShieldAlert, Boxes, Menu, Cookie, Truck, Power, BellRing,
 };
 
 function NavItem({ leaf, active, onClick }: { leaf: NavLeaf; active: boolean; onClick: () => void }) {

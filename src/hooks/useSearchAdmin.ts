@@ -83,6 +83,19 @@ export interface SearchBoostRow {
   is_active: boolean;
   notes: string | null;
   created_at: string;
+  /** Campanha sazonal: janela opcional de vigência (ISO). */
+  starts_at: string | null;
+  ends_at: string | null;
+  campaign_label: string | null;
+}
+
+/** Um boost está "no ar" quando ativo e dentro da janela de campanha. */
+export function isBoostLive(row: Pick<SearchBoostRow, "is_active" | "starts_at" | "ends_at">): boolean {
+  if (!row.is_active) return false;
+  const now = Date.now();
+  if (row.starts_at && new Date(row.starts_at).getTime() > now) return false;
+  if (row.ends_at && new Date(row.ends_at).getTime() < now) return false;
+  return true;
 }
 
 export function useAdminBoosts() {
@@ -91,7 +104,9 @@ export function useAdminBoosts() {
     queryFn: async (): Promise<(SearchBoostRow & { product_name?: string; product_slug?: string })[]> => {
       const { data, error } = await supabase
         .from("search_boosts" as never)
-        .select("id, term, term_normalized, product_id, weight, is_active, notes, created_at, products:product_id(name, slug)")
+        .select(
+          "id, term, term_normalized, product_id, weight, is_active, notes, created_at, starts_at, ends_at, campaign_label, products:product_id(name, slug)",
+        )
         .order("term_normalized", { ascending: true })
         .order("weight", { ascending: false });
       if (error) throw error;
@@ -115,6 +130,9 @@ export function useUpsertBoost() {
         weight: Number.isFinite(row.weight as number) ? Number(row.weight) : 100,
         is_active: row.is_active ?? true,
         notes: row.notes ?? null,
+        starts_at: row.starts_at || null,
+        ends_at: row.ends_at || null,
+        campaign_label: row.campaign_label?.trim() || null,
       };
       const { data, error } = await supabase
         .from("search_boosts" as never)
@@ -138,6 +156,37 @@ export function useDeleteBoost() {
     onSuccess: () => invalidateSearchCaches(qc),
   });
 }
+
+// ---------- AUDIT LOG ----------
+
+export interface SearchAuditRow {
+  id: string;
+  entity: string;
+  entity_id: string | null;
+  action: string;
+  actor_email: string | null;
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export function useSearchAuditLog(limit = 200) {
+  return useQuery({
+    queryKey: ["search_audit_log", limit],
+    staleTime: 30_000,
+    queryFn: async (): Promise<SearchAuditRow[]> => {
+      const { data, error } = await supabase
+        .from("search_audit_log" as never)
+        .select("id, entity, entity_id, action, actor_email, before, after, created_at")
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+      return (data ?? []) as unknown as SearchAuditRow[];
+    },
+  });
+}
+
+
 
 // ---------- INSIGHTS ----------
 

@@ -4,6 +4,7 @@ import {
   PRODUCT_PATH_PREFIX,
   productAbsolute,
 } from '../_shared/urls.ts'
+import { resilientSelect, type QueryDiagnostic } from '../_shared/resilientSelect.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,6 +21,10 @@ Deno.serve(async (req) => {
 
   try {
     console.log('Starting sitemap generation...')
+
+    // Diagnóstico por query — exposto em /generate-sitemap?diagnostics=1
+    const diagnostics: QueryDiagnostic[] = []
+    const wantsDiagnostics = new URL(req.url).searchParams.get('diagnostics') === '1'
     
     // Parse request body for notification settings
     let sendNotification = false
@@ -171,10 +176,18 @@ Deno.serve(async (req) => {
       return true;
     };
 
-    const { data: themeHubs } = await supabase
-      .from('theme_hubs')
-      .select('slug, updated_at, is_approved, is_indexed, readiness_score, topical_coverage, authority_score, internal_links_count, thin_content_risk, cannibalization_risk, authority_manipulation, editorial_content, faqs')
-      .limit(500);
+    // Leitura resiliente: se uma coluna for removida do schema, ela é
+    // ignorada em vez de derrubar toda a geração do sitemap.
+    const themeHubsRes = await resilientSelect<any>(
+      supabase,
+      'theme_hubs',
+      ['slug', 'updated_at', 'is_approved', 'is_indexed', 'readiness_score', 'topical_coverage',
+       'authority_score', 'authority_manipulation', 'internal_links_count', 'thin_content_risk',
+       'cannibalization_risk', 'editorial_content', 'faqs'],
+      (q: any) => q.limit(500),
+    );
+    diagnostics.push(themeHubsRes.diagnostic);
+    const themeHubs = themeHubsRes.data;
     const themeHubsXml = (themeHubs ?? [])
       .filter((h: any) => isHighGate(h, 'theme'))
       .map((h: any) => `  <url>
@@ -184,10 +197,16 @@ Deno.serve(async (req) => {
     <priority>0.75</priority>
   </url>`).join('\n');
 
-    const { data: comboPages } = await supabase
-      .from('combination_pages_registry')
-      .select('path, updated_at, discovery_status, is_indexable, readiness_score, topical_coverage, quality_score, products_count, internal_links_count, thin_content_risk, cannibalization_risk, authority_manipulation, editorial_content, faqs')
-      .limit(500);
+    const comboRes = await resilientSelect<any>(
+      supabase,
+      'combination_pages_registry',
+      ['path', 'updated_at', 'discovery_status', 'is_indexable', 'readiness_score', 'topical_coverage',
+       'quality_score', 'authority_manipulation', 'products_count', 'internal_links_count',
+       'thin_content_risk', 'cannibalization_risk', 'editorial_content', 'faqs'],
+      (q: any) => q.limit(500),
+    );
+    diagnostics.push(comboRes.diagnostic);
+    const comboPages = comboRes.data;
     const comboPagesXml = (comboPages ?? [])
       .filter((c: any) => isHighGate(c, 'combination'))
       .map((c: any) => `  <url>
@@ -460,10 +479,48 @@ ${comboPagesXml}
       }
     }
     
+    // Resumo de falhas — queries quebradas e colunas ausentes
+    const failedQueries = diagnostics.filter((d) => !d.ok)
+    const schemaDrift = diagnostics.filter((d) => d.missing_columns.length > 0)
+    const failureSummary = {
+      healthy: failedQueries.length === 0 && schemaDrift.length === 0,
+      failed_queries: failedQueries.map((d) => ({ table: d.table, error: d.error })),
+      schema_drift: schemaDrift.map((d) => ({ table: d.table, missing_columns: d.missing_columns })),
+    }
+    if (!failureSummary.healthy) {
+      console.error('[sitemap-failure-summary]', JSON.stringify(failureSummary))
+    }
+
+    if (wantsDiagnostics) {
+      return new Response(
+        JSON.stringify({
+          ok: failureSummary.healthy,
+          total_urls: totalUrls,
+          counts: {
+            products: products?.length ?? 0,
+            categories: catBlock.kept,
+            occasions: occBlock.kept,
+            segments: segBlock.kept,
+            theme_hubs: (themeHubsXml.match(/<loc>/g) ?? []).length,
+            combination_pages: (comboPagesXml.match(/<loc>/g) ?? []).length,
+            blog_posts: (dbBlogPostsXml.match(/<loc>/g) ?? []).length,
+          },
+          failure_summary: failureSummary,
+          diagnostics,
+          bytes: sitemap.length,
+          generated_at: generatedAt,
+        }, null, 2),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
+
     return new Response(sitemap, {
       headers: {
         ...corsHeaders,
         'Content-Type': 'application/xml',
+        'X-Sitemap-Healthy': String(failureSummary.healthy),
+        'X-Sitemap-Failed-Queries': String(failedQueries.length),
+        'X-Sitemap-Schema-Drift': schemaDrift.map((d) => `${d.table}:${d.missing_columns.join('|')}`).join(',') || 'none',
       },
     })
     

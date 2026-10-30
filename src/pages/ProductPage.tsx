@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -27,8 +27,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import ProductPersonalizationOptions from "@/components/ProductPersonalizationOptions";
+import {
+  formatPersonalizationSelections,
+  missingRequiredOptions,
+  parsePersonalizationOptions,
+  type PersonalizationValues,
+} from "@/lib/personalizationOptions";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ProductPageSkeleton from "@/components/ProductPageSkeleton";
+import DataErrorState from "@/components/DataErrorState";
+
 // WhatsAppButton intencionalmente não importado na PDP — ver linha do bloco final.
 import ProductCard from "@/components/ProductCard";
 import RelatedProducts from "@/components/RelatedProducts";
@@ -81,7 +91,14 @@ const ProductPage = () => {
   const { whatsappNumber } = useContactInfo();
   const phone = (whatsappNumber || "5541992214299").replace(/\D/g, "");
   const navigate = useNavigate();
-  const { data: dbProduct, isLoading } = useDbProduct(slug || "");
+  const {
+    data: dbProduct,
+    isLoading,
+    error: productError,
+    refetch: refetchProduct,
+    isRefetching: isRefetchingProduct,
+  } = useDbProduct(slug || "");
+
   const { data: allProducts } = useDbProducts();
   const { data: pdpSections } = usePdpSectionsPublic();
   const { data: paymentConfig } = usePaymentConfig();
@@ -95,6 +112,7 @@ const ProductPage = () => {
   const [quantity, setQuantity] = useState(10);
   const [quantityInput, setQuantityInput] = useState<string>("10");
   const [personalization, setPersonalization] = useState("");
+  const [optionValues, setOptionValues] = useState<PersonalizationValues>({});
   const [addedToCart, setAddedToCart] = useState(false);
   const [showStickyCta, setShowStickyCta] = useState(false);
   const [favoriteFeedback, setFavoriteFeedback] = useState("");
@@ -106,8 +124,19 @@ const ProductPage = () => {
   // Ref sempre fresco com estado atual — garante que callbacks (sticky, popup, summary)
   // construam a mensagem com a quantidade/personalização do momento do clique,
   // sem depender de closures eventualmente desatualizadas.
-  const valuesRef = useRef({ quantity, personalization });
-  valuesRef.current = { quantity, personalization };
+  const personalizationOptions = useMemo(
+    () => parsePersonalizationOptions((dbProduct as { personalization_options?: unknown } | null)?.personalization_options),
+    [dbProduct],
+  );
+
+  // Resumo final enviado ao carrinho/WhatsApp: opções escolhidas + texto livre.
+  const fullPersonalization = useMemo(() => {
+    const summary = formatPersonalizationSelections(personalizationOptions, optionValues);
+    return [summary, personalization.trim()].filter(Boolean).join(" | ");
+  }, [personalizationOptions, optionValues, personalization]);
+
+  const valuesRef = useRef({ quantity, personalization: fullPersonalization });
+  valuesRef.current = { quantity, personalization: fullPersonalization };
 
   // Sticky CTA: gatilho via IntersectionObserver no botão de compra principal.
   // - Aparece quando o CTA primário sai do viewport (rolagem para baixo).
@@ -231,6 +260,16 @@ const ProductPage = () => {
   const handleAddToCart = () => {
     if (!product) return;
 
+    const missing = missingRequiredOptions(personalizationOptions, optionValues);
+    if (missing.length > 0) {
+      toast({
+        title: "Escolha as opções obrigatórias",
+        description: missing.join(", "),
+        variant: "destructive",
+      });
+      return;
+    }
+
     addItem({
       id: product.id,
       slug: product.slug,
@@ -238,7 +277,7 @@ const ProductPage = () => {
       price: product.price,
       originalPrice: product.originalPrice && product.originalPrice > product.price ? product.originalPrice : undefined,
       image: product.images[0] || "/placeholder.svg",
-      personalization,
+      personalization: fullPersonalization,
       minQuantity: product.minQuantity,
       quantity,
     });
@@ -374,8 +413,26 @@ const ProductPage = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="pt-28 md:pt-32 pb-16 flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <main className="pt-28 md:pt-32 pb-16">
+          <ProductPageSkeleton />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Falha de rede/backend ≠ produto inexistente: mostra erro rastreável + retry.
+  if (productError && !product) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-28 md:pt-32 pb-16 container mx-auto px-4">
+          <DataErrorState
+            scope="product"
+            error={productError}
+            onRetry={() => refetchProduct()}
+            isRetrying={isRefetchingProduct}
+          />
         </main>
         <Footer />
       </div>
@@ -383,6 +440,7 @@ const ProductPage = () => {
   }
 
   if (!product) {
+
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -429,7 +487,7 @@ const ProductPage = () => {
     <div className="min-h-screen bg-background">
       {/* SEO and Structured Data — Fase 7 */}
       <DynamicSEO
-        title={`${product.name} | Empório LeleCute`}
+        title={`${(dbProduct as { seo_title?: string | null } | null)?.seo_title || product.name} | Empório LeleCute`}
         description={(() => {
           const raw =
             product.description ||
@@ -440,6 +498,14 @@ const ProductPage = () => {
         image={product.images[0] || undefined}
         url={canonicalUrl}
         type="product"
+        product={{
+          price: product.price,
+          currency: "BRL",
+          availability: "in stock",
+          brand: "Empório LeleCute",
+          sku: canonicalSlug,
+          category: dbProduct?.category?.name,
+        }}
       />
       <ProductStructuredData
         name={product.name}
@@ -453,6 +519,9 @@ const ProductPage = () => {
         productionDays={product.productionDays}
         category={dbProduct?.category?.name}
         material="Artesanal — produzido à mão no Brasil"
+        variantGroups={personalizationOptions
+          .filter((o) => (o.choices || []).length > 0)
+          .map((o) => ({ label: o.label, values: (o.choices || []).map((c) => c.label).filter(Boolean) }))}
         reviews={reviews.map((r) => ({
           author_name: r.author_name,
           rating: r.rating,
@@ -707,18 +776,12 @@ const ProductPage = () => {
                     </span>
                   )}
                 </p>
+                {/* Apoio: unitário. O "de" riscado e o mínimo já aparecem acima —
+                    não repetir para manter a hierarquia limpa. */}
                 <p className="text-sm text-muted-foreground mt-2 break-words">
-                  {product.originalPrice && product.originalPrice > product.price && (
-                    <span className="line-through mr-1.5">
-                      R$ {product.originalPrice.toFixed(2).replace(".", ",")}
-                    </span>
-                  )}
                   <span className="text-foreground">R$ {product.price.toFixed(2).replace(".", ",")}</span> / unidade
-                  <span className="text-muted-foreground/40 mx-2" aria-hidden="true">
-                    ·
-                  </span>
-                  {product.minQuantity} un. mín.
                 </p>
+
                 <p className="text-sm text-muted-foreground mt-1 break-words">
                   {installments}x sem juros de R$ {installmentValue.toFixed(2).replace(".", ",")}
                   <span className="text-muted-foreground/40 mx-2" aria-hidden="true">
@@ -749,6 +812,15 @@ const ProductPage = () => {
                     onChange={(e) => setPersonalization(e.target.value)}
                     className="min-h-[80px] resize-none border-border/40 focus-visible:ring-1"
                   />
+                  {personalizationOptions.length > 0 && (
+                    <div className="mt-5 border-t border-primary/20 pt-4">
+                      <ProductPersonalizationOptions
+                        options={personalizationOptions}
+                        values={optionValues}
+                        onChange={setOptionValues}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -819,7 +891,7 @@ const ProductPage = () => {
                 minQuantity={product.minQuantity}
                 productionDays={product.productionDays}
                 quantity={quantity}
-                personalization={personalization}
+                personalization={fullPersonalization}
                 onWhatsApp={() => openWhatsApp("quick_summary")}
                 productSlug={product.slug}
                 productName={product.name}
@@ -1063,7 +1135,7 @@ const ProductPage = () => {
         </section>
       )}
 
-      <FAQSection />
+      <FAQSection emitStructuredData={false} />
 
       <Footer />
       {/* Spacer mobile para o sticky CTA não cobrir o final do rodapé */}
@@ -1098,7 +1170,7 @@ const ProductPage = () => {
         minQuantity={product.minQuantity}
         productionDays={product.productionDays}
         quantity={quantity}
-        personalized={Boolean(normalizePersonalization(personalization))}
+        personalized={Boolean(normalizePersonalization(fullPersonalization))}
         enabled={ctaConfig?.exitPopup?.enabled !== false}
         title={ctaConfig?.exitPopup?.title}
         description={ctaConfig?.exitPopup?.description}

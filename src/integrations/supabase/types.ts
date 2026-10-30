@@ -222,6 +222,7 @@ export type Database = {
           description_seo: string | null
           external_ref: string
           faqs: Json
+          google_product_category: string | null
           h1_override: string | null
           icon: string | null
           id: string
@@ -241,6 +242,7 @@ export type Database = {
           description_seo?: string | null
           external_ref: string
           faqs?: Json
+          google_product_category?: string | null
           h1_override?: string | null
           icon?: string | null
           id?: string
@@ -260,6 +262,7 @@ export type Database = {
           description_seo?: string | null
           external_ref?: string
           faqs?: Json
+          google_product_category?: string | null
           h1_override?: string | null
           icon?: string | null
           id?: string
@@ -361,6 +364,7 @@ export type Database = {
       }
       combination_pages_registry: {
         Row: {
+          authority_manipulation: boolean
           auto_discovered: boolean
           cannibalization_risk: string
           canonical_path: string | null
@@ -397,6 +401,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          authority_manipulation?: boolean
           auto_discovered?: boolean
           cannibalization_risk?: string
           canonical_path?: string | null
@@ -433,6 +438,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          authority_manipulation?: boolean
           auto_discovered?: boolean
           cannibalization_risk?: string
           canonical_path?: string | null
@@ -992,6 +998,66 @@ export type Database = {
         }
         Relationships: []
       }
+      image_processing_jobs: {
+        Row: {
+          attempts: number
+          bucket: string
+          created_at: string
+          created_by: string | null
+          error: string | null
+          height: number | null
+          id: string
+          output_bytes: number | null
+          placeholder: string | null
+          processed_at: string | null
+          public_url: string | null
+          source_bytes: number | null
+          status: string
+          storage_path: string
+          updated_at: string
+          variants: Json
+          width: number | null
+        }
+        Insert: {
+          attempts?: number
+          bucket?: string
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          height?: number | null
+          id?: string
+          output_bytes?: number | null
+          placeholder?: string | null
+          processed_at?: string | null
+          public_url?: string | null
+          source_bytes?: number | null
+          status?: string
+          storage_path: string
+          updated_at?: string
+          variants?: Json
+          width?: number | null
+        }
+        Update: {
+          attempts?: number
+          bucket?: string
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          height?: number | null
+          id?: string
+          output_bytes?: number | null
+          placeholder?: string | null
+          processed_at?: string | null
+          public_url?: string | null
+          source_bytes?: number | null
+          status?: string
+          storage_path?: string
+          updated_at?: string
+          variants?: Json
+          width?: number | null
+        }
+        Relationships: []
+      }
       instagram_embed_failures: {
         Row: {
           id: string
@@ -1507,6 +1573,66 @@ export type Database = {
           },
         ]
       }
+      merchant_feed_snapshots: {
+        Row: {
+          checksum: string | null
+          created_at: string
+          errors: number
+          id: string
+          item_count: number
+          items: Json
+          ready: number
+          warnings: number
+        }
+        Insert: {
+          checksum?: string | null
+          created_at?: string
+          errors?: number
+          id?: string
+          item_count?: number
+          items?: Json
+          ready?: number
+          warnings?: number
+        }
+        Update: {
+          checksum?: string | null
+          created_at?: string
+          errors?: number
+          id?: string
+          item_count?: number
+          items?: Json
+          ready?: number
+          warnings?: number
+        }
+        Relationships: []
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          email: string
+          email_enabled: boolean
+          id: string
+          push_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          email_enabled?: boolean
+          id?: string
+          push_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          email_enabled?: boolean
+          id?: string
+          push_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       occasion_landings: {
         Row: {
           created_at: string
@@ -1685,6 +1811,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      order_status_notifications: {
+        Row: {
+          channel: string
+          created_at: string
+          error: string | null
+          id: string
+          order_code: string
+          order_id: string
+          status: string
+          success: boolean
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          order_code: string
+          order_id: string
+          status: string
+          success?: boolean
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          order_code?: string
+          order_id?: string
+          status?: string
+          success?: boolean
+        }
+        Relationships: []
       }
       orders: {
         Row: {
@@ -1886,6 +2045,51 @@ export type Database = {
           title?: string
           updated_at?: string | null
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      payment_events: {
+        Row: {
+          applied_status: string | null
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          event_id: string | null
+          id: string
+          order_code: string | null
+          payment_id: string | null
+          provider: string
+          provider_status: string | null
+          raw: Json | null
+          result: string
+        }
+        Insert: {
+          applied_status?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          event_id?: string | null
+          id?: string
+          order_code?: string | null
+          payment_id?: string | null
+          provider?: string
+          provider_status?: string | null
+          raw?: Json | null
+          result?: string
+        }
+        Update: {
+          applied_status?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          event_id?: string | null
+          id?: string
+          order_code?: string | null
+          payment_id?: string | null
+          provider?: string
+          provider_status?: string | null
+          raw?: Json | null
+          result?: string
         }
         Relationships: []
       }
@@ -2290,6 +2494,42 @@ export type Database = {
           },
         ]
       }
+      product_versions: {
+        Row: {
+          actor_email: string | null
+          actor_id: string | null
+          changed_fields: Json
+          created_at: string
+          id: string
+          operation: string
+          product_id: string
+          snapshot: Json
+          version: number
+        }
+        Insert: {
+          actor_email?: string | null
+          actor_id?: string | null
+          changed_fields?: Json
+          created_at?: string
+          id?: string
+          operation: string
+          product_id: string
+          snapshot: Json
+          version: number
+        }
+        Update: {
+          actor_email?: string | null
+          actor_id?: string | null
+          changed_fields?: Json
+          created_at?: string
+          id?: string
+          operation?: string
+          product_id?: string
+          snapshot?: Json
+          version?: number
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           badge: string | null
@@ -2315,6 +2555,7 @@ export type Database = {
           pdp_badge_override: Json | null
           personalization_enabled: boolean | null
           personalization_label: string | null
+          personalization_options: Json
           personalization_placeholder: string | null
           pix_discount: number | null
           price: number
@@ -2324,6 +2565,7 @@ export type Database = {
           requires_shipping: boolean
           search_text: string | null
           seo_noindex: boolean
+          seo_title: string | null
           show_min_quantity: boolean
           show_quick_summary: boolean
           slug: string
@@ -2356,6 +2598,7 @@ export type Database = {
           pdp_badge_override?: Json | null
           personalization_enabled?: boolean | null
           personalization_label?: string | null
+          personalization_options?: Json
           personalization_placeholder?: string | null
           pix_discount?: number | null
           price: number
@@ -2365,6 +2608,7 @@ export type Database = {
           requires_shipping?: boolean
           search_text?: string | null
           seo_noindex?: boolean
+          seo_title?: string | null
           show_min_quantity?: boolean
           show_quick_summary?: boolean
           slug: string
@@ -2397,6 +2641,7 @@ export type Database = {
           pdp_badge_override?: Json | null
           personalization_enabled?: boolean | null
           personalization_label?: string | null
+          personalization_options?: Json
           personalization_placeholder?: string | null
           pix_discount?: number | null
           price?: number
@@ -2406,6 +2651,7 @@ export type Database = {
           requires_shipping?: boolean
           search_text?: string | null
           seo_noindex?: boolean
+          seo_title?: string | null
           show_min_quantity?: boolean
           show_quick_summary?: boolean
           slug?: string
@@ -2490,6 +2736,42 @@ export type Database = {
           phone?: string | null
           state?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          email: string
+          endpoint: string
+          failure_count: number
+          id: string
+          last_success_at: string | null
+          p256dh: string
+          user_agent: string | null
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          email: string
+          endpoint: string
+          failure_count?: number
+          id?: string
+          last_success_at?: string | null
+          p256dh: string
+          user_agent?: string | null
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          email?: string
+          endpoint?: string
+          failure_count?: number
+          id?: string
+          last_success_at?: string | null
+          p256dh?: string
+          user_agent?: string | null
         }
         Relationships: []
       }
@@ -2673,35 +2955,80 @@ export type Database = {
         }
         Relationships: []
       }
+      search_audit_log: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          after: Json | null
+          before: Json | null
+          created_at: string
+          entity: string
+          entity_id: string | null
+          id: string
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_id?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          entity: string
+          entity_id?: string | null
+          id?: string
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          entity?: string
+          entity_id?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
       search_boosts: {
         Row: {
+          campaign_label: string | null
           created_at: string
+          ends_at: string | null
           id: string
           is_active: boolean
           notes: string | null
           product_id: string
+          starts_at: string | null
           term: string
           term_normalized: string
           updated_at: string
           weight: number
         }
         Insert: {
+          campaign_label?: string | null
           created_at?: string
+          ends_at?: string | null
           id?: string
           is_active?: boolean
           notes?: string | null
           product_id: string
+          starts_at?: string | null
           term: string
           term_normalized: string
           updated_at?: string
           weight?: number
         }
         Update: {
+          campaign_label?: string | null
           created_at?: string
+          ends_at?: string | null
           id?: string
           is_active?: boolean
           notes?: string | null
           product_id?: string
+          starts_at?: string | null
           term?: string
           term_normalized?: string
           updated_at?: string
@@ -2774,6 +3101,63 @@ export type Database = {
           id?: string
           notes?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      security_scan_runs: {
+        Row: {
+          alert_reason: string | null
+          alert_sent: boolean
+          created_at: string
+          critical_count: number
+          error: string | null
+          findings: Json
+          high_count: number
+          id: string
+          low_count: number
+          moderate_count: number
+          packages_scanned: number
+          regression: boolean
+          source: string
+          status: string
+          total_findings: number
+          trigger: string
+        }
+        Insert: {
+          alert_reason?: string | null
+          alert_sent?: boolean
+          created_at?: string
+          critical_count?: number
+          error?: string | null
+          findings?: Json
+          high_count?: number
+          id?: string
+          low_count?: number
+          moderate_count?: number
+          packages_scanned?: number
+          regression?: boolean
+          source?: string
+          status?: string
+          total_findings?: number
+          trigger?: string
+        }
+        Update: {
+          alert_reason?: string | null
+          alert_sent?: boolean
+          created_at?: string
+          critical_count?: number
+          error?: string | null
+          findings?: Json
+          high_count?: number
+          id?: string
+          low_count?: number
+          moderate_count?: number
+          packages_scanned?: number
+          regression?: boolean
+          source?: string
+          status?: string
+          total_findings?: number
+          trigger?: string
         }
         Relationships: []
       }
@@ -2906,6 +3290,45 @@ export type Database = {
           strategic_pressure?: number
           sustainability_score?: number
           volatility_score?: number
+        }
+        Relationships: []
+      }
+      seo_alert_log: {
+        Row: {
+          channel: string
+          created_at: string
+          email_to: string | null
+          extra: Json
+          id: string
+          outcome: string
+          reason: string
+          sent: boolean
+          target: string
+          urls: Json
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          email_to?: string | null
+          extra?: Json
+          id?: string
+          outcome?: string
+          reason: string
+          sent?: boolean
+          target: string
+          urls?: Json
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          email_to?: string | null
+          extra?: Json
+          id?: string
+          outcome?: string
+          reason?: string
+          sent?: boolean
+          target?: string
+          urls?: Json
         }
         Relationships: []
       }
@@ -4250,6 +4673,54 @@ export type Database = {
           strategic_fragmentation_score?: number | null
           strategic_integrity_score?: number | null
           systemic_alignment_score?: number | null
+        }
+        Relationships: []
+      }
+      seo_gsc_snapshots: {
+        Row: {
+          clicks: number
+          coverage_issues: Json
+          created_at: string
+          ctr: number
+          excluded_count: number
+          id: string
+          impressions: number
+          indexed_count: number
+          page_type: string
+          position: number
+          site_url: string
+          snapshot_date: string
+          top_queries: Json
+        }
+        Insert: {
+          clicks?: number
+          coverage_issues?: Json
+          created_at?: string
+          ctr?: number
+          excluded_count?: number
+          id?: string
+          impressions?: number
+          indexed_count?: number
+          page_type?: string
+          position?: number
+          site_url: string
+          snapshot_date: string
+          top_queries?: Json
+        }
+        Update: {
+          clicks?: number
+          coverage_issues?: Json
+          created_at?: string
+          ctr?: number
+          excluded_count?: number
+          id?: string
+          impressions?: number
+          indexed_count?: number
+          page_type?: string
+          position?: number
+          site_url?: string
+          snapshot_date?: string
+          top_queries?: Json
         }
         Relationships: []
       }
@@ -5738,6 +6209,39 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_submission_log: {
+        Row: {
+          channel: string
+          created_at: string
+          detail: Json
+          id: string
+          ok: boolean
+          status: string
+          target: string | null
+          url_count: number
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          detail?: Json
+          id?: string
+          ok?: boolean
+          status: string
+          target?: string | null
+          url_count?: number
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          detail?: Json
+          id?: string
+          ok?: boolean
+          status?: string
+          target?: string | null
+          url_count?: number
+        }
+        Relationships: []
+      }
       seo_system_finalization_snapshots: {
         Row: {
           created_at: string
@@ -6541,6 +7045,7 @@ export type Database = {
       }
       theme_hubs: {
         Row: {
+          authority_manipulation: boolean
           authority_score: number
           cannibalization_risk: string
           created_at: string
@@ -6571,6 +7076,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          authority_manipulation?: boolean
           authority_score?: number
           cannibalization_risk?: string
           created_at?: string
@@ -6601,6 +7107,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          authority_manipulation?: boolean
           authority_score?: number
           cannibalization_risk?: string
           created_at?: string
@@ -7025,6 +7532,104 @@ export type Database = {
           },
         ]
       }
+      web_vitals_reports: {
+        Row: {
+          base_url: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          label: string
+          notes: string | null
+          pages: Json
+        }
+        Insert: {
+          base_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label: string
+          notes?: string | null
+          pages?: Json
+        }
+        Update: {
+          base_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string
+          notes?: string | null
+          pages?: Json
+        }
+        Relationships: []
+      }
+      wishlist_shares: {
+        Row: {
+          created_at: string
+          id: string
+          is_public: boolean
+          product_ids: string[]
+          title: string | null
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          product_ids?: string[]
+          title?: string | null
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          product_ids?: string[]
+          title?: string | null
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wishlists: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          personalization: Json
+          product_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          personalization?: Json
+          product_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          personalization?: Json
+          product_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlists_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       admin_audit_timeline: {
@@ -7275,8 +7880,22 @@ export type Database = {
           product_id: string
         }[]
       }
+      revert_product_version: {
+        Args: { _fields?: string[]; _version_id: string }
+        Returns: Json
+      }
       save_product_full: { Args: { _payload: Json }; Returns: Json }
-      search_products: { Args: { _limit?: number; _q: string }; Returns: Json }
+      search_products: {
+        Args: {
+          _category_id?: string
+          _limit?: number
+          _max_price?: number
+          _min_price?: number
+          _offset?: number
+          _q: string
+        }
+        Returns: Json
+      }
       set_user_role: {
         Args: { _action: string; _role: string; _user_id: string }
         Returns: Json

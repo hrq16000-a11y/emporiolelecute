@@ -8,6 +8,16 @@ interface DynamicSEOProps {
   image?: string;
   url?: string;
   type?: string;
+  /** Metadados de produto para Open Graph / Merchant (product namespace). */
+  product?: {
+    price?: number;
+    currency?: string;
+    availability?: 'in stock' | 'out of stock' | 'preorder';
+    brand?: string;
+    condition?: 'new' | 'refurbished' | 'used';
+    sku?: string;
+    category?: string;
+  };
 }
 
 const SITE_ORIGIN = 'https://emporiolelecute.com.br';
@@ -20,7 +30,7 @@ const buildCanonical = (pathname: string) => {
   return `${SITE_ORIGIN}${clean}`;
 };
 
-const DynamicSEO = ({ title, description, image, url, type = 'website' }: DynamicSEOProps) => {
+const DynamicSEO = ({ title, description, image, url, type = 'website', product }: DynamicSEOProps) => {
   const { data: seoConfig, isLoading } = useSEOConfig();
   const location = useLocation();
 
@@ -52,6 +62,24 @@ const DynamicSEO = ({ title, description, image, url, type = 'website' }: Dynami
       
       {seoConfig.facebook_app_id && (
         <meta property="fb:app_id" content={seoConfig.facebook_app_id} />
+      )}
+
+      {/* Product Open Graph (previews e anúncios de Shopping) */}
+      {product && (
+        <meta property="product:price:amount" content={String(Number(product.price ?? 0).toFixed(2))} />
+      )}
+      {product && <meta property="product:price:currency" content={product.currency || 'BRL'} />}
+      {product && <meta property="product:availability" content={product.availability || 'in stock'} />}
+      {product && <meta property="product:condition" content={product.condition || 'new'} />}
+      {product?.brand && <meta property="product:brand" content={product.brand} />}
+      {product?.sku && <meta property="product:retailer_item_id" content={product.sku} />}
+      {product?.category && <meta property="product:category" content={product.category} />}
+      {product && <meta name="twitter:label1" content="Preço" />}
+      {product && (
+        <meta
+          name="twitter:data1"
+          content={Number(product.price ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+        />
       )}
 
       {/* Twitter */}
