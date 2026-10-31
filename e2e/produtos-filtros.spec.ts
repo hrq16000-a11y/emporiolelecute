@@ -19,8 +19,7 @@ async function storedOccasion(page: Page) {
 async function clearFilters(page: Page) {
   const primary = page.getByTestId("clear-filters");
   const fallback = page.getByTestId("clear-filters-empty");
-  if (await primary.count()) await primary.first().click();
-  else await fallback.first().click();
+  await primary.or(fallback).first().click();
 }
 
 test.describe("Catálogo — limpar filtros", () => {

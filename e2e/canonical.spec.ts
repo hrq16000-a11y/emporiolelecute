@@ -31,11 +31,11 @@ test.describe("SEO — canonical em páginas filtradas", () => {
   });
 
   test("múltiplos filtros/paginação: canonical volta para /produtos e vira noindex", async ({ page }) => {
-    await openAndSettle(page, "/produtos?categoria=sabonetes&ocasiao=maternidade&page=2");
+    await openAndSettle(page, "/produtos?categoria=sabonetes&ocasiao=maternidade&pagina=2");
     const href = await canonicalHref(page);
     expect(new URL(href!).pathname).toBe("/produtos");
     expect(new URL(href!).search).toBe("");
-    expect((await robotsContent(page)) ?? "").toContain("noindex");
+    await expect.poll(() => robotsContent(page)).toContain("noindex");
   });
 
   test("canonical permanece sem parâmetros após reload", async ({ page }) => {
