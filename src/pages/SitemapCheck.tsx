@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -86,7 +87,12 @@ const SitemapCheck = () => {
   const passed = result && result.forbiddenLocs.length === 0 && result.allowed > 0;
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
+      <Helmet>
+        <title>Sitemap check</title>
+        <meta name="robots" content="noindex,follow" />
+      </Helmet>
+      <div className="min-h-screen bg-background">
       <Header />
       <main className="pt-24 pb-16">
         <section className="container mx-auto px-4 max-w-3xl">
@@ -187,6 +193,7 @@ const SitemapCheck = () => {
       </main>
       <Footer />
     </div>
+    </>
   );
 };
 

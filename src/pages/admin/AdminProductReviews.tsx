@@ -18,6 +18,7 @@ import { Label } from '@/components/ui/label';
 import { Plus, Pencil, Trash2, Eye, EyeOff, Star, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import ProductReviewForm from '@/components/admin/ProductReviewForm';
+import ReviewImportAuditPanel from '@/components/admin/ReviewImportAuditPanel';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { urls } from '@/lib/urls';
@@ -89,6 +90,8 @@ const AdminProductReviews = () => {
       </div>
 
       <ReviewStrategicGaps />
+
+      <ReviewImportAuditPanel />
 
       {/* Filtros */}
       <Card className="mb-4">

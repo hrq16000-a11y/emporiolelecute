@@ -172,6 +172,9 @@ function shouldSkipUrl(url: string) {
   // Avoid feedback loop: never log the telemetry insert itself.
   if (!url) return true;
   if (url.includes("/rest/v1/stale_bundle_logs")) return true;
+  // Analytics beacon (best-effort, non-critical): falha aqui não afeta a loja e
+  // gera ruído/loop de logs quando bloqueada por adblock ou rede instável.
+  if (url.includes("/functions/v1/track-visit")) return true;
   return false;
 }
 

@@ -3,10 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface FeatureFlags {
   chatbot_enabled: boolean;
+  /** PDP: allows expanding the review list beyond the 3 best verified ones. */
+  pdp_reviews_expand_enabled: boolean;
 }
 
 export const defaultFeatureFlags: FeatureFlags = {
   chatbot_enabled: false,
+  // Default ON: shoppers must always be able to open the full review list.
+  pdp_reviews_expand_enabled: true,
 };
 
 const QUERY_KEY = ['feature_flags'];
@@ -16,6 +20,10 @@ const parse = (raw: unknown): FeatureFlags => {
   const v = raw as Record<string, unknown>;
   return {
     chatbot_enabled: typeof v.chatbot_enabled === 'boolean' ? v.chatbot_enabled : defaultFeatureFlags.chatbot_enabled,
+    pdp_reviews_expand_enabled:
+      typeof v.pdp_reviews_expand_enabled === 'boolean'
+        ? v.pdp_reviews_expand_enabled
+        : defaultFeatureFlags.pdp_reviews_expand_enabled,
   };
 };
 

@@ -19,7 +19,9 @@ export const HOME_SECTIONS_REGISTRY: Record<
   QuoteCTABanner: lazy(() => import("@/components/QuoteCTABanner")),
   Testimonials: lazy(() => import("@/components/Testimonials")),
   FAQSection: lazy(() => import("@/components/FAQSection")),
+  AboutAtelier: lazy(() => import("@/components/AboutAtelier")),
   InstagramFeed: lazy(() => import("@/components/InstagramFeed")),
+
 };
 
 export const isRegisteredSection = (name: string): boolean =>

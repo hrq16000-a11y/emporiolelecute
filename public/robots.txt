@@ -14,4 +14,23 @@ Disallow: /*?pagina=*
 Disallow: /*?busca=*
 Disallow: /*?search=*
 
+User-agent: Googlebot
+Allow: /
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /carrinho
+Disallow: /rastrear
+
+User-agent: Googlebot-Image
+Allow: /
+Disallow: /admin
+Disallow: /admin/*
+
+User-agent: Bingbot
+Allow: /
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /carrinho
+Disallow: /rastrear
+
 Sitemap: https://emporiolelecute.com.br/sitemap.xml

@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
@@ -5,6 +6,55 @@ import DynamicSEO from "@/components/DynamicSEO";
 import BreadcrumbStructuredData from "@/components/BreadcrumbStructuredData";
 
 const Sobre = () => {
+
+  // Schema institucional do ateliê (reforça "ateliê" + "Curitiba" sem alterar a arquitetura).
+  const atelierSchema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": ["Organization", "LocalBusiness", "HealthAndBeautyBusiness"],
+        "@id": "https://emporiolelecute.com.br/#atelier",
+        name: "Empório LeleCute — Ateliê de Perfumaria Artesanal",
+        url: "https://emporiolelecute.com.br/sobre",
+        description:
+          "Ateliê de perfumaria artesanal em Curitiba (PR). Sabonetes, sachês, velas e escalda-pés produzidos em pequenas tiragens, com montagem manual.",
+        image: "https://emporiolelecute.com.br/og-image.webp",
+        email: "emporiolelecute@gmail.com",
+        telephone: "+55-41-99221-4299",
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: "Curitiba",
+          addressRegion: "PR",
+          addressCountry: "BR",
+        },
+        areaServed: [
+          { "@type": "City", name: "Curitiba" },
+          { "@type": "Country", name: "Brasil" },
+        ],
+        knowsAbout: [
+          "perfumaria artesanal",
+          "sabonetes artesanais",
+          "velas perfumadas",
+          "lembrancinhas personalizadas",
+        ],
+        parentOrganization: { "@id": "https://emporiolelecute.com.br/#organization" },
+        sameAs: [
+          "https://www.instagram.com/emporiolelecute",
+          "https://www.facebook.com/emporiolelecute",
+        ],
+      },
+      {
+        "@type": "AboutPage",
+        "@id": "https://emporiolelecute.com.br/sobre#aboutpage",
+        url: "https://emporiolelecute.com.br/sobre",
+        name: "Ateliê de perfumaria artesanal em Curitiba | Empório LeleCute",
+        inLanguage: "pt-BR",
+        about: { "@id": "https://emporiolelecute.com.br/#atelier" },
+        isPartOf: { "@id": "https://emporiolelecute.com.br/#website" },
+      },
+    ],
+  };
+
   const breadcrumbItems = [
     { name: "Início", url: "https://emporiolelecute.com.br/" },
     { name: "Ateliê", url: "https://emporiolelecute.com.br/sobre" },
@@ -13,11 +63,14 @@ const Sobre = () => {
   return (
     <div className="min-h-screen bg-background">
       <DynamicSEO
-        title="Ateliê | Empório LeleCute"
-        description="Empório LeleCute é um ateliê de perfumaria artesanal em Curitiba. Pequenas tiragens, montagem manual, peças pensadas para repousar onde forem vistas."
+        title="Ateliê de Perfumaria Artesanal em Curitiba | Empório LeleCute"
+        description="Conheça o ateliê Empório LeleCute, em Curitiba (PR): sabonetes, sachês e velas artesanais feitos em pequenas tiragens, com montagem manual peça a peça."
         url="https://emporiolelecute.com.br/sobre"
       />
       <BreadcrumbStructuredData items={breadcrumbItems} />
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify(atelierSchema)}</script>
+      </Helmet>
 
       <Header />
 
@@ -29,9 +82,7 @@ const Sobre = () => {
               Ateliê
             </p>
             <h1 className="font-display text-3xl md:text-4xl font-light text-foreground leading-tight mb-8">
-              Objetos pequenos,
-              <br />
-              presentes por muito tempo.
+              Ateliê de perfumaria artesanal em Curitiba
             </h1>
             <p className="text-base md:text-lg text-muted-foreground leading-relaxed font-light">
               Empório LeleCute nasceu da vontade de criar peças que continuam

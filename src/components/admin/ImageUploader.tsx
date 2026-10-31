@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { optimizeImageFile, formatBytes } from '@/lib/imagePipeline';
+import { enqueueImageJob } from '@/hooks/useImageJobs';
+import ImageJobsPanel from '@/components/admin/ImageJobsPanel';
 
 interface ImageUploaderProps {
   images: string[];
@@ -121,6 +124,8 @@ const ImageUploader = ({ images, onImagesChange, maxImages = 8 }: ImageUploaderP
   // Feedback por arquivo durante o batch (evita sensação de "travou").
   const [uploadQueue, setUploadQueue] = useState<UploadEntry[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Bytes economizados pela otimização no batch atual (feedback ao admin).
+  const savedBytesRef = useRef(0);
   const { toast } = useToast();
 
   const sensors = useSensors(
@@ -154,8 +159,14 @@ const ImageUploader = ({ images, onImagesChange, maxImages = 8 }: ImageUploaderP
     }
   };
 
-  const uploadImage = async (file: File): Promise<string | null> => {
+  const uploadImage = async (original: File): Promise<string | null> => {
     try {
+      // Pipeline de otimização: redimensiona (máx. 1600px), converte para WebP
+      // e reduz o peso antes do upload. Tamanhos responsivos e placeholder são
+      // gerados na entrega (Supabase image transform + BlurImage).
+      const optimized = await optimizeImageFile(original);
+      const file = optimized.file;
+      savedBytesRef.current += Math.max(0, optimized.originalBytes - optimized.optimizedBytes);
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `products/${fileName}`;
@@ -173,7 +184,18 @@ const ImageUploader = ({ images, onImagesChange, maxImages = 8 }: ImageUploaderP
         .from('product-images')
         .getPublicUrl(filePath);
 
+      // Processamento pesado (variantes responsivas + placeholder) roda em
+      // background — o admin não espera por ele.
+      void enqueueImageJob({
+        storagePath: filePath,
+        publicUrl: data.publicUrl,
+        sourceBytes: file.size,
+      }).catch(() => {
+        /* fila é complementar: falha aqui não invalida o upload */
+      });
+
       return data.publicUrl;
+
     } catch (error) {
       console.error('Upload error:', error);
       return null;
@@ -204,6 +226,7 @@ const ImageUploader = ({ images, onImagesChange, maxImages = 8 }: ImageUploaderP
     }));
     setUploadQueue(initialQueue);
     setUploading(true);
+    savedBytesRef.current = 0;
 
     const updateEntry = (id: string, patch: Partial<UploadEntry>) =>
       setUploadQueue((prev) => prev.map((e) => (e.id === id ? { ...e, ...patch } : e)));
@@ -238,7 +261,10 @@ const ImageUploader = ({ images, onImagesChange, maxImages = 8 }: ImageUploaderP
       onImagesChange(newImages);
       toast({
         title: 'Upload concluído',
-        description: `${uploadedUrls.length} imagem(ns) enviada(s).`,
+        description:
+          savedBytesRef.current > 0
+            ? `${uploadedUrls.length} imagem(ns) enviada(s) • ${formatBytes(savedBytesRef.current)} economizados na otimização.`
+            : `${uploadedUrls.length} imagem(ns) enviada(s).`,
       });
     }
 
@@ -323,6 +349,9 @@ const ImageUploader = ({ images, onImagesChange, maxImages = 8 }: ImageUploaderP
             <p className="text-xs text-muted-foreground">
               PNG, JPG ou WEBP (máx. 5MB cada) • Até {maxImages} imagens
             </p>
+            <p className="text-xs text-muted-foreground">
+              Otimização automática: WebP, máx. 1600px e placeholder para melhor LCP/CLS
+            </p>
           </div>
         )}
       </div>
@@ -351,6 +380,10 @@ const ImageUploader = ({ images, onImagesChange, maxImages = 8 }: ImageUploaderP
           ))}
         </ul>
       )}
+
+      <ImageJobsPanel />
+
+
 
 
       {/* Instructions */}

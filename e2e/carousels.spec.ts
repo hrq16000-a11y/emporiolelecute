@@ -17,10 +17,33 @@ import { test, expect, Page } from "@playwright/test";
 const CATEGORIES = '[data-testid="categories-carousel"]';
 const OCCASIONS  = '[data-testid="occasions-carousel"]';
 
+// Exercise both components independently of editable production home settings.
+// A desktop width with overflow is necessary to test scrolling twelve occasions.
+test.beforeEach(async ({ page, isMobile }) => {
+  if (!isMobile) await page.setViewportSize({ width: 1024, height: 900 });
+  const sections = ["CategoriesScroll", "OccasionsThumbs"].map((name, i) => ({
+    id: `section-${i}`, section_key: name, component_name: name,
+    label: name, description: null, is_visible: true, position: i * 10,
+    editable_props: {}, created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z",
+  }));
+  await page.route("**/rest/v1/home_sections?*", (route) =>
+    route.fulfill({ json: sections }));
+  for (const table of ["categories", "occasions"]) {
+    const rows = Array.from({ length: 12 }, (_, i) => ({
+      id: `${table}-${i}`, name: `${table === "categories" ? "Categoria" : "Ocasião"} ${i + 1}`,
+      slug: `${table}-${i + 1}`, is_draft: false, is_indexed: true,
+      position: i, image_url: "/placeholder.svg", icon: "Gift",
+    }));
+    await page.route(`**/rest/v1/${table}?*`, (route) => route.fulfill({ json: rows }));
+  }
+});
+
 async function waitForCarousels(page: Page) {
   await page.goto("/");
   await expect(page.locator(CATEGORIES)).toBeVisible();
   await expect(page.locator(OCCASIONS)).toBeVisible();
+  await expect(page.getByTestId("category-item")).toHaveCount(12);
+  await expect(page.getByTestId("occasion-item")).toHaveCount(12);
 }
 
 test.describe("Carousels — keyboard navigation", () => {
@@ -45,7 +68,7 @@ test.describe("Carousels — keyboard navigation", () => {
     expect(last).not.toBe(first);
 
     // ARIA live region announces focused category.
-    await expect(page.locator('[aria-live="polite"]').first()).toContainText(/Categoria em foco/i);
+    await expect(page.getByRole("region", { name: "Categorias", exact: true }).locator('[aria-live="polite"]')).toContainText(/Categoria em foco/i);
   });
 
   test("Occasions: arrow keys move active item and announce via aria-live", async ({ page }) => {
@@ -57,7 +80,7 @@ test.describe("Carousels — keyboard navigation", () => {
     await page.waitForTimeout(350);
     const after = await carousel.locator('[aria-selected="true"]').first().getAttribute("id");
     expect(after).not.toBe(before);
-    await expect(page.locator('text=/Ocasião em foco/i').first()).toBeVisible();
+    await expect(page.getByRole("region", { name: "Ocasiões especiais", exact: true }).locator('[aria-live="polite"]')).toContainText(/Ocasião em foco/i);
   });
 });
 

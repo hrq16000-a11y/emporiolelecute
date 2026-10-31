@@ -6,6 +6,8 @@ import PwaInstallPrompt from "@/components/PwaInstallPrompt";
 import SocialProofToast from "@/components/SocialProofToast";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import RouteTransition, { GlobalProgressBar } from "@/components/RouteTransition";
+import { hydratePersistedQueries, installQueryPersistence } from "@/lib/queryPersist";
 import { BrowserRouter, Routes, Route, Navigate, useParams, useLocation } from "react-router-dom";
 import { lazy, Suspense, useEffect } from "react";
 
@@ -17,10 +19,14 @@ import { PageSkeleton, AdminSkeleton } from "./components/ui/skeleton-loading";
 const Index = lazy(() => import("./pages/Index"));
 const Produtos = lazy(() => import("./pages/Produtos"));
 const Buscar = lazy(() => import("./pages/Buscar"));
+const Favoritos = lazy(() => import("./pages/Favoritos"));
+const ListaCompartilhada = lazy(() => import("./pages/ListaCompartilhada"));
+
 const ProductPage = lazy(() => import("./pages/ProductPage"));
 const Carrinho = lazy(() => import("./pages/Carrinho"));
 const Envio = lazy(() => import("./pages/Envio"));
 const RastrearPedido = lazy(() => import("./pages/RastrearPedido"));
+const PreferenciasNotificacao = lazy(() => import("./pages/PreferenciasNotificacao"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Sobre = lazy(() => import("./pages/Sobre"));
 const Contato = lazy(() => import("./pages/Contato"));
@@ -50,6 +56,7 @@ const AdminTags = lazyWithRetry(() => import("./pages/admin/AdminTags"), "AdminT
 const AdminImport = lazyWithRetry(() => import("./pages/admin/AdminImport"), "AdminImport");
 const AdminBackup = lazyWithRetry(() => import("./pages/admin/AdminBackup"), "AdminBackup");
 const AdminOrders = lazyWithRetry(() => import("./pages/admin/AdminOrders"), "AdminOrders");
+const AdminPayments = lazyWithRetry(() => import("./pages/admin/AdminPayments"), "AdminPayments");
 const AdminCustomers = lazyWithRetry(() => import("./pages/admin/AdminCustomers"), "AdminCustomers");
 const AdminSettings = lazyWithRetry(() => import("./pages/admin/AdminSettings"), "AdminSettings");
 const AdminFeatures = lazyWithRetry(() => import("./pages/admin/AdminFeatures"), "AdminFeatures");
@@ -65,6 +72,8 @@ const AdminPdpSections = lazyWithRetry(() => import("./pages/admin/AdminPdpSecti
 const AdminSearch = lazyWithRetry(() => import("./pages/admin/AdminSearch"), "AdminSearch");
 const SearchAnalytics = lazyWithRetry(() => import("./pages/admin/SearchAnalytics"), "SearchAnalytics");
 const AdminMerchantFeed = lazyWithRetry(() => import("./pages/admin/AdminMerchantFeed"), "AdminMerchantFeed");
+const AdminSeoCheck = lazyWithRetry(() => import("./pages/admin/AdminSeoCheck"), "AdminSeoCheck");
+
 const AdminInstagram = lazyWithRetry(() => import("./pages/admin/AdminInstagram"), "AdminInstagram");
 const AdminFeedInstagram = lazyWithRetry(() => import("./pages/admin/AdminFeedInstagram"), "AdminFeedInstagram");
 const AdminOccasionLandings = lazyWithRetry(() => import("./pages/admin/AdminOccasionLandings"), "AdminOccasionLandings");
@@ -77,6 +86,7 @@ const AdminProductsHealth = lazyWithRetry(() => import("./pages/admin/AdminProdu
 const AdminCoupons = lazyWithRetry(() => import("./pages/admin/AdminCoupons"), "AdminCoupons");
 const AdminRedirects = lazyWithRetry(() => import("./pages/admin/AdminRedirects"), "AdminRedirects");
 const AdminRobots = lazyWithRetry(() => import("./pages/admin/AdminRobots"), "AdminRobots");
+const AdminNotificationTest = lazyWithRetry(() => import("./pages/admin/AdminNotificationTest"), "AdminNotificationTest");
 const AdminTracking = lazyWithRetry(() => import("./pages/admin/AdminTracking"), "AdminTracking");
 const AdminConversionCTA = lazyWithRetry(() => import("./pages/admin/AdminConversionCTA"), "AdminConversionCTA");
 const AdminSocialProof = lazyWithRetry(() => import("./pages/admin/AdminSocialProof"), "AdminSocialProof");
@@ -86,6 +96,8 @@ const AdminSEODashboard = lazyWithRetry(() => import("./pages/admin/AdminSEODash
 const AdminTelemetry = lazyWithRetry(() => import("./pages/admin/AdminTelemetry"), "AdminTelemetry");
 const AdminUsage = lazyWithRetry(() => import("./pages/admin/AdminUsage"), "AdminUsage");
 const AdminCronStatus = lazyWithRetry(() => import("./pages/admin/AdminCronStatus"), "AdminCronStatus");
+const AdminPerformance = lazyWithRetry(() => import("./pages/admin/AdminPerformance"), "AdminPerformance");
+const AdminSecurityScan = lazyWithRetry(() => import("./pages/admin/AdminSecurityScan"), "AdminSecurityScan");
 const AdminCloudflareGuide = lazyWithRetry(() => import("./pages/admin/AdminCloudflareGuide"), "AdminCloudflareGuide");
 const AdminDiagnostics = lazyWithRetry(() => import("./pages/admin/AdminDiagnostics"), "AdminDiagnostics");
 const AdminSeoControlPlane = lazyWithRetry(() => import("./pages/admin/AdminSeoControlPlane"), "AdminSeoControlPlane");
@@ -268,6 +280,13 @@ const queryClient = new QueryClient({
   }),
 });
 
+// Fallback de vitrine: hidrata o catálogo/config públicos do localStorage antes
+// do primeiro render e mantém o snapshot atualizado. Se o backend cair, a loja
+// continua renderizando o último estado conhecido em vez de ficar em branco.
+hydratePersistedQueries(queryClient);
+installQueryPersistence(queryClient);
+
+
 // Analytics wrapper component
 const AnalyticsWrapper = ({ children }: { children: React.ReactNode }) => {
   usePageTracking();
@@ -362,7 +381,9 @@ const App = () => {
               <VisitorTracker />
               <CookieConsentBanner />
               <SocialProofToast />
+              <GlobalProgressBar />
 
+              <RouteTransition>
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={
@@ -405,6 +426,17 @@ const App = () => {
                     <Produtos />
                   </Suspense>
                 } />
+                <Route path="/favoritos" element={
+                  <Suspense fallback={<PageSkeleton />}>
+                    <Favoritos />
+                  </Suspense>
+                } />
+                <Route path="/lista/:token" element={
+                  <Suspense fallback={<PageSkeleton />}>
+                    <ListaCompartilhada />
+                  </Suspense>
+                } />
+
                 <Route path="/buscar" element={
                   <Suspense fallback={<PageSkeleton />}>
                     <Buscar />
@@ -442,6 +474,11 @@ const App = () => {
                 <Route path="/rastrear/:code" element={
                   <Suspense fallback={<PageSkeleton />}>
                     <RastrearPedido />
+                  </Suspense>
+                } />
+                <Route path="/notificacoes" element={
+                  <Suspense fallback={<PageSkeleton />}>
+                    <PreferenciasNotificacao />
                   </Suspense>
                 } />
                 
@@ -550,6 +587,11 @@ const App = () => {
                   <Route path="pedidos" element={
                     <Suspense fallback={<AdminSkeleton />}>
                       <AdminOrders />
+                    </Suspense>
+                  } />
+                  <Route path="pagamentos" element={
+                    <Suspense fallback={<AdminSkeleton />}>
+                      <AdminPayments />
                     </Suspense>
                   } />
                   <Route path="clientes" element={
@@ -687,6 +729,12 @@ const App = () => {
                       <AdminMerchantFeed />
                     </Suspense>
                   } />
+                  <Route path="seo-check" element={
+                    <Suspense fallback={<AdminSkeleton />}>
+                      <AdminSeoCheck />
+                    </Suspense>
+                  } />
+
                   <Route path="instagram" element={
                     <Suspense fallback={<AdminSkeleton />}>
                       <AdminInstagram />
@@ -715,6 +763,16 @@ const App = () => {
                   <Route path="cron" element={
                     <Suspense fallback={<AdminSkeleton />}>
                       <AdminCronStatus />
+                    </Suspense>
+                  } />
+                  <Route path="desempenho" element={
+                    <Suspense fallback={<AdminSkeleton />}>
+                      <AdminPerformance />
+                    </Suspense>
+                  } />
+                  <Route path="seguranca" element={
+                    <Suspense fallback={<AdminSkeleton />}>
+                      <AdminSecurityScan />
                     </Suspense>
                   } />
                   <Route path="seo-control-plane" element={
@@ -750,6 +808,11 @@ const App = () => {
                   <Route path="robots" element={
                     <Suspense fallback={<AdminSkeleton />}>
                       <AdminRobots />
+                    </Suspense>
+                  } />
+                  <Route path="notificacoes-teste" element={
+                    <Suspense fallback={<AdminSkeleton />}>
+                      <AdminNotificationTest />
                     </Suspense>
                   } />
                   <Route path="tracking" element={
@@ -1131,6 +1194,7 @@ const App = () => {
                   </Suspense>
                 } />
               </Routes>
+              </RouteTransition>
             </AnalyticsWrapper>
           </BrowserRouter>
       </TooltipProvider>

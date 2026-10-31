@@ -6,6 +6,7 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 interface RobotsConfig {
   allow_indexing?: boolean;
   disallow_paths?: string[];
+  disallow_query_params?: string[];
   blocked_category_slugs?: string[];
   custom_directives?: string;
   sitemap_url?: string;
@@ -14,6 +15,7 @@ interface RobotsConfig {
 const DEFAULTS: Required<RobotsConfig> = {
   allow_indexing: true,
   disallow_paths: ["/admin", "/admin/*", "/carrinho", "/rastrear"],
+  disallow_query_params: ["ordem", "preco_min", "preco_max", "pagina", "busca", "search"],
   blocked_category_slugs: [],
   custom_directives: "",
   sitemap_url: "https://emporiolelecute.com.br/sitemap.xml",
@@ -26,8 +28,20 @@ function build(cfg: Required<RobotsConfig>): string {
   } else {
     lines.push("Allow: /");
     for (const p of cfg.disallow_paths) lines.push(`Disallow: ${p}`);
+    const params = Array.isArray(cfg.disallow_query_params) ? cfg.disallow_query_params : [];
+    for (const param of params) {
+      const clean = String(param || "").trim().replace(/[=*?&]/g, "");
+      if (clean) lines.push(`Disallow: /*?${clean}=*`);
+    }
     for (const slug of cfg.blocked_category_slugs) {
       lines.push(`Disallow: /produtos?categoria=${slug}`);
+    }
+    // Reforço explícito: Googlebot e Bingbot liberados para todo o conteúdo indexável.
+    for (const bot of ["Googlebot", "Googlebot-Image", "Bingbot"]) {
+      lines.push("");
+      lines.push(`User-agent: ${bot}`);
+      lines.push("Allow: /");
+      for (const p of cfg.disallow_paths) lines.push(`Disallow: ${p}`);
     }
   }
   if (cfg.custom_directives.trim()) {
@@ -40,6 +54,7 @@ function build(cfg: Required<RobotsConfig>): string {
   }
   return lines.join("\n") + "\n";
 }
+
 
 Deno.serve(async (_req) => {
   try {

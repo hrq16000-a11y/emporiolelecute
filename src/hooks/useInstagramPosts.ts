@@ -27,6 +27,12 @@ export const useInstagramPosts = () =>
       if (error) throw error;
       return (data || []) as InstagramPost[];
     },
+    // Stale-while-revalidate: entrega o cache na hora e revalida em segundo plano.
+    staleTime: 5 * 60 * 1000,
+    gcTime: 24 * 60 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    placeholderData: (previous) => previous,
   });
 
 export const useAdminInstagramPosts = () =>

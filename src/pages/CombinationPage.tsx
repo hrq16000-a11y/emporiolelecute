@@ -18,6 +18,7 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import ProductCard from "@/components/ProductCard";
 import DynamicSEO from "@/components/DynamicSEO";
 import BreadcrumbStructuredData from "@/components/BreadcrumbStructuredData";
+import OrganizationStructuredData from "@/components/OrganizationStructuredData";
 import ItemListStructuredData from "@/components/ItemListStructuredData";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -242,6 +243,7 @@ const CombinationPage = () => {
         )}
       </Helmet>
 
+      <OrganizationStructuredData />
       {breadcrumbItems.length > 0 && <BreadcrumbStructuredData items={breadcrumbItems} />}
       {products.length > 0 && (
         <ItemListStructuredData

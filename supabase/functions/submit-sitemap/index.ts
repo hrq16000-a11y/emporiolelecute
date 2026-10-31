@@ -3,6 +3,8 @@
 // Pode ser chamado manualmente ou agendado via pg_cron.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { sendSeoFailureAlert } from '../_shared/seoAlert.ts'
+import { isLocalEnv, mockIntegration } from '../_shared/localEnv.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,6 +16,14 @@ const GSC_GATEWAY = 'https://connector-gateway.lovable.dev/google_search_console
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
+  }
+
+  // Ambiente local/offline: não chama o Google Search Console.
+  if (isLocalEnv()) {
+    const mock = mockIntegration('gsc:submit-sitemap', { sitemap_url: 'http://localhost:8080/sitemap.xml' })
+    return new Response(JSON.stringify({ success: true, mocked: true, submission: mock.detail }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
   }
 
   try {
@@ -99,6 +109,36 @@ Deno.serve(async (req) => {
       { key: 'sitemap_monitor_history', value: { points: trimmed }, updated_at: new Date().toISOString() },
       { onConflict: 'key' },
     )
+
+    // 3b) Log estruturado do envio (painel /admin/seo-check)
+    await supabase.from('seo_submission_log').insert({
+      channel: 'gsc',
+      status: submission.gsc_status,
+      ok: submitOk,
+      url_count: submittedWeb,
+      target: property,
+      detail: {
+        sitemap_url: sitemapUrl,
+        indexed_web: indexedWeb,
+        submitted_images: submittedImg,
+        last_downloaded: submission.last_downloaded,
+        errors: submission.errors,
+        warnings: submission.warnings,
+        gsc_error: submitError ? String(submitError).slice(0, 500) : null,
+      },
+    })
+
+
+
+    // 3c) Alerta automático em caso de falha no GSC
+    if (!submitOk) {
+      await sendSeoFailureAlert(supabase, {
+        channel: 'gsc',
+        target: sitemapUrl,
+        reason: submitError ? String(submitError).slice(0, 500) : `status ${submission.gsc_status}`,
+        extra: { property, errors: submission.errors, warnings: submission.warnings },
+      })
+    }
 
     // 4) Email opcional
     const notificationEmail = seoConfig?.sitemap_notification_email

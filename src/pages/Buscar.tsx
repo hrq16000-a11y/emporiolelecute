@@ -11,39 +11,84 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import ProductCard from "@/components/ProductCard";
 import { useDbProducts, useDbCategories } from "@/hooks/useProducts";
 import { useDebounce } from "@/hooks/useDebounce";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { useSearchCacheVersion } from "@/hooks/useSearchCacheVersion";
 import { supabase } from "@/integrations/supabase/client";
 import SearchEmptyState from "@/components/SearchEmptyState";
+import DataErrorState from "@/components/DataErrorState";
 import type { Product } from "@/data/products";
 
 // Fase 2 (refactor server-side) — Toda a busca tolerante (acento, typo,
 // sinônimos) acontece no Postgres via RPC `search_products`. O frontend
 // apenas envia o termo e recebe IDs ordenados por relevância + sugestão.
-interface SearchRpcResult {
+// Fase 3 — paginação real (offset/limit) para não trazer o bloco inteiro.
+const PAGE_SIZE = 24;
+
+interface SearchRpcPage {
   ids: string[];
   suggestion: string | null;
+  total: number;
+  offset: number;
+  hasMore: boolean;
 }
 
-function useServerSearch(term: string) {
+interface ServerSearchFilters {
+  categoryId?: string | null;
+  minPrice?: number | null;
+  maxPrice?: number | null;
+}
+
+function useServerSearch(term: string, filters: ServerSearchFilters) {
   const q = term.trim();
-  return useQuery({
-    queryKey: ["search_products", q],
+  const categoryId = filters.categoryId ?? null;
+  const minPrice = filters.minPrice ?? null;
+  const maxPrice =
+    filters.maxPrice != null && Number.isFinite(filters.maxPrice) ? filters.maxPrice : null;
+
+  // Invalidação automática: a versão sobe no banco quando produtos, categorias,
+  // boosts ou sinônimos mudam no admin — os resultados nunca ficam obsoletos.
+  const cacheVersion = useSearchCacheVersion();
+
+  return useInfiniteQuery({
+    queryKey: ["search_products", q, categoryId, minPrice, maxPrice, cacheVersion],
     enabled: q.length >= 2,
-    staleTime: 30_000,
-    queryFn: async (): Promise<SearchRpcResult> => {
+    initialPageParam: 0,
+    // Cache por termo + filtros: digitar de volta um termo já buscado não gera request.
+    staleTime: 5 * 60_000,
+    gcTime: 30 * 60_000,
+    placeholderData: (prev) => prev,
+    getNextPageParam: (last: SearchRpcPage) =>
+      last.hasMore ? last.offset + last.ids.length : undefined,
+    queryFn: async ({ pageParam }): Promise<SearchRpcPage> => {
+      const offset = Number(pageParam) || 0;
       const { data, error } = await supabase.rpc("search_products" as never, {
         _q: q,
-        _limit: 60,
+        _limit: PAGE_SIZE,
+        _offset: offset,
+        _category_id: categoryId,
+        _min_price: minPrice,
+        _max_price: maxPrice,
       } as never);
-      if (error) return { ids: [], suggestion: null };
-      const payload = (data ?? {}) as { ids?: string[]; suggestion?: string | null };
+      if (error) throw error;
+      const payload = (data ?? {}) as {
+        ids?: string[];
+        suggestion?: string | null;
+        total?: number;
+        offset?: number;
+        has_more?: boolean;
+      };
       return {
         ids: Array.isArray(payload.ids) ? payload.ids : [],
         suggestion: payload.suggestion ?? null,
+        total: Number(payload.total ?? 0),
+        offset: Number(payload.offset ?? offset),
+        hasMore: Boolean(payload.has_more),
       };
     },
   });
 }
+
+
 
 const PRICE_RANGES: { id: string; label: string; min: number; max: number }[] = [
   { id: "lt50", label: "Até R$ 50", min: 0, max: 50 },
@@ -64,9 +109,47 @@ const Buscar = () => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const debouncedQuery = useDebounce(query, 300);
-  const { data: dbProducts, isLoading } = useDbProducts();
+  const {
+    data: dbProducts,
+    isLoading,
+    error: productsError,
+    refetch: refetchProducts,
+    isRefetching: isRefetchingProducts,
+  } = useDbProducts();
   const { data: dbCategories } = useDbCategories({ publicOnly: true });
-  const { data: searchResult, isFetching: isSearching } = useServerSearch(debouncedQuery);
+
+  // Filtros aplicados no Postgres (categoria/preço) — o frontend só ordena o resultado.
+  const selectedCategoryId = useMemo(
+    () => (dbCategories || []).find((c) => c.slug === selectedCategory)?.id ?? null,
+    [dbCategories, selectedCategory],
+  );
+  const selectedRange = useMemo(
+    () => PRICE_RANGES.find((r) => r.id === selectedPrice) ?? null,
+    [selectedPrice],
+  );
+
+  const {
+    data: searchPages,
+    isFetching: isSearching,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+    error: searchError,
+    refetch: refetchSearch,
+  } = useServerSearch(debouncedQuery, {
+    categoryId: selectedCategoryId,
+    minPrice: selectedRange ? selectedRange.min : null,
+    maxPrice: selectedRange && Number.isFinite(selectedRange.max) ? selectedRange.max : null,
+  });
+
+  const searchResult = useMemo(() => {
+    const pages = searchPages?.pages ?? [];
+    return {
+      ids: pages.flatMap((p) => p.ids),
+      suggestion: pages[0]?.suggestion ?? null,
+      total: pages[0]?.total ?? 0,
+    };
+  }, [searchPages]);
 
   // Autofoco no campo ao abrir a página (UX mobile)
   useEffect(() => {
@@ -90,19 +173,9 @@ const Buscar = () => {
     setSearchParams(next, { replace: true });
   }, [debouncedQuery, selectedCategory, selectedPrice, setSearchParams]);
 
-  // Fase 2 — registra a busca para alimentar o cockpit administrativo (insights).
-  // Fire-and-forget; nunca bloqueia a UI.
-  useEffect(() => {
-    const q = debouncedQuery.trim();
-    if (q.length < 2 || !searchResult) return;
-    supabase
-      .rpc("log_search" as never, {
-        _q: q,
-        _result_count: searchResult.ids.length,
-        _suggestion: searchResult.suggestion,
-      } as never)
-      .then(() => undefined, () => undefined);
-  }, [debouncedQuery, searchResult]);
+  // A RPC `search_products` já registra a consulta (log_search) na primeira
+  // página, alimentando o cockpit administrativo sem request extra do cliente.
+
 
 
   const products: Product[] = useMemo(() => {
@@ -132,33 +205,35 @@ const Buscar = () => {
         _categoryId: p.category_id || undefined,
         _priceNum: Number(p.price) || 0,
         _categoryName: p.category?.name || "",
+        _categorySlug: p.category?.slug || "",
+
         _occasionNames: (p.occasions || []).map((o) => o.name),
         _tagNames: (p.tags || []).map((t) => t.name),
       })) as any;
   }, [dbProducts]);
 
   const filtered = useMemo(() => {
-    // Fase 2 (refactor server-side) — busca textual feita pela RPC `search_products`.
-    // O frontend só aplica filtros de categoria/preço sobre o resultado já ranqueado.
+    // Busca textual + filtros de categoria/preço rodam no Postgres (RPC `search_products`).
+    // O frontend só reordena pelo ranking recebido. Sem termo, filtra o catálogo local.
     const rawQuery = debouncedQuery.trim();
-    const range = PRICE_RANGES.find((r) => r.id === selectedPrice);
 
-    let base: any[] = products;
     if (rawQuery.length >= 2) {
       const ids = searchResult?.ids ?? [];
       const order = new Map(ids.map((id, idx) => [id, idx]));
-      base = products
+      return products
         .filter((p: any) => order.has(p.id))
         .sort((a: any, b: any) => (order.get(a.id)! - order.get(b.id)!));
     }
 
-    return base.filter((p: any) => {
-      const matchesCat = !selectedCategory || p._categoryId === selectedCategory;
+    return (products as any[]).filter((p: any) => {
+      const matchesCat = !selectedCategory || p._categorySlug === selectedCategory;
       const matchesPrice =
-        !range || (p._priceNum >= range.min && p._priceNum < range.max);
+        !selectedRange ||
+        (p._priceNum >= selectedRange.min && p._priceNum < selectedRange.max);
       return matchesCat && matchesPrice;
     });
-  }, [products, debouncedQuery, selectedCategory, selectedPrice, searchResult]);
+  }, [products, debouncedQuery, selectedCategory, selectedRange, searchResult]);
+
 
   // "Você quis dizer..." vem direto da RPC (similaridade trigram no servidor).
   const suggestion = useMemo(() => {
@@ -167,8 +242,18 @@ const Buscar = () => {
     return searchResult?.suggestion ?? null;
   }, [debouncedQuery, filtered.length, searchResult]);
 
+  const hasSearchTerm = debouncedQuery.trim().length >= 2;
+  const totalResults = hasSearchTerm ? searchResult.total : filtered.length;
+  const [visibleLocal, setVisibleLocal] = useState(PAGE_SIZE);
+
+  // Ao trocar termo/filtros, volta a fatia local ao tamanho de uma página.
+  useEffect(() => {
+    setVisibleLocal(PAGE_SIZE);
+  }, [debouncedQuery, selectedCategory, selectedPrice]);
+
   const activeCount =
     (debouncedQuery ? 1 : 0) + (selectedCategory ? 1 : 0) + (selectedPrice ? 1 : 0);
+
 
   const clearAll = () => {
     setQuery("");
@@ -302,16 +387,30 @@ const Buscar = () => {
           {/* Resultados */}
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm text-muted-foreground">
-              {isLoading || isSearching
+              {productsError || searchError
+                ? "Busca indisponível no momento"
+                : isLoading || (isSearching && !isFetchingNextPage)
                 ? "Buscando…"
-                : `${filtered.length} ${filtered.length === 1 ? "resultado" : "resultados"}`}
+                : hasSearchTerm
+                  ? `${filtered.length} de ${totalResults} ${totalResults === 1 ? "resultado" : "resultados"}`
+                  : `${filtered.length} ${filtered.length === 1 ? "resultado" : "resultados"}`}
             </p>
             <Link to="/produtos" className="text-xs text-primary hover:underline">
               Ver catálogo completo
             </Link>
           </div>
 
-          {isLoading || isSearching ? (
+          {productsError || searchError ? (
+            <DataErrorState
+              scope="catalog"
+              error={productsError || searchError}
+              onRetry={() => {
+                if (productsError) void refetchProducts();
+                if (searchError) void refetchSearch();
+              }}
+              isRetrying={isRefetchingProducts || isSearching}
+            />
+          ) : isLoading || (isSearching && !isFetchingNextPage) ? (
             <div className="flex items-center justify-center py-16">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
@@ -324,22 +423,47 @@ const Buscar = () => {
               hasActiveFilters={activeCount > 0}
             />
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
-              {filtered.slice(0, 60).map((p) => (
+            <div className="stagger grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 [&>*]:stagger-item">
+              {(hasSearchTerm ? filtered : filtered.slice(0, visibleLocal)).map((p) => (
                 <ProductCard key={p.id} product={p as Product} />
               ))}
             </div>
           )}
 
-          {filtered.length > 60 && (
+          {/* Paginação: busca server-side usa offset/limit; catálogo local incrementa a fatia */}
+          {!productsError && !searchError && hasSearchTerm && hasNextPage && (
             <div className="text-center mt-6">
-              <Link to={`/produtos?busca=${encodeURIComponent(debouncedQuery)}`}>
-                <Button variant="outline" size="sm">
-                  Ver todos os {filtered.length} resultados
-                </Button>
-              </Link>
+              <Button
+                variant="outline"
+                size="sm"
+                className="min-h-11"
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+              >
+                {isFetchingNextPage ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Carregando…
+                  </>
+                ) : (
+                  `Carregar mais (${totalResults - filtered.length} restantes)`
+                )}
+              </Button>
             </div>
           )}
+
+          {!productsError && !searchError && !hasSearchTerm && filtered.length > visibleLocal && (
+            <div className="text-center mt-6">
+              <Button
+                variant="outline"
+                size="sm"
+                className="min-h-11"
+                onClick={() => setVisibleLocal((v) => v + PAGE_SIZE)}
+              >
+                Carregar mais
+              </Button>
+            </div>
+          )}
+
         </div>
       </main>
 

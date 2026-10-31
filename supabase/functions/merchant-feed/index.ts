@@ -16,6 +16,7 @@ const DEFAULT_GOOGLE_CATEGORY_ID = '5709'
 interface Category {
   name: string
   slug: string
+  google_product_category?: string | null
 }
 
 interface Product {
@@ -29,6 +30,7 @@ interface Product {
   images: string[] | null
   is_active: boolean
   category_id: string | null
+  google_product_category: string | null
   production_days: number | null
   weight: number | null
   updated_at: string
@@ -109,12 +111,14 @@ Deno.serve(async (req) => {
         images,
         is_active,
         category_id,
+        google_product_category,
         production_days,
         weight,
         updated_at,
         categories (
           name,
-          slug
+          slug,
+          google_product_category
         )
       `)
       .eq('is_active', true)
@@ -335,9 +339,13 @@ function formatProductForFeed(product: Product, config: MerchantFeedConfig, site
   
   // Get category name for product_type
   const categories = product.categories
-  const categoryName = Array.isArray(categories) 
-    ? (categories[0]?.name || 'Lembrancinhas')
-    : (categories?.name || 'Lembrancinhas')
+  const category = Array.isArray(categories) ? categories[0] : categories
+  const categoryName = category?.name || 'Lembrancinhas'
+  // Categoria Google: produto > mapeamento da categoria da loja > padrão da loja
+  const googleCategory =
+    (product.google_product_category && product.google_product_category.trim()) ||
+    (category?.google_product_category && category.google_product_category.trim()) ||
+    config.google_product_category
   const productType = `Lembrancinhas Personalizadas > ${categoryName}`
   
   // Shipping weight (if available)
@@ -361,7 +369,7 @@ function formatProductForFeed(product: Product, config: MerchantFeedConfig, site
     sale_price: salePrice,
     condition: 'new',
     brand: BRAND,
-    google_product_category: config.google_product_category,
+    google_product_category: googleCategory,
     product_type: productType,
     custom_label_0: categoryName,
     shipping_weight: shippingWeight,

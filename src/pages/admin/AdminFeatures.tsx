@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Loader2, MessageCircle, Power } from "lucide-react";
+import { Loader2, MessageCircle, Power, Star } from "lucide-react";
 import { useFeatureFlags, useUpdateFeatureFlags, FeatureFlags } from "@/hooks/useFeatureFlags";
 import { toast } from "sonner";
 
@@ -19,6 +19,13 @@ const FEATURES: FeatureItem[] = [
     description:
       "Assistente virtual flutuante no canto inferior direito (home, listagem e PDP). Quando desligado, o botão e o painel não são renderizados.",
     icon: MessageCircle,
+  },
+  {
+    key: "pdp_reviews_expand_enabled",
+    title: "Avaliações: ver mais na página do produto",
+    description:
+      "Na página do produto sempre aparecem as 3 melhores avaliações verificadas. Com este recurso ligado, um botão “Ver mais avaliações” permite expandir a lista completa.",
+    icon: Star,
   },
 ];
 

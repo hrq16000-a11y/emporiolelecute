@@ -25,7 +25,9 @@ const SECTION_HEIGHTS: Record<string, string> = {
   QuoteCTABanner: "min-h-[220px] md:min-h-[260px]",
   Testimonials: "min-h-[360px] md:min-h-[420px]",
   FAQSection: "min-h-[480px] md:min-h-[560px]",
+  AboutAtelier: "min-h-[300px] md:min-h-[340px]",
   InstagramFeed: "min-h-[320px] md:min-h-[400px]",
+
 };
 
 const SectionFallback = ({ name }: { name?: string }) => (

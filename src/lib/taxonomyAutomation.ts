@@ -10,7 +10,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { QueryClient } from '@tanstack/react-query';
 
-export type TaxonomyTable = 'categories' | 'occasions' | 'segments' | 'tags';
+export type TaxonomyTable = 'categories' | 'occasions' | 'segments' | 'tags' | 'products';
 
 export async function markPublicTaxonomyDirty(source: TaxonomyTable): Promise<void> {
   try {

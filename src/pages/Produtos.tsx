@@ -1,4 +1,7 @@
-import { useState, useMemo, useEffect } from "react";
+import { ProductSkeleton } from "@/components/ProductSkeleton";
+import DataErrorState from "@/components/DataErrorState";
+
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Search, Grid, List, ShoppingBag, Loader2, Tag, ChevronRight, ChevronLeft, MessageCircle, Sparkles, Heart, Truck, SlidersHorizontal, ChevronDown, ChevronUp } from "lucide-react";
@@ -28,12 +31,37 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import type { Product } from "@/data/products";
+import { toast } from "sonner";
+import { event as gaEvent } from "@/lib/analytics";
+import { normalizeSearchText } from "@/lib/searchText";
+
 
 const PRODUCTS_PER_PAGE = 12;
 
+/** Persistência do filtro de ocasião entre navegações (mantém a curadoria escolhida). */
+const OCCASION_STORAGE_KEY = 'produtos:occasion';
+
+const readStoredOccasion = (): string | null => {
+  try { return localStorage.getItem(OCCASION_STORAGE_KEY) || null; } catch { return null; }
+};
+
+const writeStoredOccasion = (slug: string | null) => {
+  try {
+    if (slug) localStorage.setItem(OCCASION_STORAGE_KEY, slug);
+    else localStorage.removeItem(OCCASION_STORAGE_KEY);
+  } catch { /* ignore */ }
+};
+
 const Produtos = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { data: dbProducts, isLoading: loadingProducts } = useDbProducts();
+  const {
+    data: dbProducts,
+    isLoading: loadingProducts,
+    error: productsError,
+    refetch: refetchProducts,
+    isRefetching: isRefetchingProducts,
+  } = useDbProducts();
+
   const { data: dbCategories } = useDbCategories({ publicOnly: true });
   const { data: dbOccasions } = useDbOccasions({ publicOnly: true });
   const { data: dbTags } = useTags();
@@ -41,7 +69,10 @@ const Produtos = () => {
 
   const [search, setSearch] = useState(searchParams.get('busca') || searchParams.get('search') || "");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(searchParams.get('categoria') || null);
-  const [selectedOccasion, setSelectedOccasion] = useState<string | null>(searchParams.get('ocasiao') || null);
+  const [selectedOccasion, setSelectedOccasion] = useState<string | null>(
+    () => searchParams.get('ocasiao') || readStoredOccasion(),
+  );
+  const occasionRestored = useRef(false);
   const [selectedSegment, setSelectedSegment] = useState<string | null>(searchParams.get('segmento') || null);
   const [selectedTag, setSelectedTag] = useState<string | null>(searchParams.get('tag') || null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -78,11 +109,33 @@ const Produtos = () => {
 
     setSearch(urlSearch ?? "");
     setSelectedCategory(urlCategoria);
-    setSelectedOccasion(urlOcasiao);
     setSelectedSegment(urlSegmento);
     setSelectedTag(urlTag);
     setCurrentPage(urlPage ? Number(urlPage) || 1 : 1);
-  }, [searchParams]);
+
+    // Ocasião: restaura a última escolha salva quando a URL não traz o filtro
+    // (apenas na primeira montagem, para não sequestrar navegações posteriores).
+    if (urlOcasiao) {
+      setSelectedOccasion(urlOcasiao);
+      writeStoredOccasion(urlOcasiao);
+      occasionRestored.current = true;
+      return;
+    }
+    if (!occasionRestored.current) {
+      occasionRestored.current = true;
+      const stored = readStoredOccasion();
+      if (stored) {
+        setSelectedOccasion(stored);
+        const next = new URLSearchParams(searchParams);
+        next.set('ocasiao', stored);
+        setSearchParams(next, { replace: true });
+        return;
+      }
+    }
+    setSelectedOccasion(null);
+  }, [searchParams, setSearchParams]);
+
+
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -117,6 +170,19 @@ const Produtos = () => {
   const resolvedTag = findTagBySlugOrId(selectedTag);
 
   // Update URL when filters change - use SLUG for friendly URLs
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setCurrentPage(1);
+    setSearchParams((previous) => {
+      const next = new URLSearchParams(previous);
+      if (value.trim()) next.set("busca", value);
+      else next.delete("busca");
+      next.delete("search");
+      next.delete("pagina");
+      return next;
+    }, { replace: true });
+  };
+
   const handleCategoryChange = (categorySlug: string | null) => {
     setSelectedCategory(categorySlug);
     const newParams = new URLSearchParams(searchParams);
@@ -131,6 +197,7 @@ const Produtos = () => {
 
   const handleOccasionChange = (occasionSlug: string | null) => {
     setSelectedOccasion(occasionSlug);
+    writeStoredOccasion(occasionSlug);
     const newParams = new URLSearchParams(searchParams);
     if (occasionSlug) {
       newParams.set('ocasiao', occasionSlug);
@@ -178,14 +245,30 @@ const Produtos = () => {
   };
 
   const handleClearFilters = () => {
+    const previous = {
+      categoria: selectedCategory,
+      ocasiao: selectedOccasion,
+      segmento: selectedSegment,
+      tag: selectedTag,
+      busca: search || null,
+    };
     setSearch("");
     setSelectedCategory(null);
     setSelectedOccasion(null);
+    writeStoredOccasion(null);
     setSelectedSegment(null);
     setSelectedTag(null);
     setCurrentPage(1);
     setSearchParams({});
+    toast.success('Filtros removidos');
+    gaEvent('catalog_clear_filters', {
+      cleared_count: Object.values(previous).filter(Boolean).length,
+      had_occasion: Boolean(previous.ocasiao),
+      previous_occasion: previous.ocasiao ?? undefined,
+      previous_category: previous.categoria ?? undefined,
+    });
   };
+
 
   // Count active filters (for UI)
   const activeFiltersCount = [resolvedCategory, resolvedOccasion, resolvedSegment, resolvedTag, debouncedSearch].filter(Boolean).length;
@@ -257,16 +340,16 @@ const Produtos = () => {
 
   // Filter products — text search + structural badges + sidebar filters (price/prazo/personalizável/tags-multi)
   const filteredProducts = useMemo(() => {
-    const q = debouncedSearch.trim().toLowerCase();
+    const q = normalizeSearchText(debouncedSearch);
     const matchesText = (product: typeof products[number]) => !q ||
-      product.name.toLowerCase().includes(q) ||
-      product.description.toLowerCase().includes(q) ||
-      (product.longDescriptionRaw?.toLowerCase().includes(q) ?? false) ||
-      product.keywords.some(k => k.toLowerCase().includes(q)) ||
-      (product.categoryName?.toLowerCase().includes(q) ?? false) ||
-      product.occasionNames.some(n => n.toLowerCase().includes(q)) ||
-      product.tagNames.some(n => n.toLowerCase().includes(q)) ||
-      product.segmentNames.some(n => n.toLowerCase().includes(q));
+      normalizeSearchText(product.name).includes(q) ||
+      normalizeSearchText(product.description).includes(q) ||
+      normalizeSearchText(product.longDescriptionRaw ?? "").includes(q) ||
+      product.keywords.some(k => normalizeSearchText(k).includes(q)) ||
+      normalizeSearchText(product.categoryName ?? "").includes(q) ||
+      product.occasionNames.some(n => normalizeSearchText(n).includes(q)) ||
+      product.tagNames.some(n => normalizeSearchText(n).includes(q)) ||
+      product.segmentNames.some(n => normalizeSearchText(n).includes(q));
 
     const base = products.filter((product) => {
       const matchesCategory = !resolvedCategory || product.categoryId === resolvedCategory.id;
@@ -512,7 +595,7 @@ const Produtos = () => {
               <Input
                 placeholder="Buscar lembrancinhas..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-10 rounded-full"
               />
             </div>
@@ -538,6 +621,7 @@ const Produtos = () => {
                   variant="ghost"
                   size="sm"
                   onClick={handleClearFilters}
+                  data-testid="clear-filters"
                   className="text-muted-foreground"
                 >
                   Limpar ({activeFiltersCount})
@@ -710,10 +794,20 @@ const Produtos = () => {
             {/* MAIN — grid de produtos */}
             <div className="flex-1 min-w-0">
               {loadingProducts ? (
-                <div className="flex justify-center py-16">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 md:grid-cols-3 xl:grid-cols-4 animate-fade-in">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <ProductSkeleton key={i} />
+                  ))}
                 </div>
+              ) : productsError && !dbProducts?.length ? (
+                <DataErrorState
+                  scope="catalog"
+                  error={productsError}
+                  onRetry={() => refetchProducts()}
+                  isRetrying={isRefetchingProducts}
+                />
               ) : filteredProducts.length > 0 ? (
+
                 <>
                   <p className="text-sm text-muted-foreground mb-4">
                     {filteredProducts.length} {filteredProducts.length === 1 ? 'produto encontrado' : 'produtos encontrados'}
@@ -788,7 +882,7 @@ const Produtos = () => {
                       return parts.length ? ` para: ${parts.join(' + ')}` : '';
                     })()}
                   </p>
-                  <Button onClick={handleClearFilters}>
+                  <Button onClick={handleClearFilters} data-testid="clear-filters-empty">
                     Limpar filtros
                   </Button>
                 </div>

@@ -9,9 +9,13 @@ import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useOrderStream } from "@/hooks/useOrderStream";
 import DynamicSEO from "@/components/DynamicSEO";
 import BreadcrumbStructuredData from "@/components/BreadcrumbStructuredData";
 import { optimizeImage } from "@/lib/image";
+import OrderTrackingSkeleton from "@/components/OrderTrackingSkeleton";
+import { RefreshCw, Receipt, RotateCcw } from "lucide-react";
+import { useContactInfo } from "@/hooks/useContactInfo";
 
 interface OrderItem {
   id: string;
@@ -50,6 +54,7 @@ interface Order {
   tracking_carrier?: string | null;
   tracking_url?: string | null;
   shipped_at?: string | null;
+  payment_status?: string | null;
 }
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof Clock; description: string }> = {
@@ -91,7 +96,15 @@ const statusConfig: Record<string, { label: string; color: string; icon: typeof 
   }
 };
 
+const paymentLabel: Record<string, string> = {
+  pending: "Aguardando pagamento",
+  approved: "Pago / Aprovado",
+  refunded: "Reembolsado",
+  cancelled: "Cancelado",
+};
+
 const RastrearPedido = () => {
+  const { buildWhatsappUrl } = useContactInfo();
   const [searchParams] = useSearchParams();
   const initialCode = searchParams.get('code') || '';
   
@@ -99,6 +112,8 @@ const RastrearPedido = () => {
   const [order, setOrder] = useState<Order | null>(null);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSync, setLastSync] = useState<Date | null>(null);
   const [searched, setSearched] = useState(false);
   const { toast } = useToast();
 
@@ -107,16 +122,10 @@ const RastrearPedido = () => {
     { name: 'Rastrear Pedido', url: 'https://emporiolelecute.com.br/rastrear' },
   ];
 
-  // Auto-search if code is in URL
-  useEffect(() => {
-    if (initialCode) {
-      handleSearch(initialCode);
-    }
-  }, []);
-
-  const handleSearch = async (codeToSearch?: string) => {
+  const handleSearch = async (codeToSearch?: string, opts?: { silent?: boolean }) => {
     const code = codeToSearch || orderCode;
-    
+    const silent = !!opts?.silent;
+
     if (!code.trim()) {
       toast({
         title: "Digite o código do pedido",
@@ -125,8 +134,11 @@ const RastrearPedido = () => {
       return;
     }
 
-    setIsLoading(true);
-    setSearched(true);
+    if (silent) setIsSyncing(true);
+    else {
+      setIsLoading(true);
+      setSearched(true);
+    }
 
     try {
       // Use secure edge function for order tracking
@@ -136,6 +148,45 @@ const RastrearPedido = () => {
 
       if (error) {
         console.error("Error tracking order:", error);
+        if (!silent) {
+          toast({
+            title: "Erro ao buscar pedido",
+            description: "Tente novamente mais tarde.",
+            variant: "destructive",
+          });
+          setOrder(null);
+          setOrderItems([]);
+        }
+        return;
+      }
+
+      if (!data?.order) {
+        if (!silent) {
+          setOrder(null);
+          setOrderItems([]);
+          toast({
+            title: "Pedido não encontrado",
+            description: "Verifique o código e tente novamente.",
+            variant: "destructive",
+          });
+        }
+        return;
+      }
+
+      setOrder((prev) => {
+        if (silent && prev && prev.status !== data.order.status) {
+          toast({
+            title: "Status atualizado",
+            description: statusConfig[data.order.status]?.label || data.order.status,
+          });
+        }
+        return data.order;
+      });
+      setOrderItems(data.items || []);
+      setLastSync(new Date());
+    } catch (error) {
+      console.error("Error fetching order:", error);
+      if (!silent) {
         toast({
           title: "Erro ao buscar pedido",
           description: "Tente novamente mais tarde.",
@@ -143,35 +194,57 @@ const RastrearPedido = () => {
         });
         setOrder(null);
         setOrderItems([]);
-        return;
       }
-
-      if (!data.order) {
-        setOrder(null);
-        setOrderItems([]);
-        toast({
-          title: "Pedido não encontrado",
-          description: "Verifique o código e tente novamente.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      setOrder(data.order);
-      setOrderItems(data.items || []);
-    } catch (error) {
-      console.error("Error fetching order:", error);
-      toast({
-        title: "Erro ao buscar pedido",
-        description: "Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-      setOrder(null);
-      setOrderItems([]);
     } finally {
-      setIsLoading(false);
+      if (silent) setIsSyncing(false);
+      else setIsLoading(false);
     }
   };
+
+  // Auto-search if code is in URL
+  useEffect(() => {
+    if (initialCode) {
+      handleSearch(initialCode);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const isFinalStatus = !!order && ["delivered", "cancelled"].includes(order.status);
+
+  // Tempo real via SSE (fallback automático para polling quando não conecta)
+  const { connected: liveConnected } = useOrderStream({
+    orderCode: order?.order_code,
+    enabled: !!order && !isFinalStatus,
+    onUpdate: () => {
+      if (order?.order_code) handleSearch(order.order_code, { silent: true });
+    },
+  });
+
+  // Sincronização periódica do status enquanto o pedido não estiver finalizado
+  useEffect(() => {
+    if (!order) return;
+    if (["delivered", "cancelled"].includes(order.status)) return;
+    const code = order.order_code;
+    const sync = () => {
+      if (document.visibilityState === "visible" && navigator.onLine !== false) {
+        handleSearch(code, { silent: true });
+      }
+    };
+    // SSE ativo → polling só como rede de segurança (2 min). Sem SSE → 15s.
+    const id = setInterval(sync, liveConnected ? 120000 : 15000);
+    window.addEventListener("focus", sync);
+    window.addEventListener("online", sync);
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener("focus", sync);
+      window.removeEventListener("online", sync);
+      document.removeEventListener("visibilitychange", sync);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order?.order_code, order?.status, liveConnected]);
+
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("pt-BR", {
@@ -245,7 +318,11 @@ const RastrearPedido = () => {
               </div>
             </div>
 
+            {/* Loading skeleton */}
+            {isLoading && <OrderTrackingSkeleton />}
+
             {/* No Order Found */}
+
             {searched && !order && !isLoading && (
               <div className="bg-card rounded-xl border border-border p-8 text-center">
                 <ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
@@ -262,8 +339,8 @@ const RastrearPedido = () => {
             )}
 
             {/* Order Details */}
-            {order && (
-              <div className="space-y-6">
+            {order && !isLoading && (
+              <div className="space-y-6 animate-fade-in">
                 {/* Status Card */}
                 <div className="bg-card rounded-xl border border-border overflow-hidden">
                   <div className={`${status?.color} p-6 text-white`}>
@@ -291,6 +368,61 @@ const RastrearPedido = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Sync + pagamento / reembolso / nota */}
+                <div className="bg-card rounded-xl border border-border p-4 md:p-6 space-y-4 animate-fade-in">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">Pagamento:</span>{" "}
+                      <span className="font-medium text-foreground">
+                        {paymentLabel[order.payment_status || "pending"] || "Aguardando"}
+                      </span>
+                      {lastSync && (
+                        <span className="block text-xs text-muted-foreground mt-1">
+                          Atualizado às {lastSync.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      )}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSearch(order.order_code, { silent: true })}
+                      disabled={isSyncing}
+                    >
+                      <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? "animate-spin" : ""}`} />
+                      {isSyncing ? "Atualizando..." : "Atualizar status"}
+                    </Button>
+                  </div>
+
+                  {(order.payment_status === "approved" || order.payment_status === "refunded") && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <a
+                        href={buildWhatsappUrl(`Olá! Preciso da nota fiscal do pedido ${order.order_code}.`)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Button variant="secondary" size="sm">
+                          <Receipt className="h-4 w-4 mr-2" />
+                          Solicitar nota fiscal
+                        </Button>
+                      </a>
+                      {order.payment_status === "approved" && (
+                        <a
+                          href={buildWhatsappUrl(`Olá! Gostaria de solicitar reembolso do pedido ${order.order_code}.`)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Button variant="outline" size="sm">
+                            <RotateCcw className="h-4 w-4 mr-2" />
+                            Solicitar reembolso
+                          </Button>
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+
 
                 {/* Order Timeline */}
                 <div className="bg-card rounded-xl border border-border p-6">

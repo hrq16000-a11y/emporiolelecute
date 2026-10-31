@@ -42,7 +42,18 @@ function cleanPath(pathname: string): string {
 }
 
 function setCanonical(url: string) {
-  let link = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  const links = Array.from(
+    document.querySelectorAll<HTMLLinkElement>('link[rel="canonical"]'),
+  );
+  // Helmet (data-rh="true") é a fonte de verdade quando presente:
+  // mantemos apenas UM canonical por página para não confundir crawlers.
+  const helmetLink = links.find((l) => l.dataset.rh === "true");
+  if (helmetLink) {
+    links.filter((l) => l !== helmetLink).forEach((l) => l.remove());
+    return;
+  }
+  let link = links[0];
+  links.slice(1).forEach((l) => l.remove());
   if (!link) {
     link = document.createElement("link");
     link.rel = "canonical";
@@ -50,6 +61,7 @@ function setCanonical(url: string) {
   }
   link.href = url;
 }
+
 
 export default function CanonicalNormalizer() {
   const location = useLocation();
@@ -67,7 +79,12 @@ export default function CanonicalNormalizer() {
     }
 
     setCanonical(`${ORIGIN}${cleanedPath}`);
+    // Helmet injeta o canonical da rota logo após a montagem; roda de novo
+    // para eliminar qualquer duplicata remanescente.
+    const t = window.setTimeout(() => setCanonical(`${ORIGIN}${cleanedPath}`), 400);
+    return () => window.clearTimeout(t);
   }, [location.pathname, location.search, location.hash, navigate]);
+
 
   return null;
 }

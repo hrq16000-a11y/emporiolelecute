@@ -8,6 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import SearchInsights from "@/components/admin/SearchInsights";
 import SynonymEditor from "@/components/admin/SynonymEditor";
 import SearchBoostEditor from "@/components/admin/SearchBoostEditor";
+import SearchAuditPanel from "@/components/admin/SearchAuditPanel";
+
 
 export default function AdminSearch() {
   const [tab, setTab] = useState("insights");
@@ -41,11 +43,13 @@ export default function AdminSearch() {
       </Card>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
+        <TabsList className="overflow-x-auto">
           <TabsTrigger value="insights">Insights</TabsTrigger>
           <TabsTrigger value="synonyms">Sinônimos</TabsTrigger>
           <TabsTrigger value="boosts">Boosts</TabsTrigger>
+          <TabsTrigger value="audit">Auditoria</TabsTrigger>
         </TabsList>
+
 
         <TabsContent value="insights" className="mt-4">
           <SearchInsights
@@ -73,6 +77,11 @@ export default function AdminSearch() {
             onConsumePreset={() => setPresetBoost(null)}
           />
         </TabsContent>
+
+        <TabsContent value="audit" className="mt-4">
+          <SearchAuditPanel />
+        </TabsContent>
+
       </Tabs>
     </div>
   );

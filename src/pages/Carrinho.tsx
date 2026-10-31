@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, Trash2, Minus, Plus, ArrowLeft, MessageCircle, MapPin, User, Mail, Phone, Package, Loader2, CheckCircle, Truck, Crosshair, UserPlus, Lock, Eye, EyeOff } from "lucide-react";
@@ -23,6 +24,11 @@ import { formatPhoneBR, isValidPhoneBR } from "@/lib/phoneMask";
 import { loadCustomer, saveCustomer, loadAddress, saveAddress } from "@/lib/customerCache";
 import CheckoutSteps from "@/components/CheckoutSteps";
 import CheckoutStepsBar from "@/components/CheckoutStepsBar";
+import CheckoutSkeleton from "@/components/CheckoutSkeleton";
+import { useCartStore } from "@/stores/cartStore";
+import { reportError, retryAsync, type ReportedError } from "@/lib/errorReporting";
+import CopyCorrelationId from "@/components/CopyCorrelationId";
+
 
 interface AddressData {
   cep: string;
@@ -73,6 +79,21 @@ const Carrinho = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
 
+  // Hidratação do carrinho (localStorage) — evita layout shift e flash de "carrinho vazio"
+  const [hydrated, setHydrated] = useState<boolean>(
+    () => useCartStore.persist?.hasHydrated?.() ?? true
+  );
+  useEffect(() => {
+    if (useCartStore.persist?.hasHydrated?.()) {
+      setHydrated(true);
+      return;
+    }
+    const unsub = useCartStore.persist?.onFinishHydration?.(() => setHydrated(true));
+    return () => unsub?.();
+  }, []);
+
+
+
   // Garante que a tela de "Pedido Enviado" abra sempre rolada ao topo,
   // independente da posição em que o usuário estava no formulário.
   useEffect(() => {
@@ -81,6 +102,13 @@ const Carrinho = () => {
     }
   }, [orderComplete]);
   const [orderCode, setOrderCode] = useState('');
+  /** Mantém o código estável entre tentativas → nunca duplica o pedido. */
+  const orderCodeRef = useRef<string | null>(null);
+  const [checkoutError, setCheckoutError] = useState<ReportedError | null>(null);
+  // Background sync: quando a falha é de rede, reenviamos automaticamente
+  // assim que a conexão voltar (o order_code reservado impede duplicação).
+  const [pendingSync, setPendingSync] = useState(false);
+
   const [couponInput, setCouponInput] = useState('');
   const [coupon, setCoupon] = useState<ValidCoupon | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
@@ -500,47 +528,60 @@ const Carrinho = () => {
     }
 
     setInvalidFields(new Set());
+    setCheckoutError(null);
+    setPendingSync(false);
 
     setIsSubmitting(true);
-    const code = generateOrderCode();
+
+    // Idempotência: o código é gerado UMA vez e reaproveitado em todas as
+    // tentativas, impedindo pedidos duplicados em caso de retry/instabilidade.
+    if (!orderCodeRef.current) orderCodeRef.current = generateOrderCode();
+    const code = orderCodeRef.current;
     setOrderCode(code);
 
     try {
       // Save order via secure server-side RPC (validates and inserts atomically)
-      const { error: orderError } = await supabase.rpc('create_order_with_items', {
-        _order: {
-          order_code: code,
-          customer_name: customer.name,
-          customer_email: customer.email,
-          customer_phone: customer.phone,
-          address_cep: address.cep,
-          address_city: address.city,
-          address_state: address.state,
-          shipping_method: 'A calcular via WhatsApp',
-          shipping_price: 0,
-          subtotal: total,
-          total: totalWithDiscount,
-          coupon_code: coupon?.code ?? null,
-          discount_amount: discount,
-          notes: coupon ? `Cupom aplicado: ${coupon.code} (-R$ ${coupon.discount_applied.toFixed(2)})` : null,
-          status: 'pending',
-        },
-        _items: items.map(item => ({
-          product_name: item.name,
-          product_slug: item.slug,
-          product_image: item.image,
-          quantity: item.quantity,
-          unit_price: item.price,
-          personalization: item.personalization || null,
-        })),
-      });
+      await retryAsync(async () => {
+        const { error: orderError } = await supabase.rpc('create_order_with_items', {
+          _order: {
+            order_code: code,
+            customer_name: customer.name,
+            customer_email: customer.email,
+            customer_phone: customer.phone,
+            address_cep: address.cep,
+            address_city: address.city,
+            address_state: address.state,
+            shipping_method: 'A calcular via WhatsApp',
+            shipping_price: 0,
+            subtotal: total,
+            total: totalWithDiscount,
+            coupon_code: coupon?.code ?? null,
+            discount_amount: discount,
+            notes: coupon ? `Cupom aplicado: ${coupon.code} (-R$ ${coupon.discount_applied.toFixed(2)})` : null,
+            status: 'pending',
+          },
+          _items: items.map(item => ({
+            product_name: item.name,
+            product_slug: item.slug,
+            product_image: item.image,
+            quantity: item.quantity,
+            unit_price: item.price,
+            personalization: item.personalization || null,
+          })),
+        });
 
-      if (orderError) {
-        console.error('Order save error:', orderError);
-        throw orderError;
-      }
+        if (orderError) {
+          // Violação de unicidade = o pedido já foi criado numa tentativa
+          // anterior. Não é erro: seguimos o fluxo sem duplicar.
+          const isDuplicate =
+            (orderError as { code?: string }).code === '23505' ||
+            /duplicate key|order_code/i.test(orderError.message ?? '');
+          if (isDuplicate) return;
+          throw orderError;
+        }
+      }, { retries: 2, backoffMs: 800 });
 
-      // Send email to store
+      // Send email to store (best-effort — nunca bloqueia a conclusão)
       const emailResponse = await supabase.functions.invoke('send-order-email', {
         body: {
           orderCode: code,
@@ -562,7 +603,7 @@ const Carrinho = () => {
       });
 
       if (emailResponse.error) {
-        console.error('Email error:', emailResponse.error);
+        reportError('checkout', emailResponse.error, { stage: 'send-order-email', code });
       }
 
       // Open WhatsApp with order details
@@ -578,16 +619,34 @@ const Carrinho = () => {
       });
 
     } catch (error) {
-      console.error('Error:', error);
+      const reported = reportError('checkout', error, { stage: 'create_order', code });
+      setCheckoutError(reported);
+      setPendingSync(reported.retryable);
       toast({
-        title: "Erro ao enviar pedido",
-        description: "Tente novamente",
+        title: reported.title,
+        description: `${reported.description} Seu pedido ${code} não será duplicado ao tentar de novo.`,
         variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
+
+
+  // Background sync do checkout: reexecuta a tentativa pendente quando a
+  // conexão volta. Idempotente (mesmo order_code), sem duplicar pedidos.
+  useEffect(() => {
+    if (!pendingSync) return;
+    const retry = () => {
+      if (isSubmitting) return;
+      setPendingSync(false);
+      setCheckoutError(null);
+      void handleSubmitOrder();
+    };
+    window.addEventListener("online", retry);
+    return () => window.removeEventListener("online", retry);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingSync, isSubmitting]);
 
   if (orderComplete) {
     return (
@@ -598,7 +657,11 @@ const Carrinho = () => {
             <div className="bg-green-100 rounded-full w-14 h-14 md:w-24 md:h-24 flex items-center justify-center mx-auto mb-3 md:mb-6">
               <CheckCircle className="h-7 w-7 md:h-12 md:w-12 text-green-600" />
             </div>
-            <h1 className="font-display text-2xl md:text-4xl text-foreground mb-2 md:mb-4">
+            <h1
+              tabIndex={-1}
+              ref={(el) => el?.focus()}
+              className="font-display text-2xl md:text-4xl text-foreground mb-2 md:mb-4 outline-none"
+            >
               Pedido Enviado!
             </h1>
             <p className="text-sm md:text-base text-muted-foreground mb-1 md:mb-2">
@@ -779,6 +842,11 @@ const Carrinho = () => {
   }
 
   return (
+    <>
+      <Helmet>
+        <title>Carrinho | Empório LeleCute</title>
+        <meta name="robots" content="noindex,follow" />
+      </Helmet>
     <div className="min-h-screen bg-background">
       <Header />
       
@@ -808,8 +876,9 @@ const Carrinho = () => {
             sectionIds={["step-cart", "step-data", "step-checkout"]}
           />
 
+          {!hydrated && <CheckoutSkeleton />}
 
-          <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
+          <div className={`grid lg:grid-cols-3 gap-6 md:gap-8 ${hydrated ? "animate-fade-in" : "hidden"}`}>
             {/* Left Column - Form */}
             <div className="lg:col-span-2 space-y-4 md:space-y-6">
               {/* Cart Items */}
@@ -1135,7 +1204,43 @@ const Carrinho = () => {
                   + frete (calculado via WhatsApp)
                 </p>
 
+                {checkoutError && (
+                  <div
+                    role="alert"
+                    aria-live="assertive"
+                    tabIndex={-1}
+                    ref={(el) => el?.focus()}
+                    className="mb-4 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-left animate-fade-in outline-none"
+                  >
+                    <p className="text-sm font-semibold text-destructive">{checkoutError.title}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{checkoutError.description}</p>
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      Pedido reservado: <span className="font-mono">{orderCodeRef.current}</span> — tentar de novo não duplica.
+                    </p>
+                    <CopyCorrelationId
+                      correlationId={checkoutError.correlationId}
+                      className="mt-1 justify-start"
+                    />
+                    {pendingSync && (
+                      <p className="text-[11px] text-muted-foreground mt-1">
+                        Sem conexão: vamos reenviar automaticamente assim que a internet voltar.
+                      </p>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                      disabled={isSubmitting}
+                      onClick={() => { setCheckoutError(null); void handleSubmitOrder(); }}
+                    >
+                      {isSubmitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+                      Tentar novamente
+                    </Button>
+                  </div>
+                )}
+
                 <div className="space-y-3">
+
                   <Button 
                     id="finalize-whatsapp-btn"
                     size="lg" 
@@ -1187,6 +1292,7 @@ const Carrinho = () => {
       <Footer />
       <WhatsAppButton />
     </div>
+    </>
   );
 };
 
