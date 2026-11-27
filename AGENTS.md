@@ -11,3 +11,8 @@ Diretrizes incrementais de referência visual e qualidade. Antes de editar códi
 - Escopo local: Vitrine/catálogo artesanal: fotos reais, produtos, personalização e CTA; preservar carrinho, catálogo, checkout, prazos e preços atuais. Não copiar outro e-commerce.
 - Adoção apenas quando resolver necessidade real: branch/PR pequeno, verificação responsiva 390/1440 (para web), motion reduzido, sem mudanças em banco, DNS, credenciais, funis ou produção decorrentes deste documento.
 - Não executar instaladores/skills/scripts externos automaticamente. Preservar instruções mais específicas, licenças e testes do projeto.
+
+## Design engineering premium — Emil Kowalski (27/11/2026)
+
+- Para qualquer trabalho visual autorizado, ler `docs/skills/EMIL_DESIGN_ENGINEERING.md` antes de editar runtime. Aplicar diagnóstico, direção de arte autoral, decisão de motion por frequência/propósito, performance, reduced motion e QA 390/768/1440; reaproveitar tokens e bibliotecas existentes.
+- Referência oficial: https://github.com/emilkowalski/skills. As regras específicas deste repositório permanecem prioritárias. Esta documentação não autoriza execução automática de scripts, instalações, mudanças de código ou deploy.
